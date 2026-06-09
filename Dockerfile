@@ -2,7 +2,7 @@ FROM oven/bun:latest AS builder
 
 WORKDIR /app
 
-COPY package.json bun.lock* vite.config.ts ./
+COPY package.json bun.lock* vite.config.ts .svelte-kit/tsconfig.json ./
 
 RUN bun install --frozen-lockfile
 
