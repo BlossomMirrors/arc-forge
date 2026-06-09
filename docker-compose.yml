@@ -15,7 +15,7 @@ services:
       retries: 10
 
   app:
-    build: .
+    image: registry.blossomos.org/blossom/arc-store/forge/main
     ports:
       - '3000:3000'
     depends_on:
