@@ -16,7 +16,7 @@ export type Section =
 	| { type: 'p'; text: string }
 	| { type: 'ul'; items: string[] }
 	| { type: 'br' }
-	| { type: 'carousel'; breakpoint: number; items: CarouselItem[] }
+	| { type: 'carousel'; breakpoint: number; items: CarouselItem[]; appCloudOverlay: boolean }
 	| { type: 'top' }
 	| { type: 'new' }
 	| { type: 'trending' }
@@ -73,8 +73,10 @@ function sectionToXml(s: Section): string {
 			return `<ul>\n${s.items.map((i) => `  <li>${esc(i)}</li>`).join('\n')}\n</ul>`;
 		case 'br':
 			return `<br />`;
-		case 'carousel':
-			return `<carousel breakpoint="${s.breakpoint}">\n${s.items.map(carouselItemToXml).join('\n')}\n</carousel>`;
+		case 'carousel': {
+			const attrs = `breakpoint="${s.breakpoint}"${s.appCloudOverlay ? ' app-cloud="true"' : ''}`;
+			return `<carousel ${attrs}>\n${s.items.map(carouselItemToXml).join('\n')}\n</carousel>`;
+		}
 		case 'top':
 			return '<top />';
 		case 'new':
@@ -127,7 +129,7 @@ export function newSection(type: Section['type']): Section {
 		case 'br':
 			return { type };
 		case 'carousel':
-			return { type, breakpoint: 5, items: [] };
+			return { type, breakpoint: 5, items: [], appCloudOverlay: false };
 		case 'category':
 			return { type, value: '' };
 		case 'custom':

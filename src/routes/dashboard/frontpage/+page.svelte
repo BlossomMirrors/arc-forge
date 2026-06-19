@@ -650,7 +650,7 @@
 								{#if expanded}
 									<div class="border-t border-border/40 px-4 py-3 text-sm">
 										{#if section.type === 'carousel'}
-											<div class="mb-3">
+											<div class="mb-3 space-y-3">
 												<label class="space-y-1">
 													<span class="text-xs text-muted-foreground"
 														>{m.frontpage_breakpoint()}</span
@@ -662,6 +662,14 @@
 														oninput={mark}
 														min={1}
 													/>
+												</label>
+												<label class="flex items-center gap-2 text-sm">
+													<input
+														type="checkbox"
+														bind:checked={section.appCloudOverlay}
+														onchange={mark}
+													/>
+													<span>{m.frontpage_app_cloud_overlay()}</span>
 												</label>
 											</div>
 											{#each section.items as item, j (j)}
