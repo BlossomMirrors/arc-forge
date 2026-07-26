@@ -13,7 +13,8 @@
 		KeyRound,
 		BadgeCheck,
 		Mail,
-		Image
+		Image,
+		ListMusic
 	} from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
@@ -65,6 +66,7 @@
 			{ href: '/dashboard/pwas', label: m.nav_pwas(), icon: AppWindow, show: true },
 			{ href: '/dashboard/flatpaks', label: m.nav_flatpaks(), icon: Package, show: true },
 			{ href: '/dashboard/screenshots', label: m.nav_screenshots(), icon: Image, show: true },
+			{ href: '/dashboard/lists', label: m.nav_lists(), icon: ListMusic, show: true },
 			{
 				href: '/dashboard/developer-profile',
 				label: m.nav_developer_profile(),

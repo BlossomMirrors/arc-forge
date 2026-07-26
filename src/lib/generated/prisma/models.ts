@@ -25,4 +25,6 @@ export type * from './models/WhitelistEntry.ts';
 export type * from './models/Verification.ts';
 export type * from './models/AppInstall.ts';
 export type * from './models/FlathubCache.ts';
+export type * from './models/AppList.ts';
+export type * from './models/AppListItem.ts';
 export type * from './commonInputTypes.ts';

@@ -19,7 +19,7 @@ FROM oven/bun:latest AS runner
 # git is needed by git-watch.ts (ls-remote polling and manifest detection for
 # git-sourced Flatpak submissions), deliberately run from this container rather
 # than over SSH to the signing host, since it has nothing to do with secrets.
-RUN apt-get update && apt-get install -y --no-install-recommends curl git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

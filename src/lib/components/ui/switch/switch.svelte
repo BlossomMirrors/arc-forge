@@ -4,7 +4,7 @@
 	import { Spring } from 'svelte/motion';
 	import { cn, type WithoutChildrenOrChild } from '$lib/utils.js';
 
-	const TRACK_WIDTH = 48;
+	const TRACK_WIDTH = 40;
 	const TRACK_PAD = 4;
 	const THUMB_SIZE = 16;
 	const THUMB_BOTTOM_MARGIN = 2;

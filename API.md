@@ -86,6 +86,52 @@ GET /api/verified/com.example.App
 
 Returns `404` if no Flatpak with that `appid` has been submitted to Forge.
 
+## `GET /api/lists/:uuid`
+
+Returns a user-made app list. Lists are unmoderated and unlisted, knowing the list's UUID is the only access control, there is no way to enumerate lists. A list is created by a signed-in Forge user from `/dashboard/lists` and can contain both PWA and native Flatpak apps.
+
+```
+GET /api/lists/3f1b2a10-9c3e-4b1a-8e2f-6d1c9a0b7e21
+```
+
+**Response:** `application/json`
+
+```json
+{
+	"id": "3f1b2a10-9c3e-4b1a-8e2f-6d1c9a0b7e21",
+	"name": "My favourite apps",
+	"icon": "https://example.com/icon.png",
+	"description": "A curated list of apps I like.",
+	"apps": [
+		{
+			"ref": "org.example.MyApp",
+			"name": "My App",
+			"icon_url": "https://example.com/app-icon.png"
+		},
+		{
+			"ref": "pwa:org.example.MyPwa",
+			"name": "My PWA",
+			"icon_url": "https://example.com/pwa-icon.png"
+		}
+	]
+}
+```
+
+### Fields
+
+| Field             | Type           | Description                                                 |
+| ----------------- | -------------- | ----------------------------------------------------------- |
+| `id`              | string         | The list's UUID                                             |
+| `name`            | string         | List name                                                   |
+| `icon`            | string \| null | List icon URL                                               |
+| `description`     | string \| null | List description                                            |
+| `apps`            | array          | Apps on the list, in the order the owner arranged them      |
+| `apps[].ref`      | string         | Native Flatpak app ID, or a PWA app ID prefixed with `pwa:` |
+| `apps[].name`     | string         | App name at the time it was added to the list               |
+| `apps[].icon_url` | string \| null | App icon URL at the time it was added to the list           |
+
+Returns `404` if no list with that UUID exists.
+
 ## `POST /api/installs`
 
 Records an app install event. Used by the client to track installs for ranking purposes.

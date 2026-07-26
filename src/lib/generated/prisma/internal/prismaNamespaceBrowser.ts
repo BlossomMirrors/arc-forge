@@ -65,7 +65,9 @@ export const ModelName = {
 	WhitelistEntry: 'WhitelistEntry',
 	Verification: 'Verification',
 	AppInstall: 'AppInstall',
-	FlathubCache: 'FlathubCache'
+	FlathubCache: 'FlathubCache',
+	AppList: 'AppList',
+	AppListItem: 'AppListItem'
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -363,6 +365,32 @@ export const FlathubCacheScalarFieldEnum = {
 
 export type FlathubCacheScalarFieldEnum =
 	(typeof FlathubCacheScalarFieldEnum)[keyof typeof FlathubCacheScalarFieldEnum];
+
+export const AppListScalarFieldEnum = {
+	id: 'id',
+	name: 'name',
+	icon: 'icon',
+	description: 'description',
+	createdById: 'createdById',
+	createdAt: 'createdAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type AppListScalarFieldEnum =
+	(typeof AppListScalarFieldEnum)[keyof typeof AppListScalarFieldEnum];
+
+export const AppListItemScalarFieldEnum = {
+	id: 'id',
+	listId: 'listId',
+	appRef: 'appRef',
+	name: 'name',
+	iconUrl: 'iconUrl',
+	position: 'position',
+	createdAt: 'createdAt'
+} as const;
+
+export type AppListItemScalarFieldEnum =
+	(typeof AppListItemScalarFieldEnum)[keyof typeof AppListItemScalarFieldEnum];
 
 export const SortOrder = {
 	asc: 'asc',

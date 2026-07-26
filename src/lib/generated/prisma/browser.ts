@@ -106,3 +106,13 @@ export type AppInstall = Prisma.AppInstallModel;
  *
  */
 export type FlathubCache = Prisma.FlathubCacheModel;
+/**
+ * Model AppList
+ *
+ */
+export type AppList = Prisma.AppListModel;
+/**
+ * Model AppListItem
+ *
+ */
+export type AppListItem = Prisma.AppListItemModel;

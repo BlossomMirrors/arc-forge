@@ -392,7 +392,9 @@ export const ModelName = {
 	WhitelistEntry: 'WhitelistEntry',
 	Verification: 'Verification',
 	AppInstall: 'AppInstall',
-	FlathubCache: 'FlathubCache'
+	FlathubCache: 'FlathubCache',
+	AppList: 'AppList',
+	AppListItem: 'AppListItem'
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -430,7 +432,9 @@ export type TypeMap<
 			| 'whitelistEntry'
 			| 'verification'
 			| 'appInstall'
-			| 'flathubCache';
+			| 'flathubCache'
+			| 'appList'
+			| 'appListItem';
 		txIsolationLevel: TransactionIsolationLevel;
 	};
 	model: {
@@ -1788,6 +1792,154 @@ export type TypeMap<
 				};
 			};
 		};
+		AppList: {
+			payload: Prisma.$AppListPayload<ExtArgs>;
+			fields: Prisma.AppListFieldRefs;
+			operations: {
+				findUnique: {
+					args: Prisma.AppListFindUniqueArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload> | null;
+				};
+				findUniqueOrThrow: {
+					args: Prisma.AppListFindUniqueOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				findFirst: {
+					args: Prisma.AppListFindFirstArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload> | null;
+				};
+				findFirstOrThrow: {
+					args: Prisma.AppListFindFirstOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				findMany: {
+					args: Prisma.AppListFindManyArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>[];
+				};
+				create: {
+					args: Prisma.AppListCreateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				createMany: {
+					args: Prisma.AppListCreateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				createManyAndReturn: {
+					args: Prisma.AppListCreateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>[];
+				};
+				delete: {
+					args: Prisma.AppListDeleteArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				update: {
+					args: Prisma.AppListUpdateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				deleteMany: {
+					args: Prisma.AppListDeleteManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateMany: {
+					args: Prisma.AppListUpdateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateManyAndReturn: {
+					args: Prisma.AppListUpdateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>[];
+				};
+				upsert: {
+					args: Prisma.AppListUpsertArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListPayload>;
+				};
+				aggregate: {
+					args: Prisma.AppListAggregateArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AggregateAppList>;
+				};
+				groupBy: {
+					args: Prisma.AppListGroupByArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AppListGroupByOutputType>[];
+				};
+				count: {
+					args: Prisma.AppListCountArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AppListCountAggregateOutputType> | number;
+				};
+			};
+		};
+		AppListItem: {
+			payload: Prisma.$AppListItemPayload<ExtArgs>;
+			fields: Prisma.AppListItemFieldRefs;
+			operations: {
+				findUnique: {
+					args: Prisma.AppListItemFindUniqueArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload> | null;
+				};
+				findUniqueOrThrow: {
+					args: Prisma.AppListItemFindUniqueOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				findFirst: {
+					args: Prisma.AppListItemFindFirstArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload> | null;
+				};
+				findFirstOrThrow: {
+					args: Prisma.AppListItemFindFirstOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				findMany: {
+					args: Prisma.AppListItemFindManyArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>[];
+				};
+				create: {
+					args: Prisma.AppListItemCreateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				createMany: {
+					args: Prisma.AppListItemCreateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				createManyAndReturn: {
+					args: Prisma.AppListItemCreateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>[];
+				};
+				delete: {
+					args: Prisma.AppListItemDeleteArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				update: {
+					args: Prisma.AppListItemUpdateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				deleteMany: {
+					args: Prisma.AppListItemDeleteManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateMany: {
+					args: Prisma.AppListItemUpdateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateManyAndReturn: {
+					args: Prisma.AppListItemUpdateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>[];
+				};
+				upsert: {
+					args: Prisma.AppListItemUpsertArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$AppListItemPayload>;
+				};
+				aggregate: {
+					args: Prisma.AppListItemAggregateArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AggregateAppListItem>;
+				};
+				groupBy: {
+					args: Prisma.AppListItemGroupByArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AppListItemGroupByOutputType>[];
+				};
+				count: {
+					args: Prisma.AppListItemCountArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AppListItemCountAggregateOutputType> | number;
+				};
+			};
+		};
 	};
 } & {
 	other: {
@@ -2107,6 +2259,32 @@ export const FlathubCacheScalarFieldEnum = {
 export type FlathubCacheScalarFieldEnum =
 	(typeof FlathubCacheScalarFieldEnum)[keyof typeof FlathubCacheScalarFieldEnum];
 
+export const AppListScalarFieldEnum = {
+	id: 'id',
+	name: 'name',
+	icon: 'icon',
+	description: 'description',
+	createdById: 'createdById',
+	createdAt: 'createdAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type AppListScalarFieldEnum =
+	(typeof AppListScalarFieldEnum)[keyof typeof AppListScalarFieldEnum];
+
+export const AppListItemScalarFieldEnum = {
+	id: 'id',
+	listId: 'listId',
+	appRef: 'appRef',
+	name: 'name',
+	iconUrl: 'iconUrl',
+	position: 'position',
+	createdAt: 'createdAt'
+} as const;
+
+export type AppListItemScalarFieldEnum =
+	(typeof AppListItemScalarFieldEnum)[keyof typeof AppListItemScalarFieldEnum];
+
 export const SortOrder = {
 	asc: 'asc',
 	desc: 'desc'
@@ -2414,6 +2592,8 @@ export type GlobalOmitConfig = {
 	verification?: Prisma.VerificationOmit;
 	appInstall?: Prisma.AppInstallOmit;
 	flathubCache?: Prisma.FlathubCacheOmit;
+	appList?: Prisma.AppListOmit;
+	appListItem?: Prisma.AppListItemOmit;
 };
 
 /* Types for Logging */

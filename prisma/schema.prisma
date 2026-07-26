@@ -31,6 +31,7 @@ model User {
   notifications             Notification[]
   submittedScreenshots      ScreenshotSubmission[]         @relation("ScreenshotSubmittedBy")
   reviewedScreenshots       ScreenshotSubmission[]         @relation("ScreenshotReviewedBy")
+  appLists                  AppList[]
 }
 
 model Session {
@@ -350,4 +351,43 @@ model FlathubCache {
   appid    String   @id
   installs Int
   cachedAt DateTime @default(now())
+}
+
+// A user-curated collection of apps, e.g. "my favorite dev tools". Deliberately
+// unmoderated: id is a real UUID (not the app's usual cuid) because it doubles as
+// the only access control for reading the list - anyone who has the id can fetch
+// it via GET /api/lists/:id, no login required. Only the creator can edit it
+// though, that's checked against createdById in the dashboard actions.
+model AppList {
+  id          String        @id @default(uuid())
+  name        String
+  icon        String?
+  description String?       @db.Text
+  createdById String?
+  createdBy   User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items       AppListItem[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([createdById])
+}
+
+// name/iconUrl are a snapshot taken when the app was added, not re-fetched live,
+// so viewing a list doesn't depend on Flathub/arpi.blossomos.org/Forge's own PWA
+// table all being up just to render it. appRef is either a bare Flatpak app id
+// (e.g. "org.gnome.Gedit") or a Forge PWA id prefixed "pwa:" (e.g.
+// "pwa:com.example.MyApp") - the same pwa: convention arc-daemon's own PWA
+// provider already uses to tell the two apart.
+model AppListItem {
+  id        String   @id @default(cuid())
+  listId    String
+  list      AppList  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  appRef    String
+  name      String
+  iconUrl   String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([listId, appRef])
+  @@index([listId])
 }

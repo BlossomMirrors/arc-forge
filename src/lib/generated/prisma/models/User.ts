@@ -220,6 +220,7 @@ export type UserWhereInput = {
 	notifications?: Prisma.NotificationListRelationFilter;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
+	appLists?: Prisma.AppListListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -246,6 +247,7 @@ export type UserOrderByWithRelationInput = {
 	notifications?: Prisma.NotificationOrderByRelationAggregateInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput;
+	appLists?: Prisma.AppListOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -276,6 +278,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
 		notifications?: Prisma.NotificationListRelationFilter;
 		submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
 		reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
+		appLists?: Prisma.AppListListRelationFilter;
 	},
 	'id' | 'email'
 >;
@@ -334,6 +337,7 @@ export type UserCreateInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -360,6 +364,7 @@ export type UserUncheckedCreateInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUpdateInput = {
@@ -386,6 +391,7 @@ export type UserUpdateInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -412,6 +418,7 @@ export type UserUncheckedUpdateInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -909,6 +916,34 @@ export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
 	>;
 };
 
+export type UserCreateNestedOneWithoutAppListsInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutAppListsInput,
+		Prisma.UserUncheckedCreateWithoutAppListsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutAppListsInput;
+	connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneWithoutAppListsNestedInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutAppListsInput,
+		Prisma.UserUncheckedCreateWithoutAppListsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutAppListsInput;
+	upsert?: Prisma.UserUpsertWithoutAppListsInput;
+	disconnect?: Prisma.UserWhereInput | boolean;
+	delete?: Prisma.UserWhereInput | boolean;
+	connect?: Prisma.UserWhereUniqueInput;
+	update?: Prisma.XOR<
+		Prisma.XOR<
+			Prisma.UserUpdateToOneWithWhereWithoutAppListsInput,
+			Prisma.UserUpdateWithoutAppListsInput
+		>,
+		Prisma.UserUncheckedUpdateWithoutAppListsInput
+	>;
+};
+
 export type UserCreateWithoutSessionsInput = {
 	id: string;
 	name: string;
@@ -932,6 +967,7 @@ export type UserCreateWithoutSessionsInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -957,6 +993,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1010,6 +1047,7 @@ export type UserUpdateWithoutSessionsInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1035,6 +1073,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutAccountsInput = {
@@ -1060,6 +1099,7 @@ export type UserCreateWithoutAccountsInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1085,6 +1125,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1138,6 +1179,7 @@ export type UserUpdateWithoutAccountsInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1163,6 +1205,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1188,6 +1231,7 @@ export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1213,6 +1257,7 @@ export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutVerifiedDeveloperProfilesInput = {
@@ -1266,6 +1311,7 @@ export type UserUpdateWithoutVerifiedDeveloperProfilesInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
@@ -1291,6 +1337,7 @@ export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutRequestedVerificationsInput = {
@@ -1316,6 +1363,7 @@ export type UserCreateWithoutRequestedVerificationsInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
@@ -1341,6 +1389,7 @@ export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutRequestedVerificationsInput = {
@@ -1374,6 +1423,7 @@ export type UserCreateWithoutReviewedVerificationsInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
@@ -1399,6 +1449,7 @@ export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedVerificationsInput = {
@@ -1452,6 +1503,7 @@ export type UserUpdateWithoutRequestedVerificationsInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
@@ -1477,6 +1529,7 @@ export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedVerificationsInput = {
@@ -1522,6 +1575,7 @@ export type UserUpdateWithoutReviewedVerificationsInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
@@ -1547,6 +1601,7 @@ export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutSubmittedScreenshotsInput = {
@@ -1572,6 +1627,7 @@ export type UserCreateWithoutSubmittedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutSubmittedScreenshotsInput = {
@@ -1597,6 +1653,7 @@ export type UserUncheckedCreateWithoutSubmittedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutSubmittedScreenshotsInput = {
@@ -1630,6 +1687,7 @@ export type UserCreateWithoutReviewedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedScreenshotsInput = {
@@ -1655,6 +1713,7 @@ export type UserUncheckedCreateWithoutReviewedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedScreenshotsInput = {
@@ -1708,6 +1767,7 @@ export type UserUpdateWithoutSubmittedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSubmittedScreenshotsInput = {
@@ -1733,6 +1793,7 @@ export type UserUncheckedUpdateWithoutSubmittedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedScreenshotsInput = {
@@ -1778,6 +1839,7 @@ export type UserUpdateWithoutReviewedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedScreenshotsInput = {
@@ -1803,6 +1865,7 @@ export type UserUncheckedUpdateWithoutReviewedScreenshotsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutDeveloperProfileMembersInput = {
@@ -1828,6 +1891,7 @@ export type UserCreateWithoutDeveloperProfileMembersInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
@@ -1853,6 +1917,7 @@ export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutDeveloperProfileMembersInput = {
@@ -1906,6 +1971,7 @@ export type UserUpdateWithoutDeveloperProfileMembersInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
@@ -1931,6 +1997,7 @@ export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutSentDeveloperInvitationsInput = {
@@ -1956,6 +2023,7 @@ export type UserCreateWithoutSentDeveloperInvitationsInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
@@ -1981,6 +2049,7 @@ export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutSentDeveloperInvitationsInput = {
@@ -2034,6 +2103,7 @@ export type UserUpdateWithoutSentDeveloperInvitationsInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
@@ -2059,6 +2129,7 @@ export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutSubmittedPwasInput = {
@@ -2084,6 +2155,7 @@ export type UserCreateWithoutSubmittedPwasInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutSubmittedPwasInput = {
@@ -2109,6 +2181,7 @@ export type UserUncheckedCreateWithoutSubmittedPwasInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutSubmittedPwasInput = {
@@ -2142,6 +2215,7 @@ export type UserCreateWithoutReviewedPwasInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedPwasInput = {
@@ -2167,6 +2241,7 @@ export type UserUncheckedCreateWithoutReviewedPwasInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedPwasInput = {
@@ -2220,6 +2295,7 @@ export type UserUpdateWithoutSubmittedPwasInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
@@ -2245,6 +2321,7 @@ export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedPwasInput = {
@@ -2290,6 +2367,7 @@ export type UserUpdateWithoutReviewedPwasInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedPwasInput = {
@@ -2315,6 +2393,7 @@ export type UserUncheckedUpdateWithoutReviewedPwasInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutSubmittedFlatpaksInput = {
@@ -2340,6 +2419,7 @@ export type UserCreateWithoutSubmittedFlatpaksInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
@@ -2365,6 +2445,7 @@ export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutSubmittedFlatpaksInput = {
@@ -2398,6 +2479,7 @@ export type UserCreateWithoutReviewedFlatpaksInput = {
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
@@ -2423,6 +2505,7 @@ export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedFlatpaksInput = {
@@ -2476,6 +2559,7 @@ export type UserUpdateWithoutSubmittedFlatpaksInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
@@ -2501,6 +2585,7 @@ export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedFlatpaksInput = {
@@ -2546,6 +2631,7 @@ export type UserUpdateWithoutReviewedFlatpaksInput = {
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
@@ -2571,6 +2657,7 @@ export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserCreateWithoutNotificationsInput = {
@@ -2596,6 +2683,7 @@ export type UserCreateWithoutNotificationsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -2621,6 +2709,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+	appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput;
 };
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2674,6 +2763,7 @@ export type UserUpdateWithoutNotificationsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -2699,6 +2789,139 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+	appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput;
+};
+
+export type UserCreateWithoutAppListsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+};
+
+export type UserUncheckedCreateWithoutAppListsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+};
+
+export type UserCreateOrConnectWithoutAppListsInput = {
+	where: Prisma.UserWhereUniqueInput;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutAppListsInput,
+		Prisma.UserUncheckedCreateWithoutAppListsInput
+	>;
+};
+
+export type UserUpsertWithoutAppListsInput = {
+	update: Prisma.XOR<
+		Prisma.UserUpdateWithoutAppListsInput,
+		Prisma.UserUncheckedUpdateWithoutAppListsInput
+	>;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutAppListsInput,
+		Prisma.UserUncheckedCreateWithoutAppListsInput
+	>;
+	where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutAppListsInput = {
+	where?: Prisma.UserWhereInput;
+	data: Prisma.XOR<
+		Prisma.UserUpdateWithoutAppListsInput,
+		Prisma.UserUncheckedUpdateWithoutAppListsInput
+	>;
+};
+
+export type UserUpdateWithoutAppListsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutAppListsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 /**
@@ -2720,6 +2943,7 @@ export type UserCountOutputType = {
 	notifications: number;
 	submittedScreenshots: number;
 	reviewedScreenshots: number;
+	appLists: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -2739,6 +2963,7 @@ export type UserCountOutputTypeSelect<
 	notifications?: boolean | UserCountOutputTypeCountNotificationsArgs;
 	submittedScreenshots?: boolean | UserCountOutputTypeCountSubmittedScreenshotsArgs;
 	reviewedScreenshots?: boolean | UserCountOutputTypeCountReviewedScreenshotsArgs;
+	appLists?: boolean | UserCountOutputTypeCountAppListsArgs;
 };
 
 /**
@@ -2879,6 +3104,15 @@ export type UserCountOutputTypeCountReviewedScreenshotsArgs<
 	where?: Prisma.ScreenshotSubmissionWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAppListsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	where?: Prisma.AppListWhereInput;
+};
+
 export type UserSelect<
 	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > = runtime.Types.Extensions.GetSelect<
@@ -2906,6 +3140,7 @@ export type UserSelect<
 		notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>;
 		submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>;
 		reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>;
+		appLists?: boolean | Prisma.User$appListsArgs<ExtArgs>;
 		_count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 	},
 	ExtArgs['result']['user']
@@ -2988,6 +3223,7 @@ export type UserInclude<
 	notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>;
 	submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>;
 	reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>;
+	appLists?: boolean | Prisma.User$appListsArgs<ExtArgs>;
 	_count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -3016,6 +3252,7 @@ export type $UserPayload<
 		notifications: Prisma.$NotificationPayload<ExtArgs>[];
 		submittedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[];
 		reviewedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[];
+		appLists: Prisma.$AppListPayload<ExtArgs>[];
 	};
 	scalars: runtime.Types.Extensions.GetPayloadResult<
 		{
@@ -3686,6 +3923,17 @@ export interface Prisma__UserClient<
 	): Prisma.PrismaPromise<
 		| runtime.Types.Result.GetResult<
 				Prisma.$ScreenshotSubmissionPayload<ExtArgs>,
+				T,
+				'findMany',
+				GlobalOmitOptions
+		  >
+		| Null
+	>;
+	appLists<T extends Prisma.User$appListsArgs<ExtArgs> = {}>(
+		args?: Prisma.Subset<T, Prisma.User$appListsArgs<ExtArgs>>
+	): Prisma.PrismaPromise<
+		| runtime.Types.Result.GetResult<
+				Prisma.$AppListPayload<ExtArgs>,
 				T,
 				'findMany',
 				GlobalOmitOptions
@@ -4541,6 +4789,32 @@ export type User$reviewedScreenshotsArgs<
 	distinct?:
 		| Prisma.ScreenshotSubmissionScalarFieldEnum
 		| Prisma.ScreenshotSubmissionScalarFieldEnum[];
+};
+
+/**
+ * User.appLists
+ */
+export type User$appListsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	/**
+	 * Select specific fields to fetch from the AppList
+	 */
+	select?: Prisma.AppListSelect<ExtArgs> | null;
+	/**
+	 * Omit specific fields from the AppList
+	 */
+	omit?: Prisma.AppListOmit<ExtArgs> | null;
+	/**
+	 * Choose, which related nodes to fetch as well
+	 */
+	include?: Prisma.AppListInclude<ExtArgs> | null;
+	where?: Prisma.AppListWhereInput;
+	orderBy?: Prisma.AppListOrderByWithRelationInput | Prisma.AppListOrderByWithRelationInput[];
+	cursor?: Prisma.AppListWhereUniqueInput;
+	take?: number;
+	skip?: number;
+	distinct?: Prisma.AppListScalarFieldEnum | Prisma.AppListScalarFieldEnum[];
 };
 
 /**
