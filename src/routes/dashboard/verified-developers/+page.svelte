@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { BadgeCheck } from '@lucide/svelte';
+	import { BadgeCheck, Trash2 } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import SearchInput from '$lib/components/search-input.svelte';
 	import * as m from '$lib/paraglide/messages';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	let search = $state('');
 	const filteredProfiles = $derived(
@@ -26,6 +26,16 @@
 		<h2 class="text-lg font-semibold">{m.devprofiles_heading()}</h2>
 		<p class="text-sm text-muted-foreground">{m.devprofiles_hint()}</p>
 	</div>
+
+	{#if form?.error}
+		<div class="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
+			<p class="font-medium text-destructive">{form.error}</p>
+			{#if 'log' in form && form.log}
+				<pre
+					class="mt-2 max-h-48 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>
+			{/if}
+		</div>
+	{/if}
 
 	{#if data.profiles.length > 0}
 		<SearchInput bind:value={search} placeholder={m.search_placeholder()} />
@@ -61,13 +71,44 @@
 							{/if}
 						</p>
 					</div>
-					<form method="POST" action="?/setVerified" use:enhance>
-						<input type="hidden" name="id" value={profile.id} />
-						<input type="hidden" name="verified" value={(!profile.verified).toString()} />
-						<Button type="submit" variant={profile.verified ? 'ghost' : 'default'} size="sm">
-							{profile.verified ? m.devprofiles_revoke() : m.devprofiles_verify()}
-						</Button>
-					</form>
+					<div class="flex items-center gap-1">
+						<form method="POST" action="?/setVerified" use:enhance>
+							<input type="hidden" name="id" value={profile.id} />
+							<input type="hidden" name="verified" value={(!profile.verified).toString()} />
+							<Button type="submit" variant={profile.verified ? 'ghost' : 'default'} size="sm">
+								{profile.verified ? m.devprofiles_revoke() : m.devprofiles_verify()}
+							</Button>
+						</form>
+						{#if data.isStaff}
+							<form
+								method="POST"
+								action="?/deleteProfile"
+								id="delete-devprofile-form-{profile.id}"
+								use:enhance
+							>
+								<input type="hidden" name="id" value={profile.id} />
+								<Button
+									type="submit"
+									variant="ghost"
+									size="icon"
+									class="text-muted-foreground hover:text-destructive"
+									title={m.devprofiles_delete()}
+									onclick={(e) => {
+										e.preventDefault?.();
+										e.stopPropagation?.();
+										if (confirm(m.devprofiles_delete_confirm({ name: profile.name }))) {
+											const deleteForm = document.getElementById(
+												`delete-devprofile-form-${profile.id}`
+											) as HTMLFormElement | null;
+											deleteForm?.submit();
+										}
+									}}
+								>
+									<Trash2 class="size-4" />
+								</Button>
+							</form>
+						{/if}
+					</div>
 				</li>
 			{/each}
 		</ul>

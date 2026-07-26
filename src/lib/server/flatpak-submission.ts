@@ -2,6 +2,7 @@ import { db } from './db';
 import { uploadFile } from './bunny';
 import { extractAppstreamMetadata } from './flatpak-publish';
 import { checkRemoteHead, readManifestAppId } from './git-watch';
+import { scanForMalware } from './malware-scan';
 
 export type FlatpakSubmissionResult =
 	| { ok: false; error: string; log?: string }
@@ -28,6 +29,7 @@ export type FlatpakSource =
 
 export const AUTO_REJECT_DEVELOPER_MISMATCH =
 	"Auto-rejected: developer profile name mismatch. Check your Flatpak's AppStream metadata.";
+export const AUTO_REJECT_MALWARE = 'Auto-rejected: malware detected';
 
 // Shared by the new-submission and edit/resubmit actions. For a bundle, reads its
 // own real AppStream data (see extractAppstreamMetadata) instead of trusting
@@ -132,6 +134,16 @@ async function resolveBundleSubmission(
 		}
 	}
 
+	// Applies to every submitter, staff included - unlike the developer-name check
+	// below, being staff doesn't make a bundle any less capable of carrying malware.
+	// A scan that can't actually complete (missing API key, network issue, timeout)
+	// blocks the submission with a clear error rather than either silently letting an
+	// unscanned bundle through or falsely reporting malware that was never confirmed.
+	const scan = await scanForMalware(bundleUrl);
+	if (!scan.ok) {
+		return { ok: false, error: `Could not complete a malware scan of your bundle: ${scan.error}` };
+	}
+
 	// A bundle with no application icon (common for runtimes/themes, which have no
 	// files/share/icons/hicolor/*/apps/*.png of their own) still gets submitted,
 	// just with a generic placeholder instead of blocking the submission outright.
@@ -147,7 +159,10 @@ async function resolveBundleSubmission(
 	let status: 'PENDING' | 'REJECTED' = 'PENDING';
 	let reviewNote: string | null = null;
 	const declaredDeveloperName = (extracted.developerName ?? '').trim();
-	if (
+	if (scan.infected) {
+		status = 'REJECTED';
+		reviewNote = AUTO_REJECT_MALWARE;
+	} else if (
 		!params.isStaff &&
 		declaredDeveloperName &&
 		declaredDeveloperName.toLowerCase() !== (params.claimedDeveloperName ?? '').trim().toLowerCase()

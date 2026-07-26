@@ -1,4 +1,38 @@
 import { db } from './db';
+import { unpublishFlatpak } from './flatpak-publish';
+
+export type DeleteProfileResult = { ok: true } | { ok: false; error: string; log?: string };
+
+// Deletes a developer profile and every PWA/Flatpak submitted under it - used by both
+// an owner deleting their own profile and a staff member deleting someone else's.
+// Any currently-published Flatpak has to come off the signed repo first (same rule as
+// deleting a single Flatpak, see dashboard/flatpaks/+page.server.ts), a failed or
+// in-progress unpublish aborts the whole deletion rather than leaving an orphaned,
+// unmanaged app on the repo or a half-deleted profile.
+export async function deleteDeveloperProfile(
+	developerProfileId: string
+): Promise<DeleteProfileResult> {
+	const flatpaks = await db.flatpakApp.findMany({ where: { developerProfileId } });
+
+	if (flatpaks.some((app) => app.status === 'PROCESSING')) {
+		return { ok: false, error: 'A build is currently in progress for one of these Flatpaks' };
+	}
+
+	for (const app of flatpaks) {
+		if (app.status !== 'APPROVED') continue;
+		const { ok, log } = await unpublishFlatpak(app);
+		if (!ok) {
+			return { ok: false, error: `Could not remove ${app.appid} from the repo`, log };
+		}
+	}
+
+	await db.$transaction([
+		db.pwaApp.deleteMany({ where: { developerProfileId } }),
+		db.flatpakApp.deleteMany({ where: { developerProfileId } }),
+		db.developerProfile.delete({ where: { id: developerProfileId } })
+	]);
+	return { ok: true };
+}
 
 export async function listMyDeveloperProfiles(userId: string) {
 	const memberships = await db.developerProfileMember.findMany({

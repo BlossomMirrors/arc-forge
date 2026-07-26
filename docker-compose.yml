@@ -35,6 +35,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       EMAIL_NOTIFICATIONS_ENABLED: ${EMAIL_NOTIFICATIONS_ENABLED:-true}
+      METADEFENDER_API_KEY: ${METADEFENDER_API_KEY}
       # adapter-node caps request bodies independently of any app-level check;
       # fixed to Infinity (not configurable) since 0 is NOT "unlimited", it
       # means every request body is rejected outright (adapter-node treats 0

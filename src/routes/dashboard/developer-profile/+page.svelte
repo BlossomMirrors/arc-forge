@@ -114,7 +114,7 @@
 										<LogOut class="size-4" />
 									</Button>
 								</form>
-								{#if isOwner}
+								{#if isOwner || data.isStaff}
 									<form
 										method="POST"
 										action="?/deleteProfile"

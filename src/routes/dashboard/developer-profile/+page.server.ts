@@ -2,8 +2,10 @@ import { error, fail } from '@sveltejs/kit';
 import { APIError } from 'better-auth';
 import { auth } from '$lib/auth';
 import { db } from '$lib/server/db';
+import { isStaff } from '$lib/server/authz';
 import { notifyUser } from '$lib/server/notifications';
 import { requestDeveloperVerification } from '$lib/server/developer-verification';
+import { deleteDeveloperProfile } from '$lib/server/developer-profile';
 import type { Actions, PageServerLoad } from './$types';
 
 function slugify(value: string): string {
@@ -37,7 +39,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			orderBy: { createdAt: 'desc' }
 		})
 	]);
-	return { memberships, invitations };
+	return { memberships, invitations, isStaff: isStaff(locals.user) };
 };
 
 export const actions: Actions = {
@@ -201,25 +203,27 @@ export const actions: Actions = {
 		if (!result.ok) return fail(400, { error: result.error });
 	},
 
-	// Owner-only: deletes the developer profile and every PWA submitted under it.
-	// Checked here directly (not delegated to auth.api.deleteOrganization) because
-	// deleting the associated apps has to happen atomically with the profile itself.
+	// Owner (or staff) only: deletes the developer profile and every PWA/Flatpak
+	// submitted under it, unpublishing any live Flatpaks from the signed repo first
+	// (see deleteDeveloperProfile). Checked here directly (not delegated to
+	// auth.api.deleteOrganization) because deleting the associated apps has to happen
+	// alongside the profile itself, not as a separate uncoordinated step.
 	deleteProfile: async ({ request, locals }) => {
 		if (!locals.user) throw error(401);
 		const data = await request.formData();
 		const developerProfileId = data.get('developerProfileId') as string;
 		if (!developerProfileId) return fail(400);
 
-		const membership = await db.developerProfileMember.findFirst({
-			where: { userId: locals.user.id, developerProfileId }
-		});
-		if (membership?.role !== 'owner') {
-			throw error(403, 'Only an owner can delete a developer profile');
+		if (!isStaff(locals.user)) {
+			const membership = await db.developerProfileMember.findFirst({
+				where: { userId: locals.user.id, developerProfileId }
+			});
+			if (membership?.role !== 'owner') {
+				throw error(403, 'Only an owner can delete a developer profile');
+			}
 		}
 
-		await db.$transaction([
-			db.pwaApp.deleteMany({ where: { developerProfileId } }),
-			db.developerProfile.delete({ where: { id: developerProfileId } })
-		]);
+		const result = await deleteDeveloperProfile(developerProfileId);
+		if (!result.ok) return fail(500, { error: result.error, log: result.log });
 	}
 };
