@@ -48,6 +48,7 @@
 	<li>
 		<NavigationMenu.Link>
 			{#snippet child()}
+				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
 					href={resolve(item.href)}
 					class={cn(
@@ -65,7 +66,9 @@
 						<div class="flex items-center gap-2 text-sm leading-none font-medium">
 							{item.label}
 							{#if item.badge}
-								<span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+								<span
+									class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+								>
 									{item.badge}
 								</span>
 							{/if}

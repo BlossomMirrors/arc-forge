@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { genericOAuth } from 'better-auth/plugins';
+import { genericOAuth, organization, type GenericOAuthConfig } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 import { PrismaClient } from '$lib/generated/prisma/client';
@@ -18,12 +18,30 @@ const {
 const pgAdapter = new PrismaPg({ connectionString: DATABASE_URL });
 const prisma = new PrismaClient({ adapter: pgAdapter });
 
+// authentik calls its claim "groups"; we call it "roles" everywhere in Forge
+function rolesFromProfile(profile: Record<string, unknown>): string[] {
+	const groups = profile.groups;
+	if (!Array.isArray(groups)) return [];
+	return groups.filter((g): g is string => typeof g === 'string');
+}
+
 export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET ?? crypto.randomUUID(),
 	database: prismaAdapter(prisma, {
 		provider: 'postgresql'
 	}),
 	baseURL: BETTER_AUTH_URL,
+	user: {
+		additionalFields: {
+			roles: {
+				type: 'string[]',
+				required: false,
+				// server-controlled only: never settable through the update-user API,
+				// otherwise a user could self-grant "staff" by calling it directly
+				input: false
+			}
+		}
+	},
 	plugins: [
 		genericOAuth({
 			config: [
@@ -32,9 +50,33 @@ export const auth = betterAuth({
 					clientId: AUTHENTIK_CLIENT_ID,
 					clientSecret: AUTHENTIK_CLIENT_SECRET,
 					discoveryUrl: `${AUTHENTIK_URL}/application/o/arc-forge/.well-known/openid-configuration`,
-					scopes: ['openid', 'email', 'profile']
+					scopes: ['openid', 'email', 'profile', 'groups'],
+					// `roles` isn't part of better-auth's base User type (it only exists via our
+					// user.additionalFields config below), so the return type needs a cast here
+					mapProfileToUser: ((profile: Record<string, unknown>) => ({
+						roles: rolesFromProfile(profile)
+					})) as unknown as GenericOAuthConfig['mapProfileToUser'],
+					// re-sync roles from the authentik groups claim on every sign-in, not just account creation
+					overrideUserInfo: true
 				}
 			]
+		}),
+		// "organizations" from the plugin's perspective; renamed to "developer profiles"
+		// throughout Forge since that's what they represent here: the publisher
+		// identity a PWA submission is attributed to.
+		organization({
+			schema: {
+				organization: { modelName: 'developerProfile' },
+				member: {
+					modelName: 'developerProfileMember',
+					fields: { organizationId: 'developerProfileId' }
+				},
+				invitation: {
+					modelName: 'developerProfileInvitation',
+					fields: { organizationId: 'developerProfileId' }
+				},
+				session: { fields: { activeOrganizationId: 'activeDeveloperProfileId' } }
+			}
 		}),
 		sveltekitCookies(getRequestEvent)
 	]

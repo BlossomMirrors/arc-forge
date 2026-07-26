@@ -29,4 +29,5 @@ async function fetchCollection(path: string, limit: number): Promise<string[]> {
 
 export const getPopular = (limit: number) => fetchCollection('/collection/popular', limit);
 export const getTrending = (limit: number) => fetchCollection('/collection/trending', limit);
-export const getRecentlyAdded = (limit: number) => fetchCollection('/collection/recently-added', limit);
+export const getRecentlyAdded = (limit: number) =>
+	fetchCollection('/collection/recently-added', limit);

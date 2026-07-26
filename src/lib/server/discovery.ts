@@ -5,14 +5,17 @@ import { getCustomRepoIds } from './custom-repo';
 function mergeDedup(primary: string[], secondary: string[], limit: number): string[] {
 	const seen = new Set(primary);
 	for (const id of secondary) {
-		if (!seen.has(id)) { seen.add(id); primary.push(id); }
+		if (!seen.has(id)) {
+			seen.add(id);
+			primary.push(id);
+		}
 	}
 	return primary.slice(0, limit);
 }
 
 async function getOurIds(since?: Date): Promise<string[]> {
 	const [pwaApps, repoIds, counts] = await Promise.all([
-		db.pwaApp.findMany({ select: { appid: true } }),
+		db.pwaApp.findMany({ where: { status: 'APPROVED' }, select: { appid: true } }),
 		getCustomRepoIds(),
 		db.appInstall.groupBy({
 			by: ['appid'],
@@ -29,26 +32,24 @@ async function getOurIds(since?: Date): Promise<string[]> {
 }
 
 export async function getTopIds(limit: number): Promise<string[]> {
-	const [flathubIds, ourIds] = await Promise.all([
-		flathub.getPopular(limit),
-		getOurIds()
-	]);
+	const [flathubIds, ourIds] = await Promise.all([flathub.getPopular(limit), getOurIds()]);
 	return mergeDedup(flathubIds, ourIds, limit);
 }
 
 export async function getTrendingIds(limit: number): Promise<string[]> {
 	const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-	const [flathubIds, ourIds] = await Promise.all([
-		flathub.getTrending(limit),
-		getOurIds(since)
-	]);
+	const [flathubIds, ourIds] = await Promise.all([flathub.getTrending(limit), getOurIds(since)]);
 	return mergeDedup(flathubIds, ourIds, limit);
 }
 
 export async function getNewIds(limit: number): Promise<string[]> {
 	const [flathubIds, pwaApps, repoIds] = await Promise.all([
 		flathub.getRecentlyAdded(limit),
-		db.pwaApp.findMany({ select: { appid: true }, orderBy: { createdAt: 'desc' } }),
+		db.pwaApp.findMany({
+			where: { status: 'APPROVED' },
+			select: { appid: true },
+			orderBy: { createdAt: 'desc' }
+		}),
 		getCustomRepoIds()
 	]);
 	const ourIds = [...pwaApps.map((a) => a.appid), ...repoIds];

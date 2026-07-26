@@ -18,59 +18,73 @@ The discovery endpoints (`/api/new`, `/api/top`, `/api/trending`, `/api/charts`)
 
 ## `GET /api/pwas`
 
-Returns the full list of registered PWA applications.
+Returns the list of approved PWA applications. Submissions pending or rejected in review are not included.
 
 **Response:** `application/json`
 
 ```json
 [
-  {
-    "id": "clx...",
-    "appid": "org.example.MyApp",
-    "name": "My App",
-    "summary": "A short description",
-    "description": "Longer description of the app.",
-    "icon_url": "https://example.com/icon.png",
-    "screenshots": [
-      "https://example.com/screenshot1.png"
-    ],
-    "homepage_url": "https://example.com",
-    "content_rating": "All ages",
-    "developer_name": "Example Dev",
-    "verified": true,
-    "url": "https://app.example.com",
-    "color": "#3b82f6",
-    "css": "",
-    "js": "",
-    "useragent": "",
-    "widevine": false,
-    "tray": false
-  }
+	{
+		"id": "clx...",
+		"appid": "org.example.MyApp",
+		"name": "My App",
+		"summary": "A short description",
+		"description": "Longer description of the app.",
+		"icon_url": "https://example.com/icon.png",
+		"screenshots": ["https://example.com/screenshot1.png"],
+		"homepage_url": "https://example.com",
+		"content_rating": "All ages",
+		"developer_name": "Example Dev",
+		"verified": true,
+		"url": "https://app.example.com",
+		"color": "#3b82f6",
+		"css": "",
+		"js": "",
+		"useragent": "",
+		"widevine": false,
+		"tray": false
+	}
 ]
 ```
 
 ### Fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Internal record ID (cuid) |
-| `appid` | string | Unique reverse-domain app identifier |
-| `name` | string | Display name |
-| `summary` | string | Short one-line description |
-| `description` | string | Full description (may contain HTML) |
-| `icon_url` | string | URL to the app icon |
-| `screenshots` | string[] | URLs of screenshot images |
-| `homepage_url` | string | App website |
-| `content_rating` | string | Age rating, e.g. `"All ages"` |
-| `developer_name` | string | Publisher name |
-| `verified` | boolean | Whether the developer is verified |
-| `url` | string | URL used to launch the PWA |
-| `color` | string | Hex accent colour for theming |
-| `css` | string | Custom CSS injected into the PWA frame |
-| `js` | string | Custom JS injected into the PWA frame |
-| `useragent` | string | Custom User-Agent override (empty = browser default) |
-| `widevine` | boolean | Requires Widevine DRM |
-| `tray` | boolean | Should show a system-tray icon |
+| Field            | Type     | Description                                          |
+| ---------------- | -------- | ---------------------------------------------------- |
+| `id`             | string   | Internal record ID (cuid)                            |
+| `appid`          | string   | Unique reverse-domain app identifier                 |
+| `name`           | string   | Display name                                         |
+| `summary`        | string   | Short one-line description                           |
+| `description`    | string   | Full description (may contain HTML)                  |
+| `icon_url`       | string   | URL to the app icon                                  |
+| `screenshots`    | string[] | URLs of screenshot images                            |
+| `homepage_url`   | string   | App website                                          |
+| `content_rating` | string   | Age rating, e.g. `"All ages"`                        |
+| `developer_name` | string   | Publisher name                                       |
+| `verified`       | boolean  | Whether the developer is verified                    |
+| `url`            | string   | URL used to launch the PWA                           |
+| `color`          | string   | Hex accent colour for theming                        |
+| `css`            | string   | Custom CSS injected into the PWA frame               |
+| `js`             | string   | Custom JS injected into the PWA frame                |
+| `useragent`      | string   | Custom User-Agent override (empty = browser default) |
+| `widevine`       | boolean  | Requires Widevine DRM                                |
+| `tray`           | boolean  | Should show a system-tray icon                       |
+
+## `GET /api/verified/:appid`
+
+Checks whether a Flatpak's developer has been verified by a Forge reviewer. Verification is set/revoked per developer profile from `/dashboard/verified-developers` (reviewer role or higher); a Flatpak submitted directly by staff (no developer profile behind it) is always considered verified.
+
+```
+GET /api/verified/com.example.App
+```
+
+**Response:** `application/json`
+
+```json
+{ "appid": "com.example.App", "verified": true }
+```
+
+Returns `404` if no Flatpak with that `appid` has been submitted to Forge.
 
 ## `POST /api/installs`
 
@@ -97,15 +111,16 @@ Returns `400` if `appid` is missing or not a string.
 Returns recently added app IDs, newest first.
 
 **Sources (merged in order, deduplicated):**
+
 1. Flathub `/collection/recently-added` — ordered by publish date
 2. Our PWA apps — ordered by creation date
 3. Custom Blossom repo apps
 
 **Query params**
 
-| Param | Default | Max | Description |
-|---|---|---|---|
-| `limit` | `20` | `100` | Number of results |
+| Param   | Default | Max   | Description       |
+| ------- | ------- | ----- | ----------------- |
+| `limit` | `20`    | `100` | Number of results |
 
 **Response:** `application/json` — ordered array of app ID strings.
 
@@ -120,14 +135,15 @@ Returns recently added app IDs, newest first.
 Returns app IDs ordered by popularity (all-time installs).
 
 **Sources (merged in order, deduplicated):**
+
 1. Flathub `/collection/popular` — ordered by installs in the last month
 2. Our apps (PWA + custom repo) — ordered by install events recorded via `POST /api/installs`
 
 **Query params**
 
-| Param | Default | Max | Description |
-|---|---|---|---|
-| `limit` | `20` | `100` | Number of results |
+| Param   | Default | Max   | Description       |
+| ------- | ------- | ----- | ----------------- |
+| `limit` | `20`    | `100` | Number of results |
 
 **Response:** `application/json` — ordered array of app ID strings.
 
@@ -138,14 +154,15 @@ Returns app IDs ordered by popularity (all-time installs).
 Returns app IDs ordered by install growth in the last 30 days.
 
 **Sources (merged in order, deduplicated):**
+
 1. Flathub `/collection/trending` — ordered by growth trajectory over the last 2 weeks
 2. Our apps (PWA + custom repo) — ordered by install events in the last 30 days
 
 **Query params**
 
-| Param | Default | Max | Description |
-|---|---|---|---|
-| `limit` | `20` | `100` | Number of results |
+| Param   | Default | Max   | Description       |
+| ------- | ------- | ----- | ----------------- |
+| `limit` | `20`    | `100` | Number of results |
 
 **Response:** `application/json` — ordered array of app ID strings.
 
@@ -157,16 +174,16 @@ Returns app IDs with their chart rank. Uses the same ordering as `/api/top`.
 
 **Query params**
 
-| Param | Default | Max | Description |
-|---|---|---|---|
-| `limit` | `20` | `100` | Number of results |
+| Param   | Default | Max   | Description       |
+| ------- | ------- | ----- | ----------------- |
+| `limit` | `20`    | `100` | Number of results |
 
 **Response:** `application/json` — array of rank objects. Rank is 1-based and equals `index + 1`.
 
 ```json
 [
-  { "rank": 1, "id": "com.visualstudio.code" },
-  { "rank": 2, "id": "org.example.MyApp" }
+	{ "rank": 1, "id": "com.visualstudio.code" },
+	{ "rank": 2, "id": "org.example.MyApp" }
 ]
 ```
 
@@ -176,11 +193,11 @@ Returns app IDs with their chart rank. Uses the same ordering as `/api/top`.
 
 The discovery endpoints (`/api/new`, `/api/top`, `/api/trending`, `/api/charts`) aggregate app IDs from three sources:
 
-| Source | Description |
-|---|---|
-| Flathub | `https://flathub.org/api/v2/collection/*` — cached in memory for 1 hour |
+| Source              | Description                                                              |
+| ------------------- | ------------------------------------------------------------------------ |
+| Flathub             | `https://flathub.org/api/v2/collection/*` — cached in memory for 1 hour  |
 | Custom Blossom repo | `https://repo.blossomos.org/flatpak/refs/heads/app/` — cached for 1 hour |
-| PWA apps | Apps managed via the Forge dashboard |
+| PWA apps            | Apps managed via the Forge dashboard                                     |
 
 The client is responsible for resolving app metadata (name, icon, description) from the appropriate source using the returned IDs.
 
@@ -236,38 +253,38 @@ The document begins with an XML declaration followed by a flat sequence of secti
 
 ### Text and layout elements
 
-| Element | Description |
-|---|---|
-| `<h1>text</h1>` | Large heading |
-| `<h2>text</h2>` | Medium heading |
-| `<h3>text</h3>` | Small heading |
-| `<p>text</p>` | Body paragraph |
+| Element                 | Description    |
+| ----------------------- | -------------- |
+| `<h1>text</h1>`         | Large heading  |
+| `<h2>text</h2>`         | Medium heading |
+| `<h3>text</h3>`         | Small heading  |
+| `<p>text</p>`           | Body paragraph |
 | `<ul><li>...</li></ul>` | Unordered list |
-| `<br />` | Visual divider |
+| `<br />`                | Visual divider |
 
 ### App store sections
 
-| Element | Attributes | Description |
-|---|---|---|
-| `<carousel>` | `breakpoint` (int), `flathub` (bool) | Featured app/story slideshow |
-| `<top />` | | Highest-rated apps |
-| `<new />` | | Recently added apps |
-| `<trending />` | | Trending apps |
-| `<categories />` | | Full category grid |
-| `<category>slug</category>` | | Single category row |
-| `<custom>` | | Curated list with title and app entries |
-| `<charts>` | `cards` (bool) | App ranking charts; `cards="true"` for card layout |
+| Element                     | Attributes                           | Description                                        |
+| --------------------------- | ------------------------------------ | -------------------------------------------------- |
+| `<carousel>`                | `breakpoint` (int), `flathub` (bool) | Featured app/story slideshow                       |
+| `<top />`                   |                                      | Highest-rated apps                                 |
+| `<new />`                   |                                      | Recently added apps                                |
+| `<trending />`              |                                      | Trending apps                                      |
+| `<categories />`            |                                      | Full category grid                                 |
+| `<category>slug</category>` |                                      | Single category row                                |
+| `<custom>`                  |                                      | Curated list with title and app entries            |
+| `<charts>`                  | `cards` (bool)                       | App ranking charts; `cards="true"` for card layout |
 
 ### `<carousel>` children
 
-| Element | Attributes | Description |
-|---|---|---|
-| `<app />` | `id` | App entry by appid |
+| Element   | Attributes     | Description                                                     |
+| --------- | -------------- | --------------------------------------------------------------- |
+| `<app />` | `id`           | App entry by appid                                              |
 | `<story>` | `banner` (URL) | Editorial story with `<title lang="...">` and `<body>` children |
 
 ### `<custom>` children
 
-| Element | Attributes | Description |
-|---|---|---|
+| Element   | Attributes      | Description             |
+| --------- | --------------- | ----------------------- |
 | `<title>` | `lang` (BCP 47) | Localised section title |
-| `<app />` | `id` | App entry by appid |
+| `<app />` | `id`            | App entry by appid      |

@@ -30,7 +30,13 @@ export async function saveTranslations(appId: string, data: FormData) {
 			await db.pwaTranslation.upsert({
 				where: { appId_lang: { appId, lang: t.lang } },
 				update: { name: t.name, summary: t.summary, description: t.description },
-				create: { appId, lang: t.lang, name: t.name, summary: t.summary, description: t.description }
+				create: {
+					appId,
+					lang: t.lang,
+					name: t.name,
+					summary: t.summary,
+					description: t.description
+				}
 			});
 		} else {
 			await db.pwaTranslation.deleteMany({ where: { appId, lang: t.lang } });

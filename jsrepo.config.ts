@@ -1,10 +1,10 @@
 import { defineConfig } from 'jsrepo';
 
 export default defineConfig({
-    // configure where stuff comes from here
-    registries: ['@ieedan/shadcn-svelte-extras'],
-    // configure where stuff goes here
-    paths: {
+	// configure where stuff comes from here
+	registries: ['@ieedan/shadcn-svelte-extras'],
+	// configure where stuff goes here
+	paths: {
 		ui: '$lib/components/ui',
 		component: '$lib/components',
 		block: '$lib/components',
@@ -12,5 +12,5 @@ export default defineConfig({
 		action: '$lib/actions',
 		util: '$lib/utils',
 		lib: '$lib'
-	},
+	}
 });

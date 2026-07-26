@@ -25,7 +25,13 @@
 	} from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { newSection, type Section, type LangString, type LinksItem, HTML_TYPES } from '$lib/frontpage.js';
+	import {
+		newSection,
+		type Section,
+		type LangString,
+		type LinksItem,
+		HTML_TYPES
+	} from '$lib/frontpage.js';
 	import * as m from '$lib/paraglide/messages';
 	import UploadButton from '$lib/components/upload-button.svelte';
 
@@ -377,7 +383,10 @@
 		mark();
 	}
 	function addLinksStory(s: Links) {
-		s.items = [...s.items, { kind: 'story', banner: '', titles: [{ lang: 'en', text: '' }], body: '' }];
+		s.items = [
+			...s.items,
+			{ kind: 'story', banner: '', titles: [{ lang: 'en', text: '' }], body: '' }
+		];
 		mark();
 	}
 	function removeLinksItem(s: Links, j: number) {
@@ -643,7 +652,8 @@
 										{:else if section.type === 'category'}{section.value || '—'}
 										{:else if section.type === 'custom'}{section.titles[0]?.text || '—'}
 										{:else if section.type === 'charts'}cards={section.cards}
-										{:else if section.type === 'links'}{section.titles[0]?.text || '—'} · {section.items.length} links
+										{:else if section.type === 'links'}{section.titles[0]?.text || '—'} · {section
+												.items.length} links
 										{:else}–{/if}
 									</span>
 								</div>
@@ -700,7 +710,12 @@
 																oninput={mark}
 																class="h-8 flex-1 text-sm"
 															/>
-															<UploadButton onurl={(url) => { item.banner = url; mark(); }} />
+															<UploadButton
+																onurl={(url) => {
+																	item.banner = url;
+																	mark();
+																}}
+															/>
 														</div>
 														{#each item.titles as t, k (k)}
 															<div class="flex gap-2">
@@ -863,7 +878,9 @@
 													{#each section.items as item, k (k)}
 														<div class="space-y-1.5 rounded border border-border p-2.5">
 															<div class="flex items-center justify-between">
-																<span class="text-xs tracking-wide text-muted-foreground uppercase">{item.kind}</span>
+																<span class="text-xs tracking-wide text-muted-foreground uppercase"
+																	>{item.kind}</span
+																>
 																<button
 																	type="button"
 																	onclick={() => removeLinksItem(section, k)}
@@ -899,7 +916,12 @@
 																		oninput={mark}
 																		class="h-8 flex-1 text-sm"
 																	/>
-																	<UploadButton onurl={(url) => { item.banner = url; mark(); }} />
+																	<UploadButton
+																		onurl={(url) => {
+																			item.banner = url;
+																			mark();
+																		}}
+																	/>
 																</div>
 																{#each item.titles as t, j (j)}
 																	<div class="flex gap-2">

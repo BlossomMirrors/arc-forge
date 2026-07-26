@@ -8,27 +8,39 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+  id                        String                         @id
+  name                      String
+  email                     String                         @unique
+  emailVerified             Boolean
+  image                     String?
+  roles                     String[]                       @default([])
+  createdAt                 DateTime
+  updatedAt                 DateTime
+  sessions                  Session[]
+  accounts                  Account[]
+  submittedPwas             PwaApp[]                       @relation("PwaSubmittedBy")
+  reviewedPwas              PwaApp[]                       @relation("PwaReviewedBy")
+  developerProfileMembers   DeveloperProfileMember[]
+  sentDeveloperInvitations  DeveloperProfileInvitation[]
+  submittedFlatpaks         FlatpakApp[]                   @relation("FlatpakSubmittedBy")
+  reviewedFlatpaks          FlatpakApp[]                   @relation("FlatpakReviewedBy")
+  verifiedDeveloperProfiles DeveloperProfile[]             @relation("DeveloperProfileVerifiedBy")
+  requestedVerifications    DeveloperVerificationRequest[] @relation("VerificationRequestedBy")
+  reviewedVerifications     DeveloperVerificationRequest[] @relation("VerificationRequestReviewedBy")
+  notifications             Notification[]
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+  id                       String   @id
+  expiresAt                DateTime
+  token                    String   @unique
+  createdAt                DateTime
+  updatedAt                DateTime
+  ipAddress                String?
+  userAgent                String?
+  activeDeveloperProfileId String?
+  userId                   String
+  user                     User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model Account {
@@ -68,27 +80,213 @@ model PwaTranslation {
   @@unique([appId, lang])
 }
 
+enum PwaStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PULLED // was approved/live, a reviewer withdrew it; re-approvable
+}
+
+// Better-auth's "organization" plugin, renamed throughout to "developer profile"
+// since that's what an org represents in Forge: the publisher identity behind PWA submissions.
+model DeveloperProfile {
+  id                   String                         @id
+  name                 String                         @unique
+  slug                 String                         @unique
+  logo                 String?
+  metadata             String?
+  createdAt            DateTime
+  // Set/revoked by a reviewer (or higher) via /dashboard/verified-developers.
+  // Checked by the public /api/verified/[appid] endpoint - a staff-submitted
+  // Flatpak (no developerProfileId at all) is always treated as verified there
+  // regardless of this flag, see that route.
+  verified             Boolean                        @default(false)
+  verifiedById         String?
+  verifiedBy           User?                          @relation("DeveloperProfileVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt           DateTime?
+  members              DeveloperProfileMember[]
+  invitations          DeveloperProfileInvitation[]
+  pwaApps              PwaApp[]
+  flatpakApps          FlatpakApp[]
+  verificationRequests DeveloperVerificationRequest[]
+}
+
+enum VerificationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// A developer's request to have their profile marked DeveloperProfile.verified.
+// Lands in the review queue like a PWA/Flatpak submission - approving it also
+// flips DeveloperProfile.verified (the same flag a reviewer can otherwise set
+// directly from /dashboard/verified-developers with no request at all).
+model DeveloperVerificationRequest {
+  id                 String                    @id @default(cuid())
+  developerProfileId String
+  developerProfile   DeveloperProfile          @relation(fields: [developerProfileId], references: [id], onDelete: Cascade)
+  // Proof of legitimacy submitted by the developer, shown to the reviewer.
+  dunsNumber         String
+  documentUrls       String[]
+  status             VerificationRequestStatus @default(PENDING)
+  requestedById      String?
+  requestedBy        User?                     @relation("VerificationRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+  reviewedById       String?
+  reviewedBy         User?                     @relation("VerificationRequestReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  reviewNote         String?                   @db.Text
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  @@index([developerProfileId, status])
+  @@index([status])
+}
+
+model DeveloperProfileMember {
+  id                 String           @id
+  developerProfileId String
+  developerProfile   DeveloperProfile @relation(fields: [developerProfileId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role               String           @default("member")
+  createdAt          DateTime
+
+  @@index([developerProfileId])
+  @@index([userId])
+}
+
+model DeveloperProfileInvitation {
+  id                 String           @id
+  developerProfileId String
+  developerProfile   DeveloperProfile @relation(fields: [developerProfileId], references: [id], onDelete: Cascade)
+  email              String
+  role               String?
+  status             String           @default("pending")
+  expiresAt          DateTime
+  createdAt          DateTime         @default(now())
+  inviterId          String
+  inviter            User             @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([developerProfileId])
+  @@index([email])
+}
+
 model PwaApp {
-  id            String   @id @default(cuid())
-  appid         String   @unique
-  name          String
-  summary       String
-  description   String   @db.Text
-  iconUrl       String
-  screenshots   String[]
-  homepageUrl   String   @default("")
-  contentRating String   @default("All ages")
-  developerName String
-  url           String
-  color         String   @default("#000000")
-  css           String   @db.Text @default("")
-  js            String   @db.Text @default("")
-  useragent     String   @default("")
-  widevine      Boolean  @default(false)
-  tray          Boolean  @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  translations  PwaTranslation[]
+  id                 String            @id @default(cuid())
+  appid              String            @unique
+  name               String
+  summary            String
+  description        String            @db.Text
+  iconUrl            String
+  screenshots        String[]
+  homepageUrl        String            @default("")
+  contentRating      String            @default("All ages")
+  developerName      String
+  url                String
+  color              String            @default("#000000")
+  css                String            @default("") @db.Text
+  js                 String            @default("") @db.Text
+  useragent          String            @default("")
+  widevine           Boolean           @default(false)
+  tray               Boolean           @default(false)
+  status             PwaStatus         @default(PENDING)
+  submittedById      String?
+  submittedBy        User?             @relation("PwaSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedById       String?
+  reviewedBy         User?             @relation("PwaReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  reviewNote         String?           @db.Text
+  developerProfileId String?
+  developerProfile   DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  translations       PwaTranslation[]
+
+  @@index([status])
+}
+
+enum FlatpakStatus {
+  PENDING // awaiting review
+  PROCESSING // approved, SSH build/publish running
+  APPROVED // build succeeded, live
+  REJECTED // reviewer rejected, no build attempted
+  FAILED // build/publish failed, retryable
+  PULLED // was approved/live, a reviewer withdrew it from the repo; re-approvable
+}
+
+enum FlatpakSourceType {
+  BUNDLE // a prebuilt .flatpak file was uploaded
+  GIT // built from a flatpak-builder manifest in a watched git repo
+}
+
+model FlatpakApp {
+  id                 String            @id @default(cuid())
+  appid              String            @unique
+  branch             String            @default("stable")
+  name               String
+  summary            String
+  description        String            @db.Text
+  iconUrl            String
+  screenshots        String[]
+  homepageUrl        String            @default("")
+  contentRating      String            @default("All ages")
+  developerName      String
+  developerProfileId String?
+  developerProfile   DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
+  sourceType         FlatpakSourceType @default(BUNDLE)
+  bundleUrl          String?
+  bundleFileName     String?
+  bundleSize         Int?
+  // Git source fields - only set when sourceType is GIT. gitLastCommit is the
+  // commit the current build/review was triggered from; the watcher (see
+  // git-watch.ts) compares this against the remote's HEAD to detect new pushes.
+  gitUrl             String?
+  gitBranch          String?
+  gitManifestPath    String?
+  gitLastCommit      String?
+  status             FlatpakStatus     @default(PENDING)
+  submittedById      String?
+  submittedBy        User?             @relation("FlatpakSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedById       String?
+  reviewedBy         User?             @relation("FlatpakReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  reviewNote         String?           @db.Text
+  buildLog           String?           @db.Text
+  buildStartedAt     DateTime?
+  buildFinishedAt    DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([status])
+  @@index([sourceType, status])
+}
+
+// Singleton row (see FrontPage for the same pattern) holding infra secrets for the
+// Flatpak publish pipeline. Only readable/writable by the "admin" group.
+model InfraSettings {
+  id                     String   @id @default("singleton")
+  sshPublicKey           String?
+  sshPrivateKeyEncrypted String?  @db.Text
+  gpgPassphraseEncrypted String?  @db.Text
+  remoteHost             String   @default("repo.blossomos.org")
+  remoteUser             String   @default("forge")
+  remoteRepoPath         String   @default("/srv/repos/flatpak")
+  updatedAt              DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?  @db.Text
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 model WhitelistEntry {
@@ -116,7 +314,7 @@ model AppInstall {
 }
 
 model FlathubCache {
-  appid     String   @id
-  installs  Int
-  cachedAt  DateTime @default(now())
+  appid    String   @id
+  installs Int
+  cachedAt DateTime @default(now())
 }

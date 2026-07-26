@@ -28,6 +28,7 @@ function toPublic(app: ReturnType<typeof applyLang>) {
 export const GET: RequestHandler = async ({ url }) => {
 	const lang = parseLang(url);
 	const apps = await db.pwaApp.findMany({
+		where: { status: 'APPROVED' },
 		orderBy: { createdAt: 'asc' },
 		include: { translations: true }
 	});

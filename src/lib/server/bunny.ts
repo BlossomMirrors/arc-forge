@@ -7,9 +7,9 @@ const USER = 'blossomos';
 const REMOTE_DIR = '/forgeassets/';
 export const CDN_BASE = 'https://cdn.blossomos.org/forgeassets/';
 
-async function upload(buffer: Buffer, filename: string): Promise<string> {
+async function upload(buffer: Buffer, filename: string, timeoutMs = 30_000): Promise<string> {
 	const client = new Client();
-	client.ftp.timeout = 30_000;
+	client.ftp.timeout = timeoutMs;
 	try {
 		await client.access({
 			host: HOST,
@@ -25,8 +25,12 @@ async function upload(buffer: Buffer, filename: string): Promise<string> {
 	}
 }
 
-export async function uploadFile(data: ArrayBuffer, filename: string): Promise<string> {
-	return upload(Buffer.from(data), filename);
+export async function uploadFile(
+	data: ArrayBuffer,
+	filename: string,
+	timeoutMs?: number
+): Promise<string> {
+	return upload(Buffer.from(data), filename, timeoutMs);
 }
 
 export async function uploadText(content: string, ext: string): Promise<string> {

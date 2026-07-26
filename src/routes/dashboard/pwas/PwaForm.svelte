@@ -16,6 +16,7 @@
 		homepageUrl?: string;
 		contentRating?: string;
 		developerName?: string;
+		developerProfileId?: string | null;
 		url?: string;
 		color?: string;
 		css?: string;
@@ -26,21 +27,26 @@
 	};
 
 	type Translation = { name?: string | null; summary?: string | null; description?: string | null };
+	type DeveloperProfile = { id: string; name: string };
 
 	let {
 		values = {},
 		translations = {},
-		submitLabel = 'Save'
+		submitLabel = 'Save',
+		isStaff = true,
+		developerProfiles = []
 	}: {
 		values?: PwaFormData;
 		translations?: Record<string, Translation>;
 		submitLabel?: string;
+		isStaff?: boolean;
+		developerProfiles?: DeveloperProfile[];
 	} = $props();
 
 	let screenshots = $state(untrack(() => (values.screenshots ?? []).join('\n')));
-	let widevine    = $state(untrack(() => values.widevine ?? false));
-	let tray        = $state(untrack(() => values.tray ?? false));
-	let iconUrl     = $state(untrack(() => values.iconUrl ?? ''));
+	let widevine = $state(untrack(() => values.widevine ?? false));
+	let tray = $state(untrack(() => values.tray ?? false));
+	let iconUrl = $state(untrack(() => values.iconUrl ?? ''));
 </script>
 
 <div class="space-y-4">
@@ -66,8 +72,7 @@
 			name="description"
 			rows={4}
 			class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
-			placeholder="<p>Full description...</p>"
-			>{values.description ?? ''}</textarea
+			placeholder="<p>Full description...</p>">{values.description ?? ''}</textarea
 		>
 	</label>
 
@@ -75,7 +80,13 @@
 		<label class="space-y-1.5">
 			<span class="text-sm font-medium">{m.form_icon_url()}</span>
 			<div class="flex gap-2">
-				<Input name="iconUrl" bind:value={iconUrl} placeholder="https://..." required class="flex-1" />
+				<Input
+					name="iconUrl"
+					bind:value={iconUrl}
+					placeholder="https://..."
+					required
+					class="flex-1"
+				/>
 				<UploadButton onurl={(url) => (iconUrl = url)} />
 			</div>
 		</label>
@@ -100,13 +111,39 @@
 	</div>
 
 	<div class="grid grid-cols-2 gap-4">
-		<label class="space-y-1.5">
-			<span class="text-sm font-medium">{m.form_developer_name()}</span>
-			<Input name="developerName" value={values.developerName ?? ''} placeholder="ACME Corp" required />
-		</label>
+		{#if isStaff}
+			<label class="space-y-1.5">
+				<span class="text-sm font-medium">{m.form_developer_name()}</span>
+				<Input
+					name="developerName"
+					value={values.developerName ?? ''}
+					placeholder="ACME Corp"
+					required
+				/>
+			</label>
+		{:else}
+			<label class="space-y-1.5">
+				<span class="text-sm font-medium">{m.form_developer_profile()}</span>
+				<select
+					name="developerProfileId"
+					required
+					class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
+				>
+					{#each developerProfiles as profile (profile.id)}
+						<option value={profile.id} selected={profile.id === values.developerProfileId}>
+							{profile.name}
+						</option>
+					{/each}
+				</select>
+			</label>
+		{/if}
 		<label class="space-y-1.5">
 			<span class="text-sm font-medium">{m.form_content_rating()}</span>
-			<Input name="contentRating" value={values.contentRating ?? 'All ages'} placeholder="All ages" />
+			<Input
+				name="contentRating"
+				value={values.contentRating ?? 'All ages'}
+				placeholder="All ages"
+			/>
 		</label>
 	</div>
 
@@ -132,8 +169,7 @@
 			name="css"
 			rows={4}
 			class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
-			placeholder="body &#123; color: red; &#125;"
-			>{values.css ?? ''}</textarea
+			placeholder="body &#123; color: red; &#125;">{values.css ?? ''}</textarea
 		>
 	</label>
 
@@ -143,18 +179,29 @@
 			name="js"
 			rows={4}
 			class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
-			placeholder="console.log('hello')"
-			>{values.js ?? ''}</textarea
+			placeholder="console.log('hello')">{values.js ?? ''}</textarea
 		>
 	</label>
 
 	<div class="flex gap-6">
 		<label class="flex items-center gap-2 text-sm">
-			<input type="checkbox" name="widevine" value="true" bind:checked={widevine} class="rounded border-input" />
+			<input
+				type="checkbox"
+				name="widevine"
+				value="true"
+				bind:checked={widevine}
+				class="rounded border-input"
+			/>
 			{m.form_widevine()}
 		</label>
 		<label class="flex items-center gap-2 text-sm">
-			<input type="checkbox" name="tray" value="true" bind:checked={tray} class="rounded border-input" />
+			<input
+				type="checkbox"
+				name="tray"
+				value="true"
+				bind:checked={tray}
+				class="rounded border-input"
+			/>
 			{m.form_tray()}
 		</label>
 	</div>
@@ -169,7 +216,7 @@
 				<summary class="cursor-pointer px-4 py-2.5 text-sm font-medium select-none">
 					{lang.label}
 				</summary>
-				<div class="space-y-3 px-4 pb-4 pt-3">
+				<div class="space-y-3 px-4 pt-3 pb-4">
 					<label class="space-y-1.5">
 						<span class="text-sm font-medium">{m.form_name()}</span>
 						<Input
@@ -193,7 +240,8 @@
 							rows={3}
 							class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
 							placeholder={values.description ?? ''}
-						>{translations[lang.code]?.description ?? ''}</textarea>
+							>{translations[lang.code]?.description ?? ''}</textarea
+						>
 					</label>
 				</div>
 			</details>
@@ -202,6 +250,7 @@
 
 	<div class="flex gap-2 pt-2">
 		<Button type="submit">{submitLabel}</Button>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 		<a href="/dashboard/pwas" class={buttonVariants({ variant: 'ghost' })}>{m.form_cancel()}</a>
 	</div>
 </div>

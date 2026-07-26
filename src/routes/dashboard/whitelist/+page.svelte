@@ -18,9 +18,8 @@
 	<div>
 		<h2 class="text-lg font-semibold">{m.nav_whitelist()}</h2>
 		<p class="text-sm text-muted-foreground">
-			{m.whitelist_served_public()} <code class="rounded bg-muted px-1 py-0.5 font-mono text-xs"
-				>/api/lutris-whitelist</code
-			>.
+			{m.whitelist_served_public()}
+			<code class="rounded bg-muted px-1 py-0.5 font-mono text-xs">/api/lutris-whitelist</code>.
 		</p>
 	</div>
 

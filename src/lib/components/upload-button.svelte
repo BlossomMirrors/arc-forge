@@ -16,7 +16,10 @@
 			const body = new FormData();
 			body.append('file', file);
 			const res = await fetch('/api/upload', { method: 'POST', body });
-			if (!res.ok) { error = await res.text(); return; }
+			if (!res.ok) {
+				error = await res.text();
+				return;
+			}
 			const { url } = await res.json();
 			onurl(url);
 		} catch {

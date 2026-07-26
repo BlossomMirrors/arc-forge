@@ -1,4 +1,6 @@
 import { uploadFile } from '$lib/server/bunny';
+import { isStaff } from '$lib/server/authz';
+import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
 import type { RequestHandler } from './$types';
 
 const ALLOWED_TYPES = new Set([
@@ -14,6 +16,13 @@ const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) return new Response('Unauthorized', { status: 401 });
+	// Only reached by non-staff via the PWA submission form (staff also use this for
+	// front page images, which isn't gated by a developer profile at all). A PWA
+	// submission can't be completed without one anyway (see pwas/new's action), so
+	// don't let image uploads happen before that either.
+	if (!isStaff(locals.user) && !(await hasAnyDeveloperProfile(locals.user.id))) {
+		return new Response('You need a developer profile before uploading', { status: 403 });
+	}
 
 	const form = await request.formData();
 	const file = form.get('file');

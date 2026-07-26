@@ -24,7 +24,11 @@ async function enrichWithInstalls(
 		_count: { id: true }
 	});
 	const ourInstalls = new Map(counts.map((r) => [r.appid, r._count.id]));
-	return apps.map((app) => ({ ...app, installs: ourInstalls.get(app.appid) ?? 0, flathub_installs: 0 }));
+	return apps.map((app) => ({
+		...app,
+		installs: ourInstalls.get(app.appid) ?? 0,
+		flathub_installs: 0
+	}));
 }
 
 export async function appsWithMetrics(apps: AppWithTranslations[]): Promise<AppWithMetrics[]> {
@@ -36,7 +40,9 @@ export async function appsWithMetrics(apps: AppWithTranslations[]): Promise<AppW
 	}));
 }
 
-export async function appsWithTrendingMetrics(apps: AppWithTranslations[]): Promise<AppWithMetrics[]> {
+export async function appsWithTrendingMetrics(
+	apps: AppWithTranslations[]
+): Promise<AppWithMetrics[]> {
 	const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 	return enrichWithInstalls(apps, since);
 }
