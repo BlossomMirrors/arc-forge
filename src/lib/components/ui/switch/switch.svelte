@@ -4,7 +4,7 @@
 	import { Spring } from 'svelte/motion';
 	import { cn, type WithoutChildrenOrChild } from '$lib/utils.js';
 
-	const TRACK_WIDTH = 40;
+	const TRACK_WIDTH = 44;
 	const TRACK_PAD = 4;
 	const THUMB_SIZE = 16;
 	const THUMB_BOTTOM_MARGIN = 2;
@@ -38,7 +38,7 @@
 	{onCheckedChange}
 	{disabled}
 	class={cn(
-		'relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors duration-300 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted',
+		'relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-black/10 transition-colors duration-300 ease-in-out disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted dark:border-white/10',
 		className
 	)}
 	style="width:{TRACK_TOTAL_WIDTH}px;height:{TRACK_HEIGHT}px;"
