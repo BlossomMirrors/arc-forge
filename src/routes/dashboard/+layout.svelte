@@ -88,7 +88,7 @@
 		<div class="mx-auto flex w-full max-w-7xl items-center justify-between">
 			<span class="flex items-center gap-2 align-middle">
 				<img src="/arc.png" alt="Arc Forge" class="size-8" />
-				<span class="mt-3 font-semibold">Arc Forge</span>
+				<span class="font-semibold">Arc Forge</span>
 			</span>
 
 			<div class="flex items-center gap-2">
@@ -160,7 +160,7 @@
 
 	<div class="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-6 py-8">
 		<!-- Sidebar -->
-		<nav class="w-48 shrink-0">
+		<nav class="w-52 shrink-0">
 			<ul class="space-y-1">
 				{#each navItems as item (item.href)}
 					{@const active =

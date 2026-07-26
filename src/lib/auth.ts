@@ -64,7 +64,8 @@ export const auth = betterAuth({
 		// "organizations" from the plugin's perspective; renamed to "developer profiles"
 		// throughout Forge since that's what they represent here: the publisher
 		// identity a PWA submission is attributed to.
-		organization({
+    organization({
+      requireEmailVerificationOnInvitation: false,
 			schema: {
 				organization: { modelName: 'developerProfile' },
 				member: {
