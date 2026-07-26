@@ -4,21 +4,28 @@
 	import ScreenshotUploadButton from '$lib/components/screenshot-upload-button.svelte';
 	import * as m from '$lib/paraglide/messages';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	let submitForm: HTMLFormElement;
-	let uploadUrl = $state('');
-	let uploadMimeType = $state('');
-	let uploadFileName = $state('');
-	let uploadFileSize = $state(0);
+	let urlInput: HTMLInputElement;
+	let mimeTypeInput: HTMLInputElement;
+	let fileNameInput: HTMLInputElement;
+	let fileSizeInput: HTMLInputElement;
 	let uploading = $state(false);
 	let copiedId = $state('');
 
+	// Setting the hidden inputs' values through Svelte state (value={uploadUrl}) and
+	// then immediately calling requestSubmit() races Svelte's own DOM patching, which
+	// is batched into a microtask rather than applied synchronously - the form could
+	// submit with the PREVIOUS upload's stale values still in the DOM (a duplicate of
+	// an old screenshot, or an empty submission on the very first upload). Writing
+	// straight to the input elements sidesteps Svelte's scheduler entirely so the
+	// values are guaranteed correct the instant requestSubmit() runs.
 	function onUploaded(file: { url: string; mimeType: string; fileName: string; fileSize: number }) {
-		uploadUrl = file.url;
-		uploadMimeType = file.mimeType;
-		uploadFileName = file.fileName;
-		uploadFileSize = file.fileSize;
+		urlInput.value = file.url;
+		mimeTypeInput.value = file.mimeType;
+		fileNameInput.value = file.fileName;
+		fileSizeInput.value = String(file.fileSize);
 		submitForm.requestSubmit();
 	}
 
@@ -70,14 +77,16 @@
 			};
 		}}
 	>
-		<input type="hidden" name="url" value={uploadUrl} />
-		<input type="hidden" name="mimeType" value={uploadMimeType} />
-		<input type="hidden" name="fileName" value={uploadFileName} />
-		<input type="hidden" name="fileSize" value={uploadFileSize} />
+		<input type="hidden" name="url" bind:this={urlInput} />
+		<input type="hidden" name="mimeType" bind:this={mimeTypeInput} />
+		<input type="hidden" name="fileName" bind:this={fileNameInput} />
+		<input type="hidden" name="fileSize" bind:this={fileSizeInput} />
 		<ScreenshotUploadButton onuploaded={onUploaded} />
 	</form>
 	{#if uploading}
 		<p class="text-sm text-muted-foreground">{m.screenshots_submitting()}</p>
+	{:else if form?.error}
+		<p class="text-sm text-destructive">{form.error}</p>
 	{/if}
 
 	{#if data.submissions.length === 0}
