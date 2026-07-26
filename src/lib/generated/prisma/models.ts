@@ -14,6 +14,7 @@ export type * from './models/FrontPage.ts';
 export type * from './models/PwaTranslation.ts';
 export type * from './models/DeveloperProfile.ts';
 export type * from './models/DeveloperVerificationRequest.ts';
+export type * from './models/ScreenshotSubmission.ts';
 export type * from './models/DeveloperProfileMember.ts';
 export type * from './models/DeveloperProfileInvitation.ts';
 export type * from './models/PwaApp.ts';

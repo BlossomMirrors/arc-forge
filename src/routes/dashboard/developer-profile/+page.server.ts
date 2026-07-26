@@ -22,7 +22,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 			include: {
 				developerProfile: {
 					include: {
-						verificationRequests: { orderBy: { createdAt: 'desc' }, take: 1 }
+						verificationRequests: { orderBy: { createdAt: 'desc' }, take: 1 },
+						// Outgoing invites this profile has sent that haven't been accepted/declined
+						// yet, shown as a "Pending" badge so inviting someone has visible feedback.
+						invitations: { where: { status: 'pending' }, orderBy: { createdAt: 'desc' } }
 					}
 				}
 			},
@@ -138,6 +141,24 @@ export const actions: Actions = {
 		} catch (e) {
 			if (e instanceof APIError)
 				return fail(400, { error: e.body?.message ?? 'Could not reject invitation' });
+			throw e;
+		}
+	},
+
+	// Revokes an invitation this profile sent that hasn't been accepted/declined
+	// yet. better-auth checks the caller actually has "invitation:cancel"
+	// permission on that invite's own developer profile, no need to re-check here.
+	cancelInvitation: async ({ request, locals }) => {
+		if (!locals.user) throw error(401);
+		const data = await request.formData();
+		const invitationId = data.get('invitationId') as string;
+		if (!invitationId) return fail(400);
+
+		try {
+			await auth.api.cancelInvitation({ headers: request.headers, body: { invitationId } });
+		} catch (e) {
+			if (e instanceof APIError)
+				return fail(400, { error: e.body?.message ?? 'Could not cancel invitation' });
 			throw e;
 		}
 	},

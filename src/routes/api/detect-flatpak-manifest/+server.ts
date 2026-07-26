@@ -20,6 +20,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return new Response('Bad Request', { status: 400 });
 	}
 
-	const manifestPath = await detectManifestPath(gitUrl, gitBranch);
-	return Response.json({ manifestPath });
+	const result = await detectManifestPath(gitUrl, gitBranch);
+	return Response.json(result);
 };

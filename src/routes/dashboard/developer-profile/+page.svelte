@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X, LogOut, Plus, Trash2, BadgeCheck, FileText } from '@lucide/svelte';
+	import { Check, X, LogOut, Plus, Trash2, BadgeCheck, FileText, Clock } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import DocumentUploadButton from '$lib/components/document-upload-button.svelte';
@@ -176,6 +176,37 @@
 									{m.devprofile_invite()}
 								</Button>
 							</form>
+						{/if}
+
+						{#if canInvite && profile.invitations.length > 0}
+							<div class="mt-4 space-y-1.5 border-t border-border pt-4">
+								{#each profile.invitations as invite (invite.id)}
+									<div
+										class="flex items-center justify-between gap-2 rounded-md border border-input px-2.5 py-1.5 text-sm"
+									>
+										<span class="truncate">{invite.email}</span>
+										<span class="flex shrink-0 items-center gap-2">
+											<span class="text-xs text-muted-foreground">{invite.role}</span>
+											<span
+												class="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600"
+											>
+												<Clock class="size-3" />
+												{m.devprofile_invite_pending()}
+											</span>
+											<form method="POST" action="?/cancelInvitation" use:enhance>
+												<input type="hidden" name="invitationId" value={invite.id} />
+												<button
+													type="submit"
+													class="text-muted-foreground hover:text-destructive"
+													title={m.devprofile_invite_cancel()}
+												>
+													<X class="size-3.5" />
+												</button>
+											</form>
+										</span>
+									</div>
+								{/each}
+							</div>
 						{/if}
 
 						{#if canInvite && !profile.verified}

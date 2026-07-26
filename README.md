@@ -33,17 +33,20 @@ bun run dev
 
 ## Environment variables
 
-| Variable                   | Description                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATABASE_URL`             | PostgreSQL connection string, e.g. `postgresql://user:pass@localhost:5432/forge`                                                                 |
-| `BETTER_AUTH_SECRET`       | Random secret used to sign sessions                                                                                                              |
-| `BETTER_AUTH_URL`          | Public URL of this app, e.g. `https://forge.example.com`                                                                                         |
-| `AUTHENTIK_URL`            | Base URL of your Authentik instance, e.g. `https://auth.example.com`                                                                             |
-| `AUTHENTIK_CLIENT_ID`      | OAuth client ID from the Authentik provider                                                                                                      |
-| `AUTHENTIK_CLIENT_SECRET`  | OAuth client secret from the Authentik provider                                                                                                  |
-| `BUNNYCDN_PASSWORD`        | FTP password for the BunnyCDN storage zone used for uploads                                                                                      |
-| `FORGE_SECRETS_KEY`        | Encrypts the Flatpak publish pipeline's SSH key/GPG passphrase at rest in Postgres. Keep distinct from `BETTER_AUTH_SECRET`                      |
-| `FLATPAK_MAX_BUNDLE_BYTES` | Max accepted `.flatpak` upload size in bytes (default 2 GiB)                                                                                     |
+| Variable                      | Description                                                                                                                 |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                | PostgreSQL connection string, e.g. `postgresql://user:pass@localhost:5432/forge`                                            |
+| `BETTER_AUTH_SECRET`          | Random secret used to sign sessions                                                                                         |
+| `BETTER_AUTH_URL`             | Public URL of this app, e.g. `https://forge.example.com`                                                                    |
+| `AUTHENTIK_URL`               | Base URL of your Authentik instance, e.g. `https://auth.example.com`                                                        |
+| `AUTHENTIK_CLIENT_ID`         | OAuth client ID from the Authentik provider                                                                                 |
+| `AUTHENTIK_CLIENT_SECRET`     | OAuth client secret from the Authentik provider                                                                             |
+| `BUNNYCDN_PASSWORD`           | FTP password for the BunnyCDN storage zone used for uploads                                                                 |
+| `FORGE_SECRETS_KEY`           | Encrypts the Flatpak publish pipeline's SSH key/GPG passphrase at rest in Postgres. Keep distinct from `BETTER_AUTH_SECRET` |
+| `FLATPAK_MAX_BUNDLE_BYTES`    | Max accepted `.flatpak` upload size in bytes (default 2 GiB)                                                                |
+| `RESEND_API_KEY`              | [Resend](https://resend.com) API key, used to email every in-app notification. From name is always "Arc Forge"              |
+| `RESEND_FROM_EMAIL`           | Verified sender address in Resend, e.g. `no-reply@blossomos.org`                                                            |
+| `EMAIL_NOTIFICATIONS_ENABLED` | Set to `false` to turn off notification emails; on by default                                                               |
 
 ## Building
 

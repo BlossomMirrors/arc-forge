@@ -11,17 +11,22 @@
 		Check,
 		Package,
 		KeyRound,
-		BadgeCheck
+		BadgeCheck,
+		Mail,
+		Image
 	} from '@lucide/svelte';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
 	import * as m from '$lib/paraglide/messages';
 	import NotificationCenter from '$lib/components/notification-center.svelte';
+	import { Switch } from '$lib/components/ui/switch/index.js';
 
 	let { data, children } = $props();
 
 	const user = $derived(data.user);
 	let switching = $state(false);
+	let emailNotificationsEnabled = $state(untrack(() => data.emailNotificationsEnabled));
 
 	function signOut() {
 		window.location.href = '/auth/logout';
@@ -42,12 +47,24 @@
 		}
 	}
 
+	async function toggleEmailNotifications(checked: boolean) {
+		const previous = emailNotificationsEnabled;
+		emailNotificationsEnabled = checked;
+		const res = await fetch('/api/notification-preferences', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ emailNotificationsEnabled: checked })
+		});
+		if (!res.ok) emailNotificationsEnabled = previous;
+	}
+
 	const navItems = $derived(
 		[
 			{ href: '/dashboard', label: m.nav_overview(), icon: LayoutDashboard, show: true },
 			{ href: '/dashboard/whitelist', label: m.nav_whitelist(), icon: List, show: data.isStaff },
 			{ href: '/dashboard/pwas', label: m.nav_pwas(), icon: AppWindow, show: true },
 			{ href: '/dashboard/flatpaks', label: m.nav_flatpaks(), icon: Package, show: true },
+			{ href: '/dashboard/screenshots', label: m.nav_screenshots(), icon: Image, show: true },
 			{
 				href: '/dashboard/developer-profile',
 				label: m.nav_developer_profile(),
@@ -96,7 +113,7 @@
 
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger
-						class="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary/40 focus-visible:ring-primary/40 focus-visible:outline-none"
+						class="flex size-9 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary/40 focus-visible:ring-primary/40 focus-visible:outline-none"
 					>
 						<img src={data.avatarUrl} alt={user.name} class="size-full object-cover" />
 					</DropdownMenu.Trigger>
@@ -143,6 +160,18 @@
 								</DropdownMenu.Item>
 							{/each}
 						{/if}
+
+						<DropdownMenu.Separator class="my-1 h-px bg-border" />
+						<div class="flex items-center justify-between gap-3 px-3 py-2">
+							<span class="flex items-center gap-2 text-sm">
+								<Mail class="size-4 text-muted-foreground" />
+								{m.nav_email_notifications()}
+							</span>
+							<Switch
+								checked={emailNotificationsEnabled}
+								onCheckedChange={toggleEmailNotifications}
+							/>
+						</div>
 
 						<DropdownMenu.Separator class="my-1 h-px bg-border" />
 						<DropdownMenu.Item

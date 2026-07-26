@@ -32,6 +32,9 @@ services:
       BUNNYCDN_PASSWORD: ${BUNNYCDN_PASSWORD}
       FORGE_SECRETS_KEY: ${FORGE_SECRETS_KEY}
       FLATPAK_MAX_BUNDLE_BYTES: ${FLATPAK_MAX_BUNDLE_BYTES:-2147483648}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      EMAIL_NOTIFICATIONS_ENABLED: ${EMAIL_NOTIFICATIONS_ENABLED:-true}
       # adapter-node caps request bodies independently of any app-level check;
       # fixed to Infinity (not configurable) since 0 is NOT "unlimited", it
       # means every request body is rejected outright (adapter-node treats 0

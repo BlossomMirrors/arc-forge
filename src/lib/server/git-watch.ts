@@ -8,6 +8,23 @@ import { notifyReviewers } from './notifications';
 
 const execFileAsync = promisify(execFile);
 
+// Turns a failed execFile('git', ...) call into a short, human-readable reason
+// instead of swallowing it, so a broken clone (missing git binary, no network
+// egress to the remote, bad credentials, wrong branch, ...) shows up as an actual
+// diagnosable message instead of a bare "not found" that looks like the repo/path
+// was simply wrong.
+function gitErrorMessage(e: unknown): string {
+	if (e && typeof e === 'object') {
+		const err = e as { code?: string; killed?: boolean; stderr?: string; message?: string };
+		if (err.code === 'ENOENT') return 'git is not installed on the server';
+		if (err.killed) return 'git command timed out';
+		const stderr = err.stderr?.trim();
+		if (stderr) return stderr.split('\n').pop() || stderr;
+		if (err.message) return err.message;
+	}
+	return String(e);
+}
+
 // Read-only check of a repo's current branch head - deliberately run from Forge's
 // own process (not over SSH to the signing host), since it has nothing to do with
 // secrets and would otherwise burn an SSH round-trip per watched app per poll tick.
@@ -18,7 +35,8 @@ export async function checkRemoteHead(gitUrl: string, branch: string): Promise<s
 		});
 		const sha = stdout.split(/\s+/)[0]?.trim();
 		return sha || null;
-	} catch {
+	} catch (e) {
+		console.error(`git ls-remote failed for ${gitUrl}#${branch}:`, gitErrorMessage(e));
 		return null;
 	}
 }
@@ -35,9 +53,15 @@ function looksLikeManifest(content: string): boolean {
 
 // Best-effort: shallow-clones the repo to a scratch dir and scans the top level for
 // a file that looks like a flatpak-builder manifest, returning its path relative to
-// the repo root, or null if nothing obviously matches - the submitter still has to
-// confirm/enter the path themselves, this only prefills the field.
-export async function detectManifestPath(gitUrl: string, branch: string): Promise<string | null> {
+// the repo root. The submitter still has to confirm/enter the path themselves, this
+// only prefills the field. Distinguishes "cloned fine, nothing matched" (manifestPath
+// null, no error) from "couldn't even clone the repo" (error set) - collapsing both
+// into the same silent null previously made a broken git binary or unreachable
+// remote look identical to the repo genuinely having no manifest at the top level.
+export async function detectManifestPath(
+	gitUrl: string,
+	branch: string
+): Promise<{ manifestPath: string | null; error?: string }> {
 	const dir = await mkdtemp(path.join(tmpdir(), 'forge-manifest-'));
 	try {
 		await execFileAsync('git', ['clone', '--depth', '1', '--branch', branch, gitUrl, dir], {
@@ -47,11 +71,13 @@ export async function detectManifestPath(gitUrl: string, branch: string): Promis
 		for (const entry of entries) {
 			if (!MANIFEST_EXTENSIONS.has(path.extname(entry))) continue;
 			const content = await readFile(path.join(dir, entry), 'utf8').catch(() => '');
-			if (looksLikeManifest(content)) return entry;
+			if (looksLikeManifest(content)) return { manifestPath: entry };
 		}
-		return null;
-	} catch {
-		return null;
+		return { manifestPath: null };
+	} catch (e) {
+		const error = gitErrorMessage(e);
+		console.error(`git clone failed for ${gitUrl}#${branch}:`, error);
+		return { manifestPath: null, error };
 	} finally {
 		await rm(dir, { recursive: true, force: true }).catch(() => {});
 	}
@@ -71,23 +97,31 @@ function parseManifestAppId(content: string): string | null {
 }
 
 // Validates that manifestPath actually exists in the repo and declares an app id,
-// returning that id (or null if the path doesn't exist or has no app-id/id field).
-// Used at submission time - unlike detectManifestPath this takes an authoritative,
-// submitter-provided path rather than guessing one.
+// returning that id. Used at submission time - unlike detectManifestPath this takes
+// an authoritative, submitter-provided path rather than guessing one. Distinguishes
+// "cloned fine, path/app-id missing" (appid null, no error) from "couldn't clone or
+// read at all" (error set) for the same reason detectManifestPath does.
 export async function readManifestAppId(
 	gitUrl: string,
 	branch: string,
 	manifestPath: string
-): Promise<string | null> {
+): Promise<{ appid: string | null; error?: string }> {
 	const dir = await mkdtemp(path.join(tmpdir(), 'forge-manifest-'));
 	try {
 		await execFileAsync('git', ['clone', '--depth', '1', '--branch', branch, gitUrl, dir], {
 			timeout: 60000
 		});
-		const content = await readFile(path.join(dir, manifestPath), 'utf8');
-		return parseManifestAppId(content);
-	} catch {
-		return null;
+		let content: string;
+		try {
+			content = await readFile(path.join(dir, manifestPath), 'utf8');
+		} catch {
+			return { appid: null, error: `No file at "${manifestPath}" in the repo` };
+		}
+		return { appid: parseManifestAppId(content) };
+	} catch (e) {
+		const error = gitErrorMessage(e);
+		console.error(`git clone failed for ${gitUrl}#${branch}:`, error);
+		return { appid: null, error };
 	} finally {
 		await rm(dir, { recursive: true, force: true }).catch(() => {});
 	}

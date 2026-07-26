@@ -57,11 +57,16 @@ async function resolveGitSubmission(
 	source: { gitUrl: string; gitBranch: string; gitManifestPath: string },
 	params: { isStaff: boolean; claimedDeveloperName?: string; existingAppId?: string }
 ): Promise<FlatpakSubmissionResult> {
-	const appid = await readManifestAppId(source.gitUrl, source.gitBranch, source.gitManifestPath);
+	const { appid, error } = await readManifestAppId(
+		source.gitUrl,
+		source.gitBranch,
+		source.gitManifestPath
+	);
 	if (!appid) {
 		return {
 			ok: false,
 			error:
+				error ??
 				'Could not read an app id from that manifest - check the repo URL, branch, and manifest path'
 		};
 	}

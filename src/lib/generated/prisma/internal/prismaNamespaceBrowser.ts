@@ -55,6 +55,7 @@ export const ModelName = {
 	PwaTranslation: 'PwaTranslation',
 	DeveloperProfile: 'DeveloperProfile',
 	DeveloperVerificationRequest: 'DeveloperVerificationRequest',
+	ScreenshotSubmission: 'ScreenshotSubmission',
 	DeveloperProfileMember: 'DeveloperProfileMember',
 	DeveloperProfileInvitation: 'DeveloperProfileInvitation',
 	PwaApp: 'PwaApp',
@@ -90,6 +91,7 @@ export const UserScalarFieldEnum = {
 	emailVerified: 'emailVerified',
 	image: 'image',
 	roles: 'roles',
+	emailNotificationsEnabled: 'emailNotificationsEnabled',
 	createdAt: 'createdAt',
 	updatedAt: 'updatedAt'
 } as const;
@@ -184,6 +186,24 @@ export const DeveloperVerificationRequestScalarFieldEnum = {
 
 export type DeveloperVerificationRequestScalarFieldEnum =
 	(typeof DeveloperVerificationRequestScalarFieldEnum)[keyof typeof DeveloperVerificationRequestScalarFieldEnum];
+
+export const ScreenshotSubmissionScalarFieldEnum = {
+	id: 'id',
+	url: 'url',
+	mimeType: 'mimeType',
+	fileName: 'fileName',
+	fileSize: 'fileSize',
+	status: 'status',
+	submittedById: 'submittedById',
+	reviewedById: 'reviewedById',
+	reviewedAt: 'reviewedAt',
+	reviewNote: 'reviewNote',
+	createdAt: 'createdAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type ScreenshotSubmissionScalarFieldEnum =
+	(typeof ScreenshotSubmissionScalarFieldEnum)[keyof typeof ScreenshotSubmissionScalarFieldEnum];
 
 export const DeveloperProfileMemberScalarFieldEnum = {
 	id: 'id',

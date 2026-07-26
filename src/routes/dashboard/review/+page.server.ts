@@ -11,46 +11,64 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	requireReviewer(locals.user);
-	const [pending, recentlyReviewed, pendingFlatpaks, recentFlatpaks, pendingVerifications] =
-		await Promise.all([
-			db.pwaApp.findMany({
-				where: { status: 'PENDING' },
-				orderBy: { createdAt: 'asc' },
-				include: { submittedBy: { select: { name: true, email: true } } }
-			}),
-			db.pwaApp.findMany({
-				where: { status: { in: ['APPROVED', 'REJECTED', 'PULLED'] }, reviewedById: { not: null } },
-				orderBy: { reviewedAt: 'desc' },
-				take: 20,
-				include: {
-					submittedBy: { select: { name: true, email: true } },
-					reviewedBy: { select: { name: true, email: true } }
-				}
-			}),
-			db.flatpakApp.findMany({
-				where: { status: { in: ['PENDING', 'PROCESSING', 'FAILED'] } },
-				orderBy: { createdAt: 'asc' },
-				include: { submittedBy: { select: { name: true, email: true } } }
-			}),
-			db.flatpakApp.findMany({
-				where: { status: { in: ['APPROVED', 'REJECTED', 'PULLED'] }, reviewedById: { not: null } },
-				orderBy: { reviewedAt: 'desc' },
-				take: 20,
-				include: {
-					submittedBy: { select: { name: true, email: true } },
-					reviewedBy: { select: { name: true, email: true } }
-				}
-			}),
-			db.developerVerificationRequest.findMany({
-				where: { status: 'PENDING' },
-				orderBy: { createdAt: 'asc' },
-				include: {
-					developerProfile: { select: { name: true, slug: true } },
-					requestedBy: { select: { name: true, email: true } }
-				}
-			})
-		]);
-	return { pending, recentlyReviewed, pendingFlatpaks, recentFlatpaks, pendingVerifications };
+	const [
+		pending,
+		recentlyReviewed,
+		pendingFlatpaks,
+		recentFlatpaks,
+		pendingVerifications,
+		pendingScreenshots
+	] = await Promise.all([
+		db.pwaApp.findMany({
+			where: { status: 'PENDING' },
+			orderBy: { createdAt: 'asc' },
+			include: { submittedBy: { select: { name: true, email: true } } }
+		}),
+		db.pwaApp.findMany({
+			where: { status: { in: ['APPROVED', 'REJECTED', 'PULLED'] }, reviewedById: { not: null } },
+			orderBy: { reviewedAt: 'desc' },
+			take: 20,
+			include: {
+				submittedBy: { select: { name: true, email: true } },
+				reviewedBy: { select: { name: true, email: true } }
+			}
+		}),
+		db.flatpakApp.findMany({
+			where: { status: { in: ['PENDING', 'PROCESSING', 'FAILED'] } },
+			orderBy: { createdAt: 'asc' },
+			include: { submittedBy: { select: { name: true, email: true } } }
+		}),
+		db.flatpakApp.findMany({
+			where: { status: { in: ['APPROVED', 'REJECTED', 'PULLED'] }, reviewedById: { not: null } },
+			orderBy: { reviewedAt: 'desc' },
+			take: 20,
+			include: {
+				submittedBy: { select: { name: true, email: true } },
+				reviewedBy: { select: { name: true, email: true } }
+			}
+		}),
+		db.developerVerificationRequest.findMany({
+			where: { status: 'PENDING' },
+			orderBy: { createdAt: 'asc' },
+			include: {
+				developerProfile: { select: { name: true, slug: true } },
+				requestedBy: { select: { name: true, email: true } }
+			}
+		}),
+		db.screenshotSubmission.findMany({
+			where: { status: 'PENDING' },
+			orderBy: { createdAt: 'asc' },
+			include: { submittedBy: { select: { name: true, email: true } } }
+		})
+	]);
+	return {
+		pending,
+		recentlyReviewed,
+		pendingFlatpaks,
+		recentFlatpaks,
+		pendingVerifications,
+		pendingScreenshots
+	};
 };
 
 export const actions: Actions = {
@@ -276,5 +294,59 @@ export const actions: Actions = {
 
 		const result = await rejectDeveloperVerification(id, reviewer.id, note);
 		if (!result.ok) return fail(400, { error: result.error });
+	},
+
+	approveScreenshot: async ({ request, locals }) => {
+		const reviewer = requireReviewer(locals.user);
+		const data = await request.formData();
+		const id = data.get('id') as string;
+		if (!id) return fail(400);
+		const submission = await db.screenshotSubmission.findUnique({ where: { id } });
+		if (!submission) throw error(404, 'Screenshot not found');
+
+		await db.screenshotSubmission.update({
+			where: { id },
+			data: {
+				status: 'APPROVED',
+				reviewedById: reviewer.id,
+				reviewedAt: new Date(),
+				reviewNote: null
+			}
+		});
+		if (submission.submittedById) {
+			await notifyUser(submission.submittedById, {
+				type: 'screenshot_approved',
+				title: `Your screenshot was approved`,
+				link: `/dashboard/screenshots`
+			});
+		}
+	},
+
+	rejectScreenshot: async ({ request, locals }) => {
+		const reviewer = requireReviewer(locals.user);
+		const data = await request.formData();
+		const id = data.get('id') as string;
+		const note = ((data.get('note') as string) ?? '').trim();
+		if (!id) return fail(400);
+		const submission = await db.screenshotSubmission.findUnique({ where: { id } });
+		if (!submission) throw error(404, 'Screenshot not found');
+
+		await db.screenshotSubmission.update({
+			where: { id },
+			data: {
+				status: 'REJECTED',
+				reviewedById: reviewer.id,
+				reviewedAt: new Date(),
+				reviewNote: note || null
+			}
+		});
+		if (submission.submittedById) {
+			await notifyUser(submission.submittedById, {
+				type: 'screenshot_rejected',
+				title: `Your screenshot was rejected`,
+				body: note || undefined,
+				link: `/dashboard/screenshots`
+			});
+		}
 	}
 };

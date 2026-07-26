@@ -359,13 +359,93 @@ function extractBetweenMarkers(
 
 // AppStream allows both the older <developer_name> and the newer <developer><name>
 // form, and either can appear as a plain string or as an object with a #text node
-// depending on whether the parser sees attributes alongside it.
+// depending on whether the parser sees attributes alongside it. A translated
+// component (multiple <name>/<summary> elements with different xml:lang) parses
+// to an ARRAY of those, which is also `typeof === 'object'` but has no '#text' of
+// its own - without this branch every one of these fields silently came back
+// empty for any bundle with translated AppStream metadata.
 function textOf(value: unknown): string {
 	if (typeof value === 'string') return value;
+	if (Array.isArray(value)) {
+		// Prefer the untranslated/default entry (no xml:lang) for single-value
+		// fields, these aren't meant to be localized themselves.
+		const untranslated = value.find(
+			(v) => typeof v === 'string' || !('@_xml:lang' in (v as Record<string, unknown>))
+		);
+		return textOf(untranslated ?? value[0]);
+	}
 	if (value && typeof value === 'object' && '#text' in (value as Record<string, unknown>)) {
 		return String((value as Record<string, unknown>)['#text'] ?? '');
 	}
 	return '';
+}
+
+export type LocalizedMetadata = { name: string; summary: string; description: string };
+
+function collectLangVariants(value: unknown): Record<string, string> {
+	const items = Array.isArray(value) ? value : value !== undefined && value !== null ? [value] : [];
+	const result: Record<string, string> = {};
+	for (const item of items) {
+		if (typeof item === 'string') {
+			if (item.trim()) result.en = item.trim();
+			continue;
+		}
+		if (item && typeof item === 'object') {
+			const obj = item as Record<string, unknown>;
+			const lang = typeof obj['@_xml:lang'] === 'string' ? (obj['@_xml:lang'] as string) : 'en';
+			const text = textOf(obj).trim();
+			if (text) result[lang] = text;
+		}
+	}
+	return result;
+}
+
+// <description> blocks carry their own inner markup verbatim (see the comment
+// on the single-value extraction below), so translated variants are pulled the
+// same way, by matching each <description>/<description xml:lang="..."> block
+// directly out of the source XML rather than the parsed object tree.
+function collectDescriptionVariants(xml: string): Record<string, string> {
+	const result: Record<string, string> = {};
+	const regex = /<description(?:\s+xml:lang="([^"]+)")?\s*>([\s\S]*?)<\/description>/g;
+	let match: RegExpExecArray | null;
+	while ((match = regex.exec(xml))) {
+		const lang = match[1] || 'en';
+		const text = match[2].trim();
+		if (text) result[lang] = text;
+	}
+	return result;
+}
+
+// Preview-only: the real submission fields (parseAppstreamComponent, used for
+// what's actually saved) are intentionally single-language, Flatpak has no
+// translation model the way PwaTranslation exists for PWAs. This just surfaces
+// every language actually present in the bundle's own metainfo.xml so a
+// submitter can double check translated listings before submitting.
+export function parseAppstreamTranslations(xml: string): Record<string, LocalizedMetadata> {
+	const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+	const doc = parser.parse(xml) as Record<string, unknown>;
+	const component = (doc.component ?? {}) as Record<string, unknown>;
+
+	const names = collectLangVariants(component.name);
+	const summaries = collectLangVariants(component.summary);
+	const descriptions = collectDescriptionVariants(xml);
+
+	const langs = new Set([
+		...Object.keys(names),
+		...Object.keys(summaries),
+		...Object.keys(descriptions)
+	]);
+	if (langs.size === 0) langs.add('en');
+
+	const result: Record<string, LocalizedMetadata> = {};
+	for (const lang of langs) {
+		result[lang] = {
+			name: names[lang] ?? names.en ?? '',
+			summary: summaries[lang] ?? summaries.en ?? '',
+			description: descriptions[lang] ?? descriptions.en ?? ''
+		};
+	}
+	return result;
 }
 
 function parseAppstreamComponent(xml: string): {
@@ -424,6 +504,7 @@ export type ExtractedAppstream = {
 	homepageUrl?: string;
 	screenshots?: string[];
 	iconBuffer?: Buffer;
+	translations?: Record<string, LocalizedMetadata>;
 	error?: string;
 	log?: string;
 };
@@ -471,8 +552,9 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 	const appid = appidMatch[1].trim();
 	const branch = refMatch ? refMatch[1].trim().split('/').pop() : 'stable';
 	const iconBuffer = iconB64 ? Buffer.from(iconB64, 'base64') : undefined;
-	const parsed = metainfoB64
-		? parseAppstreamComponent(Buffer.from(metainfoB64, 'base64').toString('utf8'))
+	const metainfoXml = metainfoB64 ? Buffer.from(metainfoB64, 'base64').toString('utf8') : undefined;
+	const parsed = metainfoXml
+		? parseAppstreamComponent(metainfoXml)
 		: {
 				name: '',
 				summary: '',
@@ -481,8 +563,9 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 				homepageUrl: '',
 				screenshots: []
 			};
+	const translations = metainfoXml ? parseAppstreamTranslations(metainfoXml) : undefined;
 
-	return { ok: true, appid, branch, iconBuffer, log, ...parsed };
+	return { ok: true, appid, branch, iconBuffer, translations, log, ...parsed };
 }
 
 // Removes a specific app's ref from the repo (if present) and republishes, so the

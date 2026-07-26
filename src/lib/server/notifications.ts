@@ -1,5 +1,7 @@
+import { env } from '$env/dynamic/private';
 import { db } from './db';
 import { STAFF_ROLE, REVIEWER_ROLE } from './authz';
+import { sendEmail, renderNotificationEmail } from './email';
 
 type NotificationInput = {
 	type: string;
@@ -8,19 +10,44 @@ type NotificationInput = {
 	link?: string;
 };
 
+// Every email links back to Forge, either the specific notification's own link
+// (approvals, reviews, etc.) or, failing that, just the dashboard root - never no
+// link at all.
+function emailNotification(email: string, data: NotificationInput): Promise<void> {
+	const base = env.BETTER_AUTH_URL;
+	const linkUrl = base ? new URL(data.link || '/dashboard', base).href : undefined;
+	return sendEmail({
+		to: email,
+		subject: data.title,
+		html: renderNotificationEmail({ title: data.title, body: data.body, linkUrl })
+	});
+}
+
 export async function notifyUser(userId: string, data: NotificationInput): Promise<void> {
-	await db.notification.create({ data: { userId, ...data } });
+	const [user] = await Promise.all([
+		db.user.findUnique({
+			where: { id: userId },
+			select: { email: true, emailNotificationsEnabled: true }
+		}),
+		db.notification.create({ data: { userId, ...data } })
+	]);
+	if (user?.email && user.emailNotificationsEnabled) await emailNotification(user.email, data);
 }
 
 export async function notifyReviewers(data: NotificationInput): Promise<void> {
 	const reviewers = await db.user.findMany({
 		where: { roles: { hasSome: [STAFF_ROLE, REVIEWER_ROLE] } },
-		select: { id: true }
+		select: { id: true, email: true, emailNotificationsEnabled: true }
 	});
 	if (!reviewers.length) return;
 	await db.notification.createMany({
 		data: reviewers.map((r) => ({ userId: r.id, ...data }))
 	});
+	await Promise.all(
+		reviewers
+			.filter((r) => r.emailNotificationsEnabled)
+			.map((r) => emailNotification(r.email, data))
+	);
 }
 
 export async function listNotifications(userId: string, limit = 50) {

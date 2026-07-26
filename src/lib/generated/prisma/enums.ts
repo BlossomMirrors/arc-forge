@@ -26,6 +26,14 @@ export const VerificationRequestStatus = {
 export type VerificationRequestStatus =
 	(typeof VerificationRequestStatus)[keyof typeof VerificationRequestStatus];
 
+export const ScreenshotStatus = {
+	PENDING: 'PENDING',
+	APPROVED: 'APPROVED',
+	REJECTED: 'REJECTED'
+} as const;
+
+export type ScreenshotStatus = (typeof ScreenshotStatus)[keyof typeof ScreenshotStatus];
+
 export const FlatpakStatus = {
 	PENDING: 'PENDING',
 	PROCESSING: 'PROCESSING',

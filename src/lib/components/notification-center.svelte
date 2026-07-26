@@ -106,7 +106,7 @@
 
 <DropdownMenu.Root bind:open={dropdownOpen}>
 	<DropdownMenu.Trigger
-		class="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted focus-visible:outline-none"
+		class="relative flex size-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted focus-visible:outline-none"
 		aria-label={m.notifications_heading()}
 	>
 		<Bell class="size-4" />

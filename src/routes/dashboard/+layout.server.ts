@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { isStaff, isReviewer, isAdmin } from '$lib/server/authz';
 import { listNotifications, unreadNotificationCount } from '$lib/server/notifications';
 import { listMyDeveloperProfiles } from '$lib/server/developer-profile';
+import { db } from '$lib/server/db';
 import type { LayoutServerLoad } from './$types';
 
 async function gravatar(email: string, size = 80): Promise<string> {
@@ -17,10 +18,14 @@ async function gravatar(email: string, size = 80): Promise<string> {
 export const load: LayoutServerLoad = async ({ locals, route }) => {
 	if (!locals.user) throw redirect(302, '/auth/login');
 	const avatarUrl = locals.user.image ?? (await gravatar(locals.user.email));
-	const [notifications, unreadCount, developerProfiles] = await Promise.all([
+	const [notifications, unreadCount, developerProfiles, emailPrefs] = await Promise.all([
 		listNotifications(locals.user.id, 20),
 		unreadNotificationCount(locals.user.id),
-		listMyDeveloperProfiles(locals.user.id)
+		listMyDeveloperProfiles(locals.user.id),
+		db.user.findUnique({
+			where: { id: locals.user.id },
+			select: { emailNotificationsEnabled: true }
+		})
 	]);
 
 	const activeDeveloperProfileId = locals.session?.activeOrganizationId ?? null;
@@ -48,6 +53,7 @@ export const load: LayoutServerLoad = async ({ locals, route }) => {
 		notifications,
 		unreadCount,
 		developerProfiles,
-		activeDeveloperProfileId: activeDeveloperProfile?.id ?? null
+		activeDeveloperProfileId: activeDeveloperProfile?.id ?? null,
+		emailNotificationsEnabled: emailPrefs?.emailNotificationsEnabled ?? true
 	};
 };

@@ -382,6 +382,7 @@ export const ModelName = {
 	PwaTranslation: 'PwaTranslation',
 	DeveloperProfile: 'DeveloperProfile',
 	DeveloperVerificationRequest: 'DeveloperVerificationRequest',
+	ScreenshotSubmission: 'ScreenshotSubmission',
 	DeveloperProfileMember: 'DeveloperProfileMember',
 	DeveloperProfileInvitation: 'DeveloperProfileInvitation',
 	PwaApp: 'PwaApp',
@@ -419,6 +420,7 @@ export type TypeMap<
 			| 'pwaTranslation'
 			| 'developerProfile'
 			| 'developerVerificationRequest'
+			| 'screenshotSubmission'
 			| 'developerProfileMember'
 			| 'developerProfileInvitation'
 			| 'pwaApp'
@@ -952,6 +954,82 @@ export type TypeMap<
 					args: Prisma.DeveloperVerificationRequestCountArgs<ExtArgs>;
 					result:
 						| runtime.Types.Utils.Optional<Prisma.DeveloperVerificationRequestCountAggregateOutputType>
+						| number;
+				};
+			};
+		};
+		ScreenshotSubmission: {
+			payload: Prisma.$ScreenshotSubmissionPayload<ExtArgs>;
+			fields: Prisma.ScreenshotSubmissionFieldRefs;
+			operations: {
+				findUnique: {
+					args: Prisma.ScreenshotSubmissionFindUniqueArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload> | null;
+				};
+				findUniqueOrThrow: {
+					args: Prisma.ScreenshotSubmissionFindUniqueOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				findFirst: {
+					args: Prisma.ScreenshotSubmissionFindFirstArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload> | null;
+				};
+				findFirstOrThrow: {
+					args: Prisma.ScreenshotSubmissionFindFirstOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				findMany: {
+					args: Prisma.ScreenshotSubmissionFindManyArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>[];
+				};
+				create: {
+					args: Prisma.ScreenshotSubmissionCreateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				createMany: {
+					args: Prisma.ScreenshotSubmissionCreateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				createManyAndReturn: {
+					args: Prisma.ScreenshotSubmissionCreateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>[];
+				};
+				delete: {
+					args: Prisma.ScreenshotSubmissionDeleteArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				update: {
+					args: Prisma.ScreenshotSubmissionUpdateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				deleteMany: {
+					args: Prisma.ScreenshotSubmissionDeleteManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateMany: {
+					args: Prisma.ScreenshotSubmissionUpdateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateManyAndReturn: {
+					args: Prisma.ScreenshotSubmissionUpdateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>[];
+				};
+				upsert: {
+					args: Prisma.ScreenshotSubmissionUpsertArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$ScreenshotSubmissionPayload>;
+				};
+				aggregate: {
+					args: Prisma.ScreenshotSubmissionAggregateArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AggregateScreenshotSubmission>;
+				};
+				groupBy: {
+					args: Prisma.ScreenshotSubmissionGroupByArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.ScreenshotSubmissionGroupByOutputType>[];
+				};
+				count: {
+					args: Prisma.ScreenshotSubmissionCountArgs<ExtArgs>;
+					result:
+						| runtime.Types.Utils.Optional<Prisma.ScreenshotSubmissionCountAggregateOutputType>
 						| number;
 				};
 			};
@@ -1756,6 +1834,7 @@ export const UserScalarFieldEnum = {
 	emailVerified: 'emailVerified',
 	image: 'image',
 	roles: 'roles',
+	emailNotificationsEnabled: 'emailNotificationsEnabled',
 	createdAt: 'createdAt',
 	updatedAt: 'updatedAt'
 } as const;
@@ -1850,6 +1929,24 @@ export const DeveloperVerificationRequestScalarFieldEnum = {
 
 export type DeveloperVerificationRequestScalarFieldEnum =
 	(typeof DeveloperVerificationRequestScalarFieldEnum)[keyof typeof DeveloperVerificationRequestScalarFieldEnum];
+
+export const ScreenshotSubmissionScalarFieldEnum = {
+	id: 'id',
+	url: 'url',
+	mimeType: 'mimeType',
+	fileName: 'fileName',
+	fileSize: 'fileSize',
+	status: 'status',
+	submittedById: 'submittedById',
+	reviewedById: 'reviewedById',
+	reviewedAt: 'reviewedAt',
+	reviewNote: 'reviewNote',
+	createdAt: 'createdAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type ScreenshotSubmissionScalarFieldEnum =
+	(typeof ScreenshotSubmissionScalarFieldEnum)[keyof typeof ScreenshotSubmissionScalarFieldEnum];
 
 export const DeveloperProfileMemberScalarFieldEnum = {
 	id: 'id',
@@ -2101,6 +2198,32 @@ export type ListEnumVerificationRequestStatusFieldRefInput<$PrismaModel> = Field
 >;
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>;
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>;
+
+/**
+ * Reference to a field of type 'ScreenshotStatus'
+ */
+export type EnumScreenshotStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+	$PrismaModel,
+	'ScreenshotStatus'
+>;
+
+/**
+ * Reference to a field of type 'ScreenshotStatus[]'
+ */
+export type ListEnumScreenshotStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+	$PrismaModel,
+	'ScreenshotStatus[]'
+>;
+
+/**
  * Reference to a field of type 'PwaStatus'
  */
 export type EnumPwaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PwaStatus'>;
@@ -2128,16 +2251,6 @@ export type ListEnumFlatpakSourceTypeFieldRefInput<$PrismaModel> = FieldRefInput
 	$PrismaModel,
 	'FlatpakSourceType[]'
 >;
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>;
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>;
 
 /**
  * Reference to a field of type 'FlatpakStatus'
@@ -2290,6 +2403,7 @@ export type GlobalOmitConfig = {
 	pwaTranslation?: Prisma.PwaTranslationOmit;
 	developerProfile?: Prisma.DeveloperProfileOmit;
 	developerVerificationRequest?: Prisma.DeveloperVerificationRequestOmit;
+	screenshotSubmission?: Prisma.ScreenshotSubmissionOmit;
 	developerProfileMember?: Prisma.DeveloperProfileMemberOmit;
 	developerProfileInvitation?: Prisma.DeveloperProfileInvitationOmit;
 	pwaApp?: Prisma.PwaAppOmit;

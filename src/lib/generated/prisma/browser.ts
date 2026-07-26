@@ -52,6 +52,11 @@ export type DeveloperProfile = Prisma.DeveloperProfileModel;
  */
 export type DeveloperVerificationRequest = Prisma.DeveloperVerificationRequestModel;
 /**
+ * Model ScreenshotSubmission
+ *
+ */
+export type ScreenshotSubmission = Prisma.ScreenshotSubmissionModel;
+/**
  * Model DeveloperProfileMember
  *
  */

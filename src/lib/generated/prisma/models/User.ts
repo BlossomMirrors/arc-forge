@@ -29,6 +29,7 @@ export type UserMinAggregateOutputType = {
 	email: string | null;
 	emailVerified: boolean | null;
 	image: string | null;
+	emailNotificationsEnabled: boolean | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 };
@@ -39,6 +40,7 @@ export type UserMaxAggregateOutputType = {
 	email: string | null;
 	emailVerified: boolean | null;
 	image: string | null;
+	emailNotificationsEnabled: boolean | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 };
@@ -50,6 +52,7 @@ export type UserCountAggregateOutputType = {
 	emailVerified: number;
 	image: number;
 	roles: number;
+	emailNotificationsEnabled: number;
 	createdAt: number;
 	updatedAt: number;
 	_all: number;
@@ -61,6 +64,7 @@ export type UserMinAggregateInputType = {
 	email?: true;
 	emailVerified?: true;
 	image?: true;
+	emailNotificationsEnabled?: true;
 	createdAt?: true;
 	updatedAt?: true;
 };
@@ -71,6 +75,7 @@ export type UserMaxAggregateInputType = {
 	email?: true;
 	emailVerified?: true;
 	image?: true;
+	emailNotificationsEnabled?: true;
 	createdAt?: true;
 	updatedAt?: true;
 };
@@ -82,6 +87,7 @@ export type UserCountAggregateInputType = {
 	emailVerified?: true;
 	image?: true;
 	roles?: true;
+	emailNotificationsEnabled?: true;
 	createdAt?: true;
 	updatedAt?: true;
 	_all?: true;
@@ -167,6 +173,7 @@ export type UserGroupByOutputType = {
 	emailVerified: boolean;
 	image: string | null;
 	roles: string[];
+	emailNotificationsEnabled: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 	_count: UserCountAggregateOutputType | null;
@@ -196,6 +203,7 @@ export type UserWhereInput = {
 	emailVerified?: Prisma.BoolFilter<'User'> | boolean;
 	image?: Prisma.StringNullableFilter<'User'> | string | null;
 	roles?: Prisma.StringNullableListFilter<'User'>;
+	emailNotificationsEnabled?: Prisma.BoolFilter<'User'> | boolean;
 	createdAt?: Prisma.DateTimeFilter<'User'> | Date | string;
 	updatedAt?: Prisma.DateTimeFilter<'User'> | Date | string;
 	sessions?: Prisma.SessionListRelationFilter;
@@ -210,6 +218,8 @@ export type UserWhereInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter;
 	notifications?: Prisma.NotificationListRelationFilter;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -219,6 +229,7 @@ export type UserOrderByWithRelationInput = {
 	emailVerified?: Prisma.SortOrder;
 	image?: Prisma.SortOrderInput | Prisma.SortOrder;
 	roles?: Prisma.SortOrder;
+	emailNotificationsEnabled?: Prisma.SortOrder;
 	createdAt?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 	sessions?: Prisma.SessionOrderByRelationAggregateInput;
@@ -233,6 +244,8 @@ export type UserOrderByWithRelationInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestOrderByRelationAggregateInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestOrderByRelationAggregateInput;
 	notifications?: Prisma.NotificationOrderByRelationAggregateInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -246,6 +259,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
 		emailVerified?: Prisma.BoolFilter<'User'> | boolean;
 		image?: Prisma.StringNullableFilter<'User'> | string | null;
 		roles?: Prisma.StringNullableListFilter<'User'>;
+		emailNotificationsEnabled?: Prisma.BoolFilter<'User'> | boolean;
 		createdAt?: Prisma.DateTimeFilter<'User'> | Date | string;
 		updatedAt?: Prisma.DateTimeFilter<'User'> | Date | string;
 		sessions?: Prisma.SessionListRelationFilter;
@@ -260,6 +274,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
 		requestedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter;
 		reviewedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter;
 		notifications?: Prisma.NotificationListRelationFilter;
+		submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
+		reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter;
 	},
 	'id' | 'email'
 >;
@@ -271,6 +287,7 @@ export type UserOrderByWithAggregationInput = {
 	emailVerified?: Prisma.SortOrder;
 	image?: Prisma.SortOrderInput | Prisma.SortOrder;
 	roles?: Prisma.SortOrder;
+	emailNotificationsEnabled?: Prisma.SortOrder;
 	createdAt?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 	_count?: Prisma.UserCountOrderByAggregateInput;
@@ -288,6 +305,7 @@ export type UserScalarWhereWithAggregatesInput = {
 	emailVerified?: Prisma.BoolWithAggregatesFilter<'User'> | boolean;
 	image?: Prisma.StringNullableWithAggregatesFilter<'User'> | string | null;
 	roles?: Prisma.StringNullableListFilter<'User'>;
+	emailNotificationsEnabled?: Prisma.BoolWithAggregatesFilter<'User'> | boolean;
 	createdAt?: Prisma.DateTimeWithAggregatesFilter<'User'> | Date | string;
 	updatedAt?: Prisma.DateTimeWithAggregatesFilter<'User'> | Date | string;
 };
@@ -299,6 +317,7 @@ export type UserCreateInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -313,6 +332,8 @@ export type UserCreateInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -322,6 +343,7 @@ export type UserUncheckedCreateInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -336,6 +358,8 @@ export type UserUncheckedCreateInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUpdateInput = {
@@ -345,6 +369,7 @@ export type UserUpdateInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -359,6 +384,8 @@ export type UserUpdateInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -368,6 +395,7 @@ export type UserUncheckedUpdateInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -382,6 +410,8 @@ export type UserUncheckedUpdateInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -391,6 +421,7 @@ export type UserCreateManyInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 };
@@ -402,6 +433,7 @@ export type UserUpdateManyMutationInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -413,6 +445,7 @@ export type UserUncheckedUpdateManyInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
@@ -432,6 +465,7 @@ export type UserCountOrderByAggregateInput = {
 	emailVerified?: Prisma.SortOrder;
 	image?: Prisma.SortOrder;
 	roles?: Prisma.SortOrder;
+	emailNotificationsEnabled?: Prisma.SortOrder;
 	createdAt?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
@@ -442,6 +476,7 @@ export type UserMaxOrderByAggregateInput = {
 	email?: Prisma.SortOrder;
 	emailVerified?: Prisma.SortOrder;
 	image?: Prisma.SortOrder;
+	emailNotificationsEnabled?: Prisma.SortOrder;
 	createdAt?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
@@ -452,6 +487,7 @@ export type UserMinOrderByAggregateInput = {
 	email?: Prisma.SortOrder;
 	emailVerified?: Prisma.SortOrder;
 	image?: Prisma.SortOrder;
+	emailNotificationsEnabled?: Prisma.SortOrder;
 	createdAt?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
@@ -624,6 +660,62 @@ export type UserUpdateOneWithoutReviewedVerificationsNestedInput = {
 			Prisma.UserUpdateWithoutReviewedVerificationsInput
 		>,
 		Prisma.UserUncheckedUpdateWithoutReviewedVerificationsInput
+	>;
+};
+
+export type UserCreateNestedOneWithoutSubmittedScreenshotsInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutSubmittedScreenshotsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmittedScreenshotsInput;
+	connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserCreateNestedOneWithoutReviewedScreenshotsInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutReviewedScreenshotsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutReviewedScreenshotsInput;
+	connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneWithoutSubmittedScreenshotsNestedInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutSubmittedScreenshotsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmittedScreenshotsInput;
+	upsert?: Prisma.UserUpsertWithoutSubmittedScreenshotsInput;
+	disconnect?: Prisma.UserWhereInput | boolean;
+	delete?: Prisma.UserWhereInput | boolean;
+	connect?: Prisma.UserWhereUniqueInput;
+	update?: Prisma.XOR<
+		Prisma.XOR<
+			Prisma.UserUpdateToOneWithWhereWithoutSubmittedScreenshotsInput,
+			Prisma.UserUpdateWithoutSubmittedScreenshotsInput
+		>,
+		Prisma.UserUncheckedUpdateWithoutSubmittedScreenshotsInput
+	>;
+};
+
+export type UserUpdateOneWithoutReviewedScreenshotsNestedInput = {
+	create?: Prisma.XOR<
+		Prisma.UserCreateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutReviewedScreenshotsInput
+	>;
+	connectOrCreate?: Prisma.UserCreateOrConnectWithoutReviewedScreenshotsInput;
+	upsert?: Prisma.UserUpsertWithoutReviewedScreenshotsInput;
+	disconnect?: Prisma.UserWhereInput | boolean;
+	delete?: Prisma.UserWhereInput | boolean;
+	connect?: Prisma.UserWhereUniqueInput;
+	update?: Prisma.XOR<
+		Prisma.XOR<
+			Prisma.UserUpdateToOneWithWhereWithoutReviewedScreenshotsInput,
+			Prisma.UserUpdateWithoutReviewedScreenshotsInput
+		>,
+		Prisma.UserUncheckedUpdateWithoutReviewedScreenshotsInput
 	>;
 };
 
@@ -824,6 +916,7 @@ export type UserCreateWithoutSessionsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	accounts?: Prisma.AccountCreateNestedManyWithoutUserInput;
@@ -837,6 +930,8 @@ export type UserCreateWithoutSessionsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -846,6 +941,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput;
@@ -859,6 +955,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -896,6 +994,7 @@ export type UserUpdateWithoutSessionsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput;
@@ -909,6 +1008,8 @@ export type UserUpdateWithoutSessionsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -918,6 +1019,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput;
@@ -931,6 +1033,8 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutAccountsInput = {
@@ -940,6 +1044,7 @@ export type UserCreateWithoutAccountsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -953,6 +1058,8 @@ export type UserCreateWithoutAccountsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -962,6 +1069,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -975,6 +1083,8 @@ export type UserUncheckedCreateWithoutAccountsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1012,6 +1122,7 @@ export type UserUpdateWithoutAccountsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1025,6 +1136,8 @@ export type UserUpdateWithoutAccountsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1034,6 +1147,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1047,6 +1161,8 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1056,6 +1172,7 @@ export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1069,6 +1186,8 @@ export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1078,6 +1197,7 @@ export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1091,6 +1211,8 @@ export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutVerifiedDeveloperProfilesInput = {
@@ -1128,6 +1250,7 @@ export type UserUpdateWithoutVerifiedDeveloperProfilesInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1141,6 +1264,8 @@ export type UserUpdateWithoutVerifiedDeveloperProfilesInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
@@ -1150,6 +1275,7 @@ export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1163,6 +1289,8 @@ export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutRequestedVerificationsInput = {
@@ -1172,6 +1300,7 @@ export type UserCreateWithoutRequestedVerificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1185,6 +1314,8 @@ export type UserCreateWithoutRequestedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
@@ -1194,6 +1325,7 @@ export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1207,6 +1339,8 @@ export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutRequestedVerificationsInput = {
@@ -1224,6 +1358,7 @@ export type UserCreateWithoutReviewedVerificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1237,6 +1372,8 @@ export type UserCreateWithoutReviewedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
@@ -1246,6 +1383,7 @@ export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1259,6 +1397,8 @@ export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedVerificationsInput = {
@@ -1296,6 +1436,7 @@ export type UserUpdateWithoutRequestedVerificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1309,6 +1450,8 @@ export type UserUpdateWithoutRequestedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
@@ -1318,6 +1461,7 @@ export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1331,6 +1475,8 @@ export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedVerificationsInput = {
@@ -1360,6 +1506,7 @@ export type UserUpdateWithoutReviewedVerificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1373,6 +1520,8 @@ export type UserUpdateWithoutReviewedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
@@ -1382,6 +1531,7 @@ export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1395,6 +1545,264 @@ export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+};
+
+export type UserCreateWithoutSubmittedScreenshotsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
+};
+
+export type UserUncheckedCreateWithoutSubmittedScreenshotsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
+};
+
+export type UserCreateOrConnectWithoutSubmittedScreenshotsInput = {
+	where: Prisma.UserWhereUniqueInput;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutSubmittedScreenshotsInput
+	>;
+};
+
+export type UserCreateWithoutReviewedScreenshotsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+};
+
+export type UserUncheckedCreateWithoutReviewedScreenshotsInput = {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: boolean;
+	image?: string | null;
+	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
+	accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput;
+	submittedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutUserInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutInviterInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
+	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+};
+
+export type UserCreateOrConnectWithoutReviewedScreenshotsInput = {
+	where: Prisma.UserWhereUniqueInput;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutReviewedScreenshotsInput
+	>;
+};
+
+export type UserUpsertWithoutSubmittedScreenshotsInput = {
+	update: Prisma.XOR<
+		Prisma.UserUpdateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedUpdateWithoutSubmittedScreenshotsInput
+	>;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutSubmittedScreenshotsInput
+	>;
+	where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutSubmittedScreenshotsInput = {
+	where?: Prisma.UserWhereInput;
+	data: Prisma.XOR<
+		Prisma.UserUpdateWithoutSubmittedScreenshotsInput,
+		Prisma.UserUncheckedUpdateWithoutSubmittedScreenshotsInput
+	>;
+};
+
+export type UserUpdateWithoutSubmittedScreenshotsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutSubmittedScreenshotsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
+};
+
+export type UserUpsertWithoutReviewedScreenshotsInput = {
+	update: Prisma.XOR<
+		Prisma.UserUpdateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedUpdateWithoutReviewedScreenshotsInput
+	>;
+	create: Prisma.XOR<
+		Prisma.UserCreateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedCreateWithoutReviewedScreenshotsInput
+	>;
+	where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutReviewedScreenshotsInput = {
+	where?: Prisma.UserWhereInput;
+	data: Prisma.XOR<
+		Prisma.UserUpdateWithoutReviewedScreenshotsInput,
+		Prisma.UserUncheckedUpdateWithoutReviewedScreenshotsInput
+	>;
+};
+
+export type UserUpdateWithoutReviewedScreenshotsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutReviewedScreenshotsInput = {
+	id?: Prisma.StringFieldUpdateOperationsInput | string;
+	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	email?: Prisma.StringFieldUpdateOperationsInput | string;
+	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
+	accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput;
+	submittedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutUserNestedInput;
+	sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutInviterNestedInput;
+	submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput;
+	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
+	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
+	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
+	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
 };
 
 export type UserCreateWithoutDeveloperProfileMembersInput = {
@@ -1404,6 +1812,7 @@ export type UserCreateWithoutDeveloperProfileMembersInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1417,6 +1826,8 @@ export type UserCreateWithoutDeveloperProfileMembersInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
@@ -1426,6 +1837,7 @@ export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1439,6 +1851,8 @@ export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutDeveloperProfileMembersInput = {
@@ -1476,6 +1890,7 @@ export type UserUpdateWithoutDeveloperProfileMembersInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1489,6 +1904,8 @@ export type UserUpdateWithoutDeveloperProfileMembersInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
@@ -1498,6 +1915,7 @@ export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1511,6 +1929,8 @@ export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutSentDeveloperInvitationsInput = {
@@ -1520,6 +1940,7 @@ export type UserCreateWithoutSentDeveloperInvitationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1533,6 +1954,8 @@ export type UserCreateWithoutSentDeveloperInvitationsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
@@ -1542,6 +1965,7 @@ export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1555,6 +1979,8 @@ export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutSentDeveloperInvitationsInput = {
@@ -1592,6 +2018,7 @@ export type UserUpdateWithoutSentDeveloperInvitationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1605,6 +2032,8 @@ export type UserUpdateWithoutSentDeveloperInvitationsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
@@ -1614,6 +2043,7 @@ export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1627,6 +2057,8 @@ export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutSubmittedPwasInput = {
@@ -1636,6 +2068,7 @@ export type UserCreateWithoutSubmittedPwasInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1649,6 +2082,8 @@ export type UserCreateWithoutSubmittedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutSubmittedPwasInput = {
@@ -1658,6 +2093,7 @@ export type UserUncheckedCreateWithoutSubmittedPwasInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1671,6 +2107,8 @@ export type UserUncheckedCreateWithoutSubmittedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutSubmittedPwasInput = {
@@ -1688,6 +2126,7 @@ export type UserCreateWithoutReviewedPwasInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1701,6 +2140,8 @@ export type UserCreateWithoutReviewedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedPwasInput = {
@@ -1710,6 +2151,7 @@ export type UserUncheckedCreateWithoutReviewedPwasInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1723,6 +2165,8 @@ export type UserUncheckedCreateWithoutReviewedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedPwasInput = {
@@ -1760,6 +2204,7 @@ export type UserUpdateWithoutSubmittedPwasInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1773,6 +2218,8 @@ export type UserUpdateWithoutSubmittedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
@@ -1782,6 +2229,7 @@ export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1795,6 +2243,8 @@ export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedPwasInput = {
@@ -1824,6 +2274,7 @@ export type UserUpdateWithoutReviewedPwasInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -1837,6 +2288,8 @@ export type UserUpdateWithoutReviewedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedPwasInput = {
@@ -1846,6 +2299,7 @@ export type UserUncheckedUpdateWithoutReviewedPwasInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -1859,6 +2313,8 @@ export type UserUncheckedUpdateWithoutReviewedPwasInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutSubmittedFlatpaksInput = {
@@ -1868,6 +2324,7 @@ export type UserCreateWithoutSubmittedFlatpaksInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1881,6 +2338,8 @@ export type UserCreateWithoutSubmittedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
@@ -1890,6 +2349,7 @@ export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1903,6 +2363,8 @@ export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutSubmittedFlatpaksInput = {
@@ -1920,6 +2382,7 @@ export type UserCreateWithoutReviewedFlatpaksInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -1933,6 +2396,8 @@ export type UserCreateWithoutReviewedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
@@ -1942,6 +2407,7 @@ export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -1955,6 +2421,8 @@ export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
 	notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutReviewedFlatpaksInput = {
@@ -1992,6 +2460,7 @@ export type UserUpdateWithoutSubmittedFlatpaksInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -2005,6 +2474,8 @@ export type UserUpdateWithoutSubmittedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
@@ -2014,6 +2485,7 @@ export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -2027,6 +2499,8 @@ export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUpsertWithoutReviewedFlatpaksInput = {
@@ -2056,6 +2530,7 @@ export type UserUpdateWithoutReviewedFlatpaksInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -2069,6 +2544,8 @@ export type UserUpdateWithoutReviewedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
@@ -2078,6 +2555,7 @@ export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -2091,6 +2569,8 @@ export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
 	notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserCreateWithoutNotificationsInput = {
@@ -2100,6 +2580,7 @@ export type UserCreateWithoutNotificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionCreateNestedManyWithoutUserInput;
@@ -2113,6 +2594,8 @@ export type UserCreateWithoutNotificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -2122,6 +2605,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
 	emailVerified: boolean;
 	image?: string | null;
 	roles?: Prisma.UserCreaterolesInput | string[];
+	emailNotificationsEnabled?: boolean;
 	createdAt: Date | string;
 	updatedAt: Date | string;
 	sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput;
@@ -2135,6 +2619,8 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput;
 };
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2172,6 +2658,7 @@ export type UserUpdateWithoutNotificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput;
@@ -2185,6 +2672,8 @@ export type UserUpdateWithoutNotificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -2194,6 +2683,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
 	emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	roles?: Prisma.UserUpdaterolesInput | string[];
+	emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 	sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput;
@@ -2207,6 +2697,8 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
 	verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput;
 	requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput;
 	reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput;
+	submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput;
+	reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput;
 };
 
 /**
@@ -2226,6 +2718,8 @@ export type UserCountOutputType = {
 	requestedVerifications: number;
 	reviewedVerifications: number;
 	notifications: number;
+	submittedScreenshots: number;
+	reviewedScreenshots: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -2243,6 +2737,8 @@ export type UserCountOutputTypeSelect<
 	requestedVerifications?: boolean | UserCountOutputTypeCountRequestedVerificationsArgs;
 	reviewedVerifications?: boolean | UserCountOutputTypeCountReviewedVerificationsArgs;
 	notifications?: boolean | UserCountOutputTypeCountNotificationsArgs;
+	submittedScreenshots?: boolean | UserCountOutputTypeCountSubmittedScreenshotsArgs;
+	reviewedScreenshots?: boolean | UserCountOutputTypeCountReviewedScreenshotsArgs;
 };
 
 /**
@@ -2365,6 +2861,24 @@ export type UserCountOutputTypeCountNotificationsArgs<
 	where?: Prisma.NotificationWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSubmittedScreenshotsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	where?: Prisma.ScreenshotSubmissionWhereInput;
+};
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReviewedScreenshotsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	where?: Prisma.ScreenshotSubmissionWhereInput;
+};
+
 export type UserSelect<
 	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > = runtime.Types.Extensions.GetSelect<
@@ -2375,6 +2889,7 @@ export type UserSelect<
 		emailVerified?: boolean;
 		image?: boolean;
 		roles?: boolean;
+		emailNotificationsEnabled?: boolean;
 		createdAt?: boolean;
 		updatedAt?: boolean;
 		sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>;
@@ -2389,6 +2904,8 @@ export type UserSelect<
 		requestedVerifications?: boolean | Prisma.User$requestedVerificationsArgs<ExtArgs>;
 		reviewedVerifications?: boolean | Prisma.User$reviewedVerificationsArgs<ExtArgs>;
 		notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>;
+		submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>;
+		reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>;
 		_count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 	},
 	ExtArgs['result']['user']
@@ -2404,6 +2921,7 @@ export type UserSelectCreateManyAndReturn<
 		emailVerified?: boolean;
 		image?: boolean;
 		roles?: boolean;
+		emailNotificationsEnabled?: boolean;
 		createdAt?: boolean;
 		updatedAt?: boolean;
 	},
@@ -2420,6 +2938,7 @@ export type UserSelectUpdateManyAndReturn<
 		emailVerified?: boolean;
 		image?: boolean;
 		roles?: boolean;
+		emailNotificationsEnabled?: boolean;
 		createdAt?: boolean;
 		updatedAt?: boolean;
 	},
@@ -2433,6 +2952,7 @@ export type UserSelectScalar = {
 	emailVerified?: boolean;
 	image?: boolean;
 	roles?: boolean;
+	emailNotificationsEnabled?: boolean;
 	createdAt?: boolean;
 	updatedAt?: boolean;
 };
@@ -2440,7 +2960,15 @@ export type UserSelectScalar = {
 export type UserOmit<
 	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > = runtime.Types.Extensions.GetOmit<
-	'id' | 'name' | 'email' | 'emailVerified' | 'image' | 'roles' | 'createdAt' | 'updatedAt',
+	| 'id'
+	| 'name'
+	| 'email'
+	| 'emailVerified'
+	| 'image'
+	| 'roles'
+	| 'emailNotificationsEnabled'
+	| 'createdAt'
+	| 'updatedAt',
 	ExtArgs['result']['user']
 >;
 export type UserInclude<
@@ -2458,6 +2986,8 @@ export type UserInclude<
 	requestedVerifications?: boolean | Prisma.User$requestedVerificationsArgs<ExtArgs>;
 	reviewedVerifications?: boolean | Prisma.User$reviewedVerificationsArgs<ExtArgs>;
 	notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>;
+	submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>;
+	reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>;
 	_count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -2484,6 +3014,8 @@ export type $UserPayload<
 		requestedVerifications: Prisma.$DeveloperVerificationRequestPayload<ExtArgs>[];
 		reviewedVerifications: Prisma.$DeveloperVerificationRequestPayload<ExtArgs>[];
 		notifications: Prisma.$NotificationPayload<ExtArgs>[];
+		submittedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[];
+		reviewedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[];
 	};
 	scalars: runtime.Types.Extensions.GetPayloadResult<
 		{
@@ -2493,6 +3025,7 @@ export type $UserPayload<
 			emailVerified: boolean;
 			image: string | null;
 			roles: string[];
+			emailNotificationsEnabled: boolean;
 			createdAt: Date;
 			updatedAt: Date;
 		},
@@ -3137,6 +3670,28 @@ export interface Prisma__UserClient<
 		  >
 		| Null
 	>;
+	submittedScreenshots<T extends Prisma.User$submittedScreenshotsArgs<ExtArgs> = {}>(
+		args?: Prisma.Subset<T, Prisma.User$submittedScreenshotsArgs<ExtArgs>>
+	): Prisma.PrismaPromise<
+		| runtime.Types.Result.GetResult<
+				Prisma.$ScreenshotSubmissionPayload<ExtArgs>,
+				T,
+				'findMany',
+				GlobalOmitOptions
+		  >
+		| Null
+	>;
+	reviewedScreenshots<T extends Prisma.User$reviewedScreenshotsArgs<ExtArgs> = {}>(
+		args?: Prisma.Subset<T, Prisma.User$reviewedScreenshotsArgs<ExtArgs>>
+	): Prisma.PrismaPromise<
+		| runtime.Types.Result.GetResult<
+				Prisma.$ScreenshotSubmissionPayload<ExtArgs>,
+				T,
+				'findMany',
+				GlobalOmitOptions
+		  >
+		| Null
+	>;
 	/**
 	 * Attaches callbacks for the resolution and/or rejection of the Promise.
 	 * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3174,6 +3729,7 @@ export interface UserFieldRefs {
 	readonly emailVerified: Prisma.FieldRef<'User', 'Boolean'>;
 	readonly image: Prisma.FieldRef<'User', 'String'>;
 	readonly roles: Prisma.FieldRef<'User', 'String[]'>;
+	readonly emailNotificationsEnabled: Prisma.FieldRef<'User', 'Boolean'>;
 	readonly createdAt: Prisma.FieldRef<'User', 'DateTime'>;
 	readonly updatedAt: Prisma.FieldRef<'User', 'DateTime'>;
 }
@@ -3925,6 +4481,66 @@ export type User$notificationsArgs<
 	take?: number;
 	skip?: number;
 	distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
+};
+
+/**
+ * User.submittedScreenshots
+ */
+export type User$submittedScreenshotsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	/**
+	 * Select specific fields to fetch from the ScreenshotSubmission
+	 */
+	select?: Prisma.ScreenshotSubmissionSelect<ExtArgs> | null;
+	/**
+	 * Omit specific fields from the ScreenshotSubmission
+	 */
+	omit?: Prisma.ScreenshotSubmissionOmit<ExtArgs> | null;
+	/**
+	 * Choose, which related nodes to fetch as well
+	 */
+	include?: Prisma.ScreenshotSubmissionInclude<ExtArgs> | null;
+	where?: Prisma.ScreenshotSubmissionWhereInput;
+	orderBy?:
+		| Prisma.ScreenshotSubmissionOrderByWithRelationInput
+		| Prisma.ScreenshotSubmissionOrderByWithRelationInput[];
+	cursor?: Prisma.ScreenshotSubmissionWhereUniqueInput;
+	take?: number;
+	skip?: number;
+	distinct?:
+		| Prisma.ScreenshotSubmissionScalarFieldEnum
+		| Prisma.ScreenshotSubmissionScalarFieldEnum[];
+};
+
+/**
+ * User.reviewedScreenshots
+ */
+export type User$reviewedScreenshotsArgs<
+	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+> = {
+	/**
+	 * Select specific fields to fetch from the ScreenshotSubmission
+	 */
+	select?: Prisma.ScreenshotSubmissionSelect<ExtArgs> | null;
+	/**
+	 * Omit specific fields from the ScreenshotSubmission
+	 */
+	omit?: Prisma.ScreenshotSubmissionOmit<ExtArgs> | null;
+	/**
+	 * Choose, which related nodes to fetch as well
+	 */
+	include?: Prisma.ScreenshotSubmissionInclude<ExtArgs> | null;
+	where?: Prisma.ScreenshotSubmissionWhereInput;
+	orderBy?:
+		| Prisma.ScreenshotSubmissionOrderByWithRelationInput
+		| Prisma.ScreenshotSubmissionOrderByWithRelationInput[];
+	cursor?: Prisma.ScreenshotSubmissionWhereUniqueInput;
+	take?: number;
+	skip?: number;
+	distinct?:
+		| Prisma.ScreenshotSubmissionScalarFieldEnum
+		| Prisma.ScreenshotSubmissionScalarFieldEnum[];
 };
 
 /**

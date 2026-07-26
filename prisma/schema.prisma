@@ -14,6 +14,7 @@ model User {
   emailVerified             Boolean
   image                     String?
   roles                     String[]                       @default([])
+  emailNotificationsEnabled Boolean                        @default(true)
   createdAt                 DateTime
   updatedAt                 DateTime
   sessions                  Session[]
@@ -28,6 +29,8 @@ model User {
   requestedVerifications    DeveloperVerificationRequest[] @relation("VerificationRequestedBy")
   reviewedVerifications     DeveloperVerificationRequest[] @relation("VerificationRequestReviewedBy")
   notifications             Notification[]
+  submittedScreenshots      ScreenshotSubmission[]         @relation("ScreenshotSubmittedBy")
+  reviewedScreenshots       ScreenshotSubmission[]         @relation("ScreenshotReviewedBy")
 }
 
 model Session {
@@ -140,6 +143,36 @@ model DeveloperVerificationRequest {
 
   @@index([developerProfileId, status])
   @@index([status])
+}
+
+enum ScreenshotStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// A developer-hosted image submitted so Forge can host it at a stable URL, for
+// use as a PWA/Flatpak screenshot without needing external image hosting. Goes
+// through the same review queue as PWA/Flatpak submissions rather than being
+// usable immediately, so Forge's storage isn't an open, unmoderated image host.
+model ScreenshotSubmission {
+  id            String           @id @default(cuid())
+  url           String
+  mimeType      String
+  fileName      String
+  fileSize      Int
+  status        ScreenshotStatus @default(PENDING)
+  submittedById String?
+  submittedBy   User?            @relation("ScreenshotSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedById  String?
+  reviewedBy    User?            @relation("ScreenshotReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  reviewNote    String?          @db.Text
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status])
+  @@index([submittedById])
 }
 
 model DeveloperProfileMember {
