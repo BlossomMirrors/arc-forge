@@ -33,8 +33,10 @@ services:
       FORGE_SECRETS_KEY: ${FORGE_SECRETS_KEY}
       FLATPAK_MAX_BUNDLE_BYTES: ${FLATPAK_MAX_BUNDLE_BYTES:-2147483648}
       # adapter-node caps request bodies independently of any app-level check;
-      # must be large enough for .flatpak bundle uploads, or 0 to disable entirely.
-      BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-0}
+      # fixed to Infinity (not configurable) since 0 is NOT "unlimited", it
+      # means every request body is rejected outright (adapter-node treats 0
+      # as a literal 0-byte limit), which is easy to set by mistake.
+      BODY_SIZE_LIMIT: Infinity
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3000/health || exit 1']
       interval: 10s

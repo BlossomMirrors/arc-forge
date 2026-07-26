@@ -44,7 +44,6 @@ bun run dev
 | `BUNNYCDN_PASSWORD`        | FTP password for the BunnyCDN storage zone used for uploads                                                                                      |
 | `FORGE_SECRETS_KEY`        | Encrypts the Flatpak publish pipeline's SSH key/GPG passphrase at rest in Postgres. Keep distinct from `BETTER_AUTH_SECRET`                      |
 | `FLATPAK_MAX_BUNDLE_BYTES` | Max accepted `.flatpak` upload size in bytes (default 2 GiB)                                                                                     |
-| `BODY_SIZE_LIMIT`          | adapter-node's request body cap; must be raised (or set to `0` to disable) for large bundle uploads, independently of `FLATPAK_MAX_BUNDLE_BYTES` |
 
 ## Building
 
