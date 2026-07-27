@@ -697,22 +697,22 @@ export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; 
 // so it's re-read from the sidecar files a successful (re)build wrote (see
 // buildSourceSection's GIT branch and BuildSidecarPaths) instead.
 async function updateDisplayDataFromSidecars(
-	appId: string,
 	metainfoB64: string,
 	iconB64: string
 ): Promise<Record<string, unknown>> {
-	if (!metainfoB64) return {};
+	const data: Record<string, unknown> = {};
 
-	const metainfoXml = Buffer.from(metainfoB64, 'base64').toString('utf8');
-	const parsed = parseAppstreamComponent(metainfoXml);
-
-	const data: Record<string, unknown> = {
-		name: parsed.name || undefined,
-		summary: parsed.summary || undefined,
-		description: parsed.description || undefined,
-		homepageUrl: parsed.homepageUrl || undefined,
-		screenshots: parsed.screenshots.length ? parsed.screenshots : undefined
-	};
+	// Independent of the icon below: a build can produce one without the other
+	// (or vice versa), neither should block the other from updating.
+	if (metainfoB64) {
+		const metainfoXml = Buffer.from(metainfoB64, 'base64').toString('utf8');
+		const parsed = parseAppstreamComponent(metainfoXml);
+		data.name = parsed.name || undefined;
+		data.summary = parsed.summary || undefined;
+		data.description = parsed.description || undefined;
+		data.homepageUrl = parsed.homepageUrl || undefined;
+		data.screenshots = parsed.screenshots.length ? parsed.screenshots : undefined;
+	}
 
 	if (iconB64) {
 		const iconBuffer = Buffer.from(iconB64, 'base64');
@@ -722,7 +722,7 @@ async function updateDisplayDataFromSidecars(
 		) as ArrayBuffer;
 		data.iconUrl = await uploadFile(
 			iconArrayBuffer,
-			`${appId}-icon.${iconFileExtension(iconBuffer)}`
+			`${crypto.randomUUID()}.${iconFileExtension(iconBuffer)}`
 		);
 	}
 
@@ -888,7 +888,7 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		const gitCommit = parts[2].trim();
 		const displayData =
 			ok && app.sourceType === 'GIT'
-				? await updateDisplayDataFromSidecars(app.id, parts[3].trim(), parts[4].trim())
+				? await updateDisplayDataFromSidecars(parts[3].trim(), parts[4].trim())
 				: {};
 
 		try {

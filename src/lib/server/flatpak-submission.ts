@@ -155,7 +155,7 @@ async function resolveBundleSubmission(
 		) as ArrayBuffer;
 		iconUrl = await uploadFile(
 			iconArrayBuffer,
-			`${extracted.appid}-icon.${iconFileExtension(extracted.iconBuffer)}`
+			`${crypto.randomUUID()}.${iconFileExtension(extracted.iconBuffer)}`
 		);
 	}
 
