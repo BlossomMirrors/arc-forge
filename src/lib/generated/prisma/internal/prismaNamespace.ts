@@ -388,6 +388,7 @@ export const ModelName = {
 	PwaApp: 'PwaApp',
 	FlatpakApp: 'FlatpakApp',
 	InfraSettings: 'InfraSettings',
+	InfraAccessVerification: 'InfraAccessVerification',
 	Notification: 'Notification',
 	WhitelistEntry: 'WhitelistEntry',
 	Verification: 'Verification',
@@ -428,6 +429,7 @@ export type TypeMap<
 			| 'pwaApp'
 			| 'flatpakApp'
 			| 'infraSettings'
+			| 'infraAccessVerification'
 			| 'notification'
 			| 'whitelistEntry'
 			| 'verification'
@@ -1414,6 +1416,82 @@ export type TypeMap<
 				};
 			};
 		};
+		InfraAccessVerification: {
+			payload: Prisma.$InfraAccessVerificationPayload<ExtArgs>;
+			fields: Prisma.InfraAccessVerificationFieldRefs;
+			operations: {
+				findUnique: {
+					args: Prisma.InfraAccessVerificationFindUniqueArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload> | null;
+				};
+				findUniqueOrThrow: {
+					args: Prisma.InfraAccessVerificationFindUniqueOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				findFirst: {
+					args: Prisma.InfraAccessVerificationFindFirstArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload> | null;
+				};
+				findFirstOrThrow: {
+					args: Prisma.InfraAccessVerificationFindFirstOrThrowArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				findMany: {
+					args: Prisma.InfraAccessVerificationFindManyArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>[];
+				};
+				create: {
+					args: Prisma.InfraAccessVerificationCreateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				createMany: {
+					args: Prisma.InfraAccessVerificationCreateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				createManyAndReturn: {
+					args: Prisma.InfraAccessVerificationCreateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>[];
+				};
+				delete: {
+					args: Prisma.InfraAccessVerificationDeleteArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				update: {
+					args: Prisma.InfraAccessVerificationUpdateArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				deleteMany: {
+					args: Prisma.InfraAccessVerificationDeleteManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateMany: {
+					args: Prisma.InfraAccessVerificationUpdateManyArgs<ExtArgs>;
+					result: BatchPayload;
+				};
+				updateManyAndReturn: {
+					args: Prisma.InfraAccessVerificationUpdateManyAndReturnArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>[];
+				};
+				upsert: {
+					args: Prisma.InfraAccessVerificationUpsertArgs<ExtArgs>;
+					result: runtime.Types.Utils.PayloadToResult<Prisma.$InfraAccessVerificationPayload>;
+				};
+				aggregate: {
+					args: Prisma.InfraAccessVerificationAggregateArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.AggregateInfraAccessVerification>;
+				};
+				groupBy: {
+					args: Prisma.InfraAccessVerificationGroupByArgs<ExtArgs>;
+					result: runtime.Types.Utils.Optional<Prisma.InfraAccessVerificationGroupByOutputType>[];
+				};
+				count: {
+					args: Prisma.InfraAccessVerificationCountArgs<ExtArgs>;
+					result:
+						| runtime.Types.Utils.Optional<Prisma.InfraAccessVerificationCountAggregateOutputType>
+						| number;
+				};
+			};
+		};
 		Notification: {
 			payload: Prisma.$NotificationPayload<ExtArgs>;
 			fields: Prisma.NotificationFieldRefs;
@@ -2206,6 +2284,18 @@ export const InfraSettingsScalarFieldEnum = {
 export type InfraSettingsScalarFieldEnum =
 	(typeof InfraSettingsScalarFieldEnum)[keyof typeof InfraSettingsScalarFieldEnum];
 
+export const InfraAccessVerificationScalarFieldEnum = {
+	sessionId: 'sessionId',
+	codeHash: 'codeHash',
+	codeExpiresAt: 'codeExpiresAt',
+	attempts: 'attempts',
+	verifiedAt: 'verifiedAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type InfraAccessVerificationScalarFieldEnum =
+	(typeof InfraAccessVerificationScalarFieldEnum)[keyof typeof InfraAccessVerificationScalarFieldEnum];
+
 export const NotificationScalarFieldEnum = {
 	id: 'id',
 	userId: 'userId',
@@ -2587,6 +2677,7 @@ export type GlobalOmitConfig = {
 	pwaApp?: Prisma.PwaAppOmit;
 	flatpakApp?: Prisma.FlatpakAppOmit;
 	infraSettings?: Prisma.InfraSettingsOmit;
+	infraAccessVerification?: Prisma.InfraAccessVerificationOmit;
 	notification?: Prisma.NotificationOmit;
 	whitelistEntry?: Prisma.WhitelistEntryOmit;
 	verification?: Prisma.VerificationOmit;

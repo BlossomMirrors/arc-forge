@@ -20,6 +20,7 @@ export type * from './models/DeveloperProfileInvitation.ts';
 export type * from './models/PwaApp.ts';
 export type * from './models/FlatpakApp.ts';
 export type * from './models/InfraSettings.ts';
+export type * from './models/InfraAccessVerification.ts';
 export type * from './models/Notification.ts';
 export type * from './models/WhitelistEntry.ts';
 export type * from './models/Verification.ts';

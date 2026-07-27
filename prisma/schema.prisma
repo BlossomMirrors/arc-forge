@@ -308,6 +308,21 @@ model InfraSettings {
   updatedAt              DateTime @updatedAt
 }
 
+// Step-up email verification gating InfraSettings. Keyed by better-auth session id
+// (not userId) so verifying in one browser doesn't silently elevate every other
+// session the admin is logged in on. codeHash/codeExpiresAt track the one-time code
+// itself; verifiedAt is only set once the code checks out, and access stays granted
+// for a short window after that (see INFRA_ACCESS_TTL_MS in infra-access.ts) before
+// a fresh code is required again.
+model InfraAccessVerification {
+  sessionId     String    @id
+  codeHash      String
+  codeExpiresAt DateTime
+  attempts      Int       @default(0)
+  verifiedAt    DateTime?
+  updatedAt     DateTime  @updatedAt
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String

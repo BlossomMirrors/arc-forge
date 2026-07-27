@@ -61,6 +61,7 @@ export const ModelName = {
 	PwaApp: 'PwaApp',
 	FlatpakApp: 'FlatpakApp',
 	InfraSettings: 'InfraSettings',
+	InfraAccessVerification: 'InfraAccessVerification',
 	Notification: 'Notification',
 	WhitelistEntry: 'WhitelistEntry',
 	Verification: 'Verification',
@@ -312,6 +313,18 @@ export const InfraSettingsScalarFieldEnum = {
 
 export type InfraSettingsScalarFieldEnum =
 	(typeof InfraSettingsScalarFieldEnum)[keyof typeof InfraSettingsScalarFieldEnum];
+
+export const InfraAccessVerificationScalarFieldEnum = {
+	sessionId: 'sessionId',
+	codeHash: 'codeHash',
+	codeExpiresAt: 'codeExpiresAt',
+	attempts: 'attempts',
+	verifiedAt: 'verifiedAt',
+	updatedAt: 'updatedAt'
+} as const;
+
+export type InfraAccessVerificationScalarFieldEnum =
+	(typeof InfraAccessVerificationScalarFieldEnum)[keyof typeof InfraAccessVerificationScalarFieldEnum];
 
 export const NotificationScalarFieldEnum = {
 	id: 'id',

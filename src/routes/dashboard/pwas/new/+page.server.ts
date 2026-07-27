@@ -73,7 +73,7 @@ export const actions: Actions = {
 			await notifyReviewers({
 				type: 'pwa_pending',
 				title: `New PWA submitted: ${app.name}`,
-				link: `/dashboard/review`
+				link: `/dashboard/review/pwas`
 			});
 		}
 		throw redirect(303, '/dashboard/pwas');

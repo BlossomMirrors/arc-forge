@@ -82,6 +82,11 @@ export type FlatpakApp = Prisma.FlatpakAppModel;
  */
 export type InfraSettings = Prisma.InfraSettingsModel;
 /**
+ * Model InfraAccessVerification
+ *
+ */
+export type InfraAccessVerification = Prisma.InfraAccessVerificationModel;
+/**
  * Model Notification
  *
  */

@@ -47,7 +47,7 @@ export async function requestDeveloperVerification(params: {
 	await notifyReviewers({
 		type: 'dev_verification_pending',
 		title: `${profile.name} requested developer verification`,
-		link: '/dashboard/review'
+		link: '/dashboard/review/verifications'
 	});
 
 	return { ok: true, id: request.id };

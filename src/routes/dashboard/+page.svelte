@@ -102,27 +102,27 @@
 					label={m.dashboard_pending_pwas()}
 					value={data.reviewQueue.pendingPwas}
 					icon={AppWindow}
-					href="/dashboard/review"
+					href="/dashboard/review/pwas"
 				/>
 				<StatCard
 					label={m.dashboard_pending_flatpaks()}
 					value={data.reviewQueue.pendingFlatpaks}
 					icon={Package}
-					href="/dashboard/review"
+					href="/dashboard/review/flatpaks"
 					accent="text-chart-3"
 				/>
 				<StatCard
 					label={m.dashboard_failed_flatpaks()}
 					value={data.reviewQueue.failedFlatpaks}
 					icon={AlertTriangle}
-					href="/dashboard/review"
+					href="/dashboard/review/flatpaks"
 					accent="text-destructive"
 				/>
 				<StatCard
 					label={m.dashboard_pending_verifications()}
 					value={data.reviewQueue.pendingVerifications}
 					icon={BadgeCheck}
-					href="/dashboard/review"
+					href="/dashboard/review/verifications"
 					accent="text-chart-4"
 				/>
 			</div>

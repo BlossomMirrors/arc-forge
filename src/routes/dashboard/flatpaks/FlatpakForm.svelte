@@ -7,6 +7,7 @@
 	import BundleUploadButton from '$lib/components/bundle-upload-button.svelte';
 	import ConveyorLoader from '$lib/components/conveyor-loader.svelte';
 	import Lightbox from '$lib/components/lightbox.svelte';
+	import { sanitizeAppstreamDescription } from '$lib/client/sanitize-appstream-html';
 
 	type FlatpakFormData = {
 		appid?: string;
@@ -72,37 +73,6 @@
 		if (!preview) return undefined;
 		return preview.translations[previewLang] ?? preview.translations[preview.defaultLang];
 	});
-
-	// AppStream's own spec for <description> only ever allows p/ul/ol/li, with no
-	// attributes on any of them, this rebuilds the markup keeping only that exact
-	// allowlist (any other tag is unwrapped to its text, never dropped silently)
-	// rather than trusting a bundle's metainfo.xml enough to render it as-is.
-	const ALLOWED_DESCRIPTION_TAGS = new Set(['P', 'UL', 'OL', 'LI']);
-
-	function escapeHtml(text: string): string {
-		return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-	}
-
-	function sanitizeDescriptionNode(node: ChildNode): string {
-		if (node.nodeType === Node.TEXT_NODE) {
-			return escapeHtml(node.textContent ?? '');
-		}
-		if (node.nodeType === Node.ELEMENT_NODE) {
-			const el = node as Element;
-			const inner = Array.from(el.childNodes).map(sanitizeDescriptionNode).join('');
-			if (ALLOWED_DESCRIPTION_TAGS.has(el.tagName)) {
-				const tag = el.tagName.toLowerCase();
-				return `<${tag}>${inner}</${tag}>`;
-			}
-			return inner;
-		}
-		return '';
-	}
-
-	function sanitizeDescriptionHtml(html: string): string {
-		const doc = new DOMParser().parseFromString(html, 'text/html');
-		return Array.from(doc.body.childNodes).map(sanitizeDescriptionNode).join('');
-	}
 
 	async function fetchPreview(url: string) {
 		previewing = true;
@@ -301,7 +271,7 @@
 						<div
 							class="space-y-2 text-sm text-muted-foreground [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc"
 						>
-							{@html sanitizeDescriptionHtml(previewText.description)}
+							{@html sanitizeAppstreamDescription(previewText.description)}
 						</div>
 						<!-- eslint-enable svelte/no-at-html-tags -->
 					{/if}

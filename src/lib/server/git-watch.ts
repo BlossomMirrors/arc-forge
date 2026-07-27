@@ -174,7 +174,7 @@ async function pollOnce(): Promise<void> {
 		await notifyReviewers({
 			type: 'flatpak_pending',
 			title: `New commit on ${app.name}, awaiting review`,
-			link: '/dashboard/review'
+			link: '/dashboard/review/flatpaks'
 		});
 	}
 }

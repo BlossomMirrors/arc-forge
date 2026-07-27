@@ -39,7 +39,7 @@ export const actions: Actions = {
 			await notifyReviewers({
 				type: 'screenshot_pending',
 				title: `New screenshot submitted for review`,
-				link: `/dashboard/review`
+				link: `/dashboard/review/screenshots`
 			});
 		}
 		return { submission };

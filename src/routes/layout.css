@@ -352,6 +352,10 @@
 	margin: 12px 0;
 }
 
+.font-mono {
+	font-family: monospace;
+}
+
 @theme {
 	--animate-spin-slow: spin 16s linear infinite;
 }

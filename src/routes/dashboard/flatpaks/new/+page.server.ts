@@ -103,7 +103,7 @@ export const actions: Actions = {
 			await notifyReviewers({
 				type: 'flatpak_pending',
 				title: `New Flatpak submitted: ${app.name}`,
-				link: `/dashboard/review`
+				link: `/dashboard/review/flatpaks`
 			});
 		}
 		throw redirect(303, '/dashboard/flatpaks');
