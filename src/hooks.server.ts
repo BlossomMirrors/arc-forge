@@ -6,13 +6,15 @@ import { paraglideMiddleware } from '$lib/paraglide/server';
 import type { Handle } from '@sveltejs/kit';
 import { getTextDirection } from '$lib/paraglide/runtime';
 import { startGitWatcher } from '$lib/server/git-watch';
+import { startBuildPoller } from '$lib/server/flatpak-publish';
 
 // Runs once when this module is first loaded (server process startup), not on
-// every request. startGitWatcher itself guards against being called more than
-// once (e.g. under dev-mode HMR re-imports), and `building` skips it entirely
+// every request. Both start functions guard against being called more than
+// once (e.g. under dev-mode HMR re-imports), and `building` skips them entirely
 // during the build/prerender step, which also imports this module.
 if (!building) {
 	startGitWatcher();
+	startBuildPoller();
 }
 
 const handleAuth: Handle = async ({ event, resolve }) => {

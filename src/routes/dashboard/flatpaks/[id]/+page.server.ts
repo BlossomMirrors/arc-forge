@@ -17,11 +17,36 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const staff = isStaff(locals.user);
 	const developerProfiles = staff ? [] : await listMyDeveloperProfiles(locals.user.id);
+
+	// Eager-loaded here (single app, cheap) rather than client-fetched like the
+	// review list page - see flatpak-build-history.svelte's initialBuilds prop.
+	const builds = await db.flatpakBuild.findMany({
+		where: { flatpakAppId: app.id },
+		orderBy: { startedAt: 'desc' },
+		take: 10,
+		select: {
+			id: true,
+			status: true,
+			gitCommit: true,
+			startedAt: true,
+			finishedAt: true,
+			triggeredBy: { select: { name: true } }
+		}
+	});
+
 	return {
 		app,
 		isStaff: staff,
 		developerProfiles,
-		hasGithubAccount: await hasGithubAccount(locals.user.id)
+		hasGithubAccount: await hasGithubAccount(locals.user.id),
+		builds: builds.map((b) => ({
+			id: b.id,
+			status: b.status,
+			gitCommit: b.gitCommit,
+			triggeredBy: b.triggeredBy?.name ?? null,
+			startedAt: b.startedAt,
+			finishedAt: b.finishedAt
+		}))
 	};
 };
 

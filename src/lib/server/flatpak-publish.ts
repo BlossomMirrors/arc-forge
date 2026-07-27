@@ -128,13 +128,21 @@ flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" bundle.flatpak
 `;
 }
 
-function buildRemoteScript(app: FlatpakApp, settings: InfraSettings): string {
+// passphraseFilePath: unlike buildRepairScript/buildUnpublishScript (still piped
+// over exec's stdin, see execScript), this script runs detached inside a `screen`
+// session with no interactive stdin to receive anything - the passphrase has to
+// arrive as a file instead. Deleted via the trap the moment it's read, same
+// self-deleting treatment the script already gives itself.
+function buildRemoteScript(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	passphraseFilePath: string
+): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${passphraseFilePath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
-# Read before anything else can consume stdin.
-IFS= read -r GPG_PASSPHRASE
+GPG_PASSPHRASE=$(cat "${passphraseFilePath}")
 
 REPO_PATH="${settings.remoteRepoPath}"
 APPID="${app.appid}"
@@ -174,14 +182,41 @@ echo "FORGE_PUBLISH_OK"
 `;
 }
 
-function sftpWriteFile(conn: Client, remotePath: string, contents: string): Promise<void> {
+function sftpWriteFile(
+	conn: Client,
+	remotePath: string,
+	contents: string,
+	mode = 0o700
+): Promise<void> {
 	return new Promise((resolve, reject) => {
 		conn.sftp((err, sftp) => {
 			if (err) return reject(err);
-			sftp.writeFile(remotePath, contents, { mode: 0o700 }, (writeErr) => {
+			sftp.writeFile(remotePath, contents, { mode }, (writeErr) => {
 				if (writeErr) return reject(writeErr);
 				resolve();
 			});
+		});
+	});
+}
+
+// Like execScript, but for commands that don't need a piped stdin (the launch and
+// poll steps of the detached-build flow below never pipe the GPG passphrase over
+// exec - see buildRemoteScript's passphraseFilePath for why).
+function execCommand(conn: Client, command: string): Promise<{ exitCode: number; output: string }> {
+	return new Promise((resolve, reject) => {
+		conn.exec(command, (err, stream) => {
+			if (err) return reject(err);
+			let output = '';
+			stream.on('data', (chunk: Buffer) => {
+				output += chunk.toString('utf8');
+			});
+			stream.stderr.on('data', (chunk: Buffer) => {
+				output += chunk.toString('utf8');
+			});
+			stream.on('close', (exitCode: number) => {
+				resolve({ exitCode: exitCode ?? 1, output });
+			});
+			stream.on('error', reject);
 		});
 	});
 }
@@ -694,62 +729,382 @@ async function updateDisplayDataFromBuildLog(
 	return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
 }
 
-async function runPublish(flatpakAppId: string): Promise<void> {
-	const app = await db.flatpakApp.findUnique({ where: { id: flatpakAppId } });
-	if (!app) return;
+// Bounded tail read for both the live-view refresh and the final stored log -
+// generous enough for any real build, matches the "read a bounded amount"
+// posture already used elsewhere in this file (e.g. notification bodies).
+const LOG_READ_BYTES = 5_000_000;
+const POLL_SPLIT_MARKER = '__FORGE_POLL_SPLIT__';
+const POLL_INTERVAL_MS = 7_000;
 
-	const { ok, log } = await runOnRemote(
-		(settings) => buildRemoteScript(app, settings),
-		`/tmp/forge-publish-${app.id}`
-	);
+interface RemoteBuildPaths {
+	scriptPath: string;
+	logPath: string;
+	exitPath: string;
+	passphrasePath: string;
+	sessionName: string;
+}
 
-	// The commit actually built can be later than app.gitLastCommit if more pushes
-	// landed between the watcher flagging this for review and the reviewer
-	// approving it - record what was really built, not just what was detected.
-	const gitCommitMatch =
-		ok && app.sourceType === 'GIT' ? log.match(/^FORGE_GIT_COMMIT=(.+)$/m) : null;
-	const displayData =
-		ok && app.sourceType === 'GIT' ? await updateDisplayDataFromBuildLog(app.id, log) : {};
+function remoteBuildPaths(appId: string): RemoteBuildPaths {
+	const base = `/tmp/forge-publish-${appId}-${Date.now()}`;
+	return {
+		scriptPath: `${base}.sh`,
+		logPath: `${base}.log`,
+		exitPath: `${base}.exit`,
+		passphrasePath: `${base}.pass`,
+		sessionName: `forge-build-${appId}-${Date.now()}`
+	};
+}
 
-	await db.flatpakApp.update({
-		where: { id: flatpakAppId },
-		data: {
-			status: ok ? 'APPROVED' : 'FAILED',
-			buildLog: log,
-			buildFinishedAt: new Date(),
-			...(gitCommitMatch ? { gitLastCommit: gitCommitMatch[1].trim() } : {}),
-			...displayData
+// Writes the build script + a short-lived passphrase file, then launches the
+// script detached inside a `screen` session and returns as soon as that launch
+// itself completes (near-instant, `-dm` never attaches). The build keeps
+// running on the remote host independent of this SSH connection, this Node
+// process, or Forge restarting - see pollBuildOnce for how its outcome is
+// picked back up. Requires `screen` on the remote host (same "assume it's
+// already there" posture as flatpak-builder/gpg/git elsewhere in this file).
+// Note: a remote host with systemd-logind's KillUserProcesses=yes will kill a
+// detached screen session on SSH logout same as any other process - if builds
+// still die on disconnect, `loginctl enable-linger <remoteUser>` is the fix.
+async function launchRemoteBuild(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	paths: RemoteBuildPaths
+): Promise<{ ok: boolean; log: string }> {
+	if (!settings.sshPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
+		return {
+			ok: false,
+			log: 'Infra settings are not fully configured (missing SSH key or GPG passphrase).'
+		};
+	}
+
+	let conn: Client | undefined;
+	try {
+		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
+		const script = buildRemoteScript(app, settings, paths.passphrasePath);
+
+		conn = await connect(settings, privateKey);
+		await sftpWriteFile(conn, paths.scriptPath, script);
+		await sftpWriteFile(conn, paths.passphrasePath, gpgPassphrase, 0o600);
+
+		const launchCommand = `screen -dmS "${paths.sessionName}" bash -c 'bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"'`;
+		const { exitCode, output } = await execCommand(conn, launchCommand);
+		if (exitCode !== 0) {
+			return {
+				ok: false,
+				log: `Failed to launch detached build (screen exited ${exitCode}): ${output}`
+			};
 		}
-	});
-
-	if (app.submittedById) {
-		await notifyUser(
-			app.submittedById,
-			ok
-				? {
-						type: 'flatpak_approved',
-						title: `${app.name} was published`,
-						link: `/dashboard/flatpaks/${app.id}`
-					}
-				: {
-						type: 'flatpak_failed',
-						title: `${app.name} failed to build`,
-						body: log.slice(-500),
-						link: `/dashboard/flatpaks/${app.id}`
-					}
-		);
+		return { ok: true, log: '' };
+	} catch (e) {
+		return { ok: false, log: e instanceof Error ? e.message : String(e) };
+	} finally {
+		conn?.end();
 	}
 }
 
-const inFlight = new Set<string>();
+// Builds currently being tracked by the poller below - populated by triggerPublish
+// right after a successful launch, and by reconcileStuckBuilds on server startup.
+const activeBuildIds = new Set<string>();
 
-// Fire-and-forget: the caller (the review approve/retry action) doesn't await this,
-// so the reviewer's request returns immediately while the SSH pipeline runs in the
-// background. There's no queue behind this, if the process restarts mid-build the
-// row is left on PROCESSING and needs a manual retry (see plan for why that's an
-// accepted trade-off here).
-export function triggerPublish(flatpakAppId: string): void {
-	if (inFlight.has(flatpakAppId)) return;
-	inFlight.add(flatpakAppId);
-	runPublish(flatpakAppId).finally(() => inFlight.delete(flatpakAppId));
+// One poll tick for one build: opens a fresh short-lived SSH connection (never
+// the one that launched it), checks whether the exit-marker file exists yet,
+// and either refreshes the live log (still running) or finalizes (done).
+//
+// Finalizing is deliberately idempotent and safe to retry: the tracked build id
+// is only removed from activeBuildIds, and the remote log/exit files are only
+// deleted, *after* the DB writes below actually succeed. If they throw (e.g.
+// the exact transient Postgres error that originally left a row stuck on
+// PROCESSING forever), this function just logs it and returns - the exit file
+// is still sitting there, so the very next tick (~POLL_INTERVAL_MS later)
+// re-reads it and retries the same finalize from scratch. No bespoke
+// backoff/retry helper needed: a blip under one interval self-heals silently,
+// a longer outage self-heals whenever Postgres comes back, and a Forge restart
+// mid-outage is covered by reconcileStuckBuilds re-discovering the same build.
+async function pollBuildOnce(buildId: string): Promise<void> {
+	const build = await db.flatpakBuild.findUnique({
+		where: { id: buildId },
+		include: { flatpakApp: true }
+	});
+	if (!build || build.finishedAt) {
+		activeBuildIds.delete(buildId);
+		return;
+	}
+
+	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
+	if (!settings?.sshPrivateKeyEncrypted) return; // transient config gap, retry next tick
+
+	let conn: Client | undefined;
+	try {
+		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+		conn = await connect(settings, privateKey);
+		const { output } = await execCommand(
+			conn,
+			`EC=""; [ -f "${build.remoteExitPath}" ] && EC=$(cat "${build.remoteExitPath}"); ` +
+				`echo "$EC"; echo "${POLL_SPLIT_MARKER}"; ` +
+				`tail -c ${LOG_READ_BYTES} "${build.remoteLogPath}" 2>/dev/null || true`
+		);
+		const splitIndex = output.indexOf(POLL_SPLIT_MARKER);
+		if (splitIndex === -1) return; // unexpected shape, retry next tick
+
+		const exitCodeRaw = output.slice(0, splitIndex).trim();
+		const log = output.slice(splitIndex + POLL_SPLIT_MARKER.length).replace(/^\r?\n/, '');
+
+		if (exitCodeRaw === '') {
+			// Still running - keep the live-view log fresh, best effort only.
+			await db.flatpakBuild
+				.update({ where: { id: build.id }, data: { log } })
+				.catch((e) => console.error(`Failed to refresh live log for build ${build.id}:`, e));
+			return;
+		}
+
+		const ok = exitCodeRaw === '0';
+		const app = build.flatpakApp;
+		// The commit actually built can be later than app.gitLastCommit if more pushes
+		// landed between the watcher flagging this for review and the reviewer
+		// approving it - record what was really built, not just what was detected.
+		const gitCommitMatch =
+			ok && app.sourceType === 'GIT' ? log.match(/^FORGE_GIT_COMMIT=(.+)$/m) : null;
+		const displayData =
+			ok && app.sourceType === 'GIT' ? await updateDisplayDataFromBuildLog(app.id, log) : {};
+
+		try {
+			await db.flatpakApp.update({
+				where: { id: app.id },
+				data: {
+					status: ok ? 'APPROVED' : 'FAILED',
+					buildFinishedAt: new Date(),
+					...(gitCommitMatch ? { gitLastCommit: gitCommitMatch[1].trim() } : {}),
+					...displayData
+				}
+			});
+			await db.flatpakBuild.update({
+				where: { id: build.id },
+				data: { status: ok ? 'SUCCESS' : 'FAILED', log, finishedAt: new Date() }
+			});
+		} catch (e) {
+			console.error(`Failed to finalize build ${build.id}, will retry next tick:`, e);
+			return;
+		}
+
+		activeBuildIds.delete(build.id);
+		await execCommand(conn, `rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"`).catch(
+			() => {}
+		);
+
+		if (app.submittedById) {
+			await notifyUser(
+				app.submittedById,
+				ok
+					? {
+							type: 'flatpak_approved',
+							title: `${app.name} was published`,
+							link: `/dashboard/flatpaks/${app.id}`
+						}
+					: {
+							type: 'flatpak_failed',
+							title: `${app.name} failed to build`,
+							body: log.slice(-500),
+							link: `/dashboard/flatpaks/${app.id}`
+						}
+			).catch((e) => console.error(`Failed to notify submitter for build ${build.id}:`, e));
+		}
+	} catch (e) {
+		console.error(`Poll failed for build ${buildId}, will retry next tick:`, e);
+	} finally {
+		conn?.end();
+	}
+}
+
+let pollerStarted = false;
+
+// Wired from hooks.server.ts next to startGitWatcher, same guard-against-double-
+// start shape. Reconciliation runs once at startup so a row left on PROCESSING
+// by a crash/restart (or the exact DB-write race this file's poller exists to
+// survive) gets picked back up automatically instead of needing a manual retry.
+export function startBuildPoller(): void {
+	if (pollerStarted) return;
+	pollerStarted = true;
+
+	reconcileStuckBuilds().catch((e) => console.error('Build poller reconciliation failed:', e));
+
+	setInterval(async () => {
+		for (const buildId of [...activeBuildIds]) {
+			await pollBuildOnce(buildId);
+		}
+	}, POLL_INTERVAL_MS);
+}
+
+async function reconcileStuckBuilds(): Promise<void> {
+	const stuck = await db.flatpakApp.findMany({ where: { status: 'PROCESSING' } });
+	for (const app of stuck) {
+		const build = await db.flatpakBuild.findFirst({
+			where: { flatpakAppId: app.id, finishedAt: null },
+			orderBy: { startedAt: 'desc' }
+		});
+		if (build) activeBuildIds.add(build.id);
+	}
+}
+
+async function finalizeLaunchFailure(buildId: string, app: FlatpakApp, log: string): Promise<void> {
+	await db.flatpakApp.update({
+		where: { id: app.id },
+		data: { status: 'FAILED', buildFinishedAt: new Date() }
+	});
+	await db.flatpakBuild.update({
+		where: { id: buildId },
+		data: { status: 'FAILED', log, finishedAt: new Date() }
+	});
+	if (app.submittedById) {
+		await notifyUser(app.submittedById, {
+			type: 'flatpak_failed',
+			title: `${app.name} failed to build`,
+			body: log.slice(-500),
+			link: `/dashboard/flatpaks/${app.id}`
+		}).catch((e) => console.error('Failed to notify submitter of launch failure:', e));
+	}
+}
+
+// Emergency stop, wired from the Infra Settings admin action: kills whatever's
+// actually still running on the remote host (best effort - a session that
+// already finished/never existed just no-ops) and marks every PROCESSING
+// app/build FAILED. Unlike pollBuildOnce's finalize, this is a deliberate
+// synchronous one-off admin action (matches repairAppstream's shape), not
+// something retried automatically, so a per-app failure is recorded in the
+// returned log and skipped rather than the whole call throwing.
+export async function abortAllProcessingBuilds(): Promise<{
+	ok: boolean;
+	log: string;
+	count: number;
+}> {
+	const apps = await db.flatpakApp.findMany({
+		where: { status: 'PROCESSING' },
+		include: { builds: { where: { finishedAt: null }, orderBy: { startedAt: 'desc' }, take: 1 } }
+	});
+	if (apps.length === 0) {
+		return { ok: true, log: 'No builds are currently processing.', count: 0 };
+	}
+
+	const lines: string[] = [];
+	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
+
+	if (settings?.sshPrivateKeyEncrypted) {
+		let conn: Client | undefined;
+		try {
+			const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+			conn = await connect(settings, privateKey);
+			for (const app of apps) {
+				const build = app.builds[0];
+				if (!build) continue;
+				const { output } = await execCommand(
+					conn,
+					`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
+						`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"; echo done`
+				);
+				lines.push(`${app.appid}: session kill attempted (${output.trim() || 'done'})`);
+			}
+		} catch (e) {
+			lines.push(
+				`Could not reach the remote host to abort running sessions: ${e instanceof Error ? e.message : String(e)}`
+			);
+		} finally {
+			conn?.end();
+		}
+	} else {
+		lines.push('Infra SSH key not configured - skipped aborting remote sessions.');
+	}
+
+	let ok = true;
+	for (const app of apps) {
+		const build = app.builds[0];
+		try {
+			if (build) {
+				activeBuildIds.delete(build.id);
+				await db.flatpakBuild.update({
+					where: { id: build.id },
+					data: {
+						status: 'FAILED',
+						log: `${build.log}\n\n[Aborted by an admin via Infra Settings.]`,
+						finishedAt: new Date()
+					}
+				});
+			}
+			await db.flatpakApp.update({
+				where: { id: app.id },
+				data: { status: 'FAILED', buildFinishedAt: new Date() }
+			});
+			if (app.submittedById) {
+				await notifyUser(app.submittedById, {
+					type: 'flatpak_failed',
+					title: `${app.name} failed to build`,
+					body: 'The build was aborted by an administrator.',
+					link: `/dashboard/flatpaks/${app.id}`
+				}).catch((e) =>
+					console.error(`Failed to notify submitter for aborted build ${app.id}:`, e)
+				);
+			}
+			lines.push(`${app.appid}: marked FAILED`);
+		} catch (e) {
+			ok = false;
+			lines.push(`${app.appid}: failed to update - ${e instanceof Error ? e.message : String(e)}`);
+		}
+	}
+
+	return { ok, log: lines.join('\n'), count: apps.length };
+}
+
+const triggeringApps = new Set<string>();
+
+// Creates the FlatpakBuild history row, prunes anything past the 10 most recent
+// for this app, then launches the build detached (see launchRemoteBuild) and
+// hands it off to the shared poller. Doesn't await the build itself completing -
+// the caller (the review approve/retry action) returns immediately, same as
+// before, but the build's outcome is now tracked durably instead of living only
+// in this async call's own stack.
+export function triggerPublish(flatpakAppId: string, triggeredById?: string): void {
+	if (triggeringApps.has(flatpakAppId)) return;
+	triggeringApps.add(flatpakAppId);
+	launchPublish(flatpakAppId, triggeredById).finally(() => triggeringApps.delete(flatpakAppId));
+}
+
+async function launchPublish(flatpakAppId: string, triggeredById?: string): Promise<void> {
+	const app = await db.flatpakApp.findUnique({ where: { id: flatpakAppId } });
+	if (!app) return;
+
+	const paths = remoteBuildPaths(app.id);
+	const build = await db.flatpakBuild.create({
+		data: {
+			flatpakAppId: app.id,
+			status: 'PROCESSING',
+			log: '',
+			screenSessionName: paths.sessionName,
+			remoteLogPath: paths.logPath,
+			remoteExitPath: paths.exitPath,
+			triggeredById
+		}
+	});
+
+	const stale = await db.flatpakBuild.findMany({
+		where: { flatpakAppId: app.id },
+		orderBy: { startedAt: 'desc' },
+		skip: 10,
+		select: { id: true }
+	});
+	if (stale.length) {
+		await db.flatpakBuild.deleteMany({ where: { id: { in: stale.map((b) => b.id) } } });
+	}
+
+	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
+	if (!settings) {
+		await finalizeLaunchFailure(build.id, app, 'Infra settings are not configured.');
+		return;
+	}
+
+	const { ok, log } = await launchRemoteBuild(app, settings, paths);
+	if (!ok) {
+		await finalizeLaunchFailure(build.id, app, log);
+		return;
+	}
+
+	activeBuildIds.add(build.id);
 }

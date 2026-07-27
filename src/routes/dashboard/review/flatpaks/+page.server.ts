@@ -101,12 +101,11 @@ export const actions: Actions = {
 				reviewedById: reviewer.id,
 				reviewedAt: new Date(),
 				reviewNote: null,
-				buildLog: null,
 				buildStartedAt: new Date(),
 				buildFinishedAt: null
 			}
 		});
-		triggerPublish(id);
+		triggerPublish(id, reviewer.id);
 	},
 
 	rejectFlatpak: async ({ request, locals }) => {
@@ -176,8 +175,10 @@ export const actions: Actions = {
 		}
 	},
 
-	// Re-runs the same pipeline for a FAILED build (or a PROCESSING one stuck after
-	// a server restart/crash) without requiring the submitter to edit anything first.
+	// Re-runs the same pipeline for a FAILED build, without requiring the submitter
+	// to edit anything first. A PROCESSING row left behind by a crash/restart no
+	// longer needs this - see reconcileStuckBuilds in flatpak-publish.ts, which
+	// picks those back up automatically.
 	retryFlatpak: async ({ request, locals }) => {
 		const reviewer = requireReviewer(locals.user);
 		const data = await request.formData();
@@ -192,11 +193,10 @@ export const actions: Actions = {
 				status: 'PROCESSING',
 				reviewedById: reviewer.id,
 				reviewedAt: new Date(),
-				buildLog: null,
 				buildStartedAt: new Date(),
 				buildFinishedAt: null
 			}
 		});
-		triggerPublish(id);
+		triggerPublish(id, reviewer.id);
 	}
 };

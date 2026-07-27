@@ -8,6 +8,7 @@
 	import Pagination from '$lib/components/pagination.svelte';
 	import PullConfirmDialog from '$lib/components/pull-confirm-dialog.svelte';
 	import FlatpakReviewWizard from '$lib/components/flatpak-review-wizard.svelte';
+	import FlatpakBuildHistory from '$lib/components/flatpak-build-history.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
@@ -253,6 +254,9 @@
 								</div>
 							</div>
 						</div>
+						<div class="mt-4">
+							<FlatpakBuildHistory flatpakAppId={app.id} />
+						</div>
 					</li>
 				{/each}
 			</ul>
@@ -358,11 +362,11 @@
 										<span>{m.form_bundle()}: {app.bundleFileName}</span>
 									{/if}
 								</div>
-								{#if app.buildLog}
-									<pre
-										class="mt-2 max-h-48 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{app.buildLog}</pre>
-								{/if}
 							</div>
+						</div>
+
+						<div class="mt-4">
+							<FlatpakBuildHistory flatpakAppId={app.id} />
 						</div>
 
 						<div class="mt-4">

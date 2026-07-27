@@ -2,7 +2,11 @@ import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { requireAdmin } from '$lib/server/authz';
 import { encryptSecret } from '$lib/server/secrets';
-import { generateSshKeypair, repairAppstream } from '$lib/server/flatpak-publish';
+import {
+	generateSshKeypair,
+	repairAppstream,
+	abortAllProcessingBuilds
+} from '$lib/server/flatpak-publish';
 import {
 	infraAccessExpiresAt,
 	requestInfraAccessCode,
@@ -129,5 +133,18 @@ export const actions: Actions = {
 		const result = await repairAppstream();
 		if (!result.ok) return fail(500, { error: 'Repair failed', log: result.log });
 		return { repaired: true, log: result.log };
+	},
+
+	// Emergency stop for stuck/misbehaving builds: best-effort kills whatever's
+	// actually still running remotely and marks every PROCESSING app FAILED. The
+	// UI gates this behind a confirm dialog too, same as repairAppstreamAction.
+	abortProcessingBuildsAction: async ({ locals }) => {
+		requireAdmin(locals.user);
+		if (!locals.session) throw error(401);
+		await requireVerifiedInfraAccess(locals.session.id);
+
+		const result = await abortAllProcessingBuilds();
+		if (!result.ok) return fail(500, { error: 'Some builds failed to update', log: result.log });
+		return { aborted: true, log: result.log, count: result.count };
 	}
 };

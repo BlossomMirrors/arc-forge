@@ -25,6 +25,7 @@ model User {
   sentDeveloperInvitations  DeveloperProfileInvitation[]
   submittedFlatpaks         FlatpakApp[]                   @relation("FlatpakSubmittedBy")
   reviewedFlatpaks          FlatpakApp[]                   @relation("FlatpakReviewedBy")
+  triggeredFlatpakBuilds    FlatpakBuild[]                 @relation("FlatpakBuildTriggeredBy")
   verifiedDeveloperProfiles DeveloperProfile[]             @relation("DeveloperProfileVerifiedBy")
   requestedVerifications    DeveloperVerificationRequest[] @relation("VerificationRequestedBy")
   reviewedVerifications     DeveloperVerificationRequest[] @relation("VerificationRequestReviewedBy")
@@ -254,6 +255,12 @@ enum FlatpakSourceType {
   GIT // built from a flatpak-builder manifest in a watched git repo
 }
 
+enum FlatpakBuildResult {
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
 model FlatpakApp {
   id                 String            @id @default(cuid())
   appid              String            @unique
@@ -286,14 +293,44 @@ model FlatpakApp {
   reviewedBy         User?             @relation("FlatpakReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt         DateTime?
   reviewNote         String?           @db.Text
+  // Log of the last one-off admin action (unpublish/pull), not a build - per-build
+  // logs live in FlatpakBuild below, kept as history rather than overwritten.
   buildLog           String?           @db.Text
   buildStartedAt     DateTime?
   buildFinishedAt    DateTime?
+  builds             FlatpakBuild[]
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
   @@index([status])
   @@index([sourceType, status])
+}
+
+// One row per build attempt (approve/retry), capped at the 10 most recent per
+// app (see triggerPublish in flatpak-publish.ts) - gives reviewers and
+// submitters real history instead of a single buildLog field overwritten on
+// every retry, and survives a Forge restart via the persisted screen/remote
+// path fields (see flatpak-publish.ts's poller/reconciliation for why).
+model FlatpakBuild {
+  id                String             @id @default(cuid())
+  flatpakAppId      String
+  flatpakApp        FlatpakApp         @relation(fields: [flatpakAppId], references: [id], onDelete: Cascade)
+  status            FlatpakBuildResult @default(PROCESSING)
+  log               String             @db.Text
+  gitCommit         String?
+  // Remote screen session name plus the log/exit-marker file paths it writes to -
+  // the poller in flatpak-publish.ts uses these to find and tail an in-progress
+  // build over a fresh SSH connection each tick, independent of the connection
+  // that launched it.
+  screenSessionName String
+  remoteLogPath     String
+  remoteExitPath    String
+  triggeredById     String?
+  triggeredBy       User?              @relation("FlatpakBuildTriggeredBy", fields: [triggeredById], references: [id], onDelete: SetNull)
+  startedAt         DateTime           @default(now())
+  finishedAt        DateTime?
+
+  @@index([flatpakAppId, startedAt])
 }
 
 // Singleton row (see FrontPage for the same pattern) holding infra secrets for the

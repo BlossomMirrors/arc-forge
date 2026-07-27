@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import FlatpakForm from '../FlatpakForm.svelte';
+	import FlatpakBuildHistory from '$lib/components/flatpak-build-history.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data, form } = $props();
@@ -30,12 +31,13 @@
 			<p class="text-muted-foreground">{data.app.reviewNote}</p>
 		</div>
 	{/if}
-	{#if data.app.status === 'FAILED' && data.app.buildLog}
+	{#if data.app.status === 'FAILED'}
 		<div class="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
 			<p class="font-medium text-destructive">{m.flatpak_status_failed()}</p>
-			<pre
-				class="mt-2 max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{data
-					.app.buildLog}</pre>
+		</div>
+	{:else if data.app.status === 'PROCESSING'}
+		<div class="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-3 text-sm">
+			<p class="font-medium text-blue-600">{m.flatpak_status_processing()}</p>
 		</div>
 	{:else if data.app.status === 'PULLED'}
 		<div class="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm">
@@ -44,6 +46,9 @@
 				<p class="text-muted-foreground">{data.app.reviewNote}</p>
 			{/if}
 		</div>
+	{/if}
+	{#if data.builds.length > 0}
+		<FlatpakBuildHistory flatpakAppId={data.app.id} initialBuilds={data.builds} />
 	{/if}
 	{#if noDeveloperProfile}
 		<p class="text-sm text-muted-foreground">

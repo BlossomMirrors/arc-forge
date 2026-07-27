@@ -11,6 +11,10 @@
 
 	let copied = $state(false);
 	let repairing = $state(false);
+	let aborting = $state(false);
+	// The `form` prop is shared across every action on this page - track which
+	// card's submit populated it so each only renders its own result/log.
+	let lastAction = $state<'repair' | 'abort' | null>(null);
 
 	async function copyPublicKey() {
 		if (!data.sshPublicKey) return;
@@ -228,6 +232,7 @@
 						cancel();
 						return;
 					}
+					lastAction = 'repair';
 					repairing = true;
 					return async ({ update }) => {
 						repairing = false;
@@ -239,7 +244,41 @@
 					{repairing ? m.infra_repair_running() : m.infra_repair_run()}
 				</Button>
 			</form>
-			{#if form?.log}
+			{#if lastAction === 'repair' && form?.log}
+				<pre
+					class="max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>
+			{/if}
+		</div>
+
+		<div class="space-y-3 rounded-lg border border-destructive/30 p-4">
+			<h3 class="text-sm font-semibold">{m.infra_abort_processing_heading()}</h3>
+			<p class="text-sm text-muted-foreground">{m.infra_abort_processing_hint()}</p>
+			<form
+				method="POST"
+				action="?/abortProcessingBuildsAction"
+				use:enhance={({ cancel }) => {
+					if (!confirm(m.infra_abort_processing_confirm())) {
+						cancel();
+						return;
+					}
+					lastAction = 'abort';
+					aborting = true;
+					return async ({ update }) => {
+						aborting = false;
+						await update();
+					};
+				}}
+			>
+				<Button type="submit" variant="destructive" size="sm" disabled={aborting}>
+					{aborting ? m.infra_abort_processing_running() : m.infra_abort_processing_run()}
+				</Button>
+			</form>
+			{#if lastAction === 'abort' && form && 'count' in form && form.count !== undefined}
+				<p class="text-sm text-muted-foreground">
+					{m.infra_abort_processing_result({ count: form.count })}
+				</p>
+			{/if}
+			{#if lastAction === 'abort' && form?.log}
 				<pre
 					class="max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>
 			{/if}
