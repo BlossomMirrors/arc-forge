@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X, LogOut, Plus, Trash2, BadgeCheck, FileText, Clock } from '@lucide/svelte';
+	import { Check, X, LogOut, Plus, Trash2, BadgeCheck, FileText, Clock, Pencil } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import DocumentUploadButton from '$lib/components/document-upload-button.svelte';
@@ -10,6 +10,14 @@
 
 	let dunsNumbers: Record<string, string> = $state({});
 	let documents: Record<string, { url: string; filename: string }[]> = $state({});
+
+	let renamingId: string | null = $state(null);
+	let renameValue = $state('');
+
+	function startRename(id: string, currentName: string) {
+		renamingId = id;
+		renameValue = currentName;
+	}
 
 	function addDocument(profileId: string, doc: { url: string; filename: string }) {
 		documents[profileId] = [...(documents[profileId] ?? []), doc];
@@ -83,18 +91,64 @@
 					<li class="rounded-lg border border-border p-4">
 						<div class="flex items-center justify-between">
 							<div>
-								<div class="flex items-center gap-2">
-									<p class="font-medium">{profile.name}</p>
-									{#if profile.verified}
-										<span
-											class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600"
+								{#if renamingId === profile.id}
+									<form
+										method="POST"
+										action="?/renameProfile"
+										use:enhance={({ cancel }) => {
+											if (
+												profile.verified &&
+												renameValue.trim() !== profile.name &&
+												!confirm(m.devprofile_rename_verified_confirm())
+											) {
+												cancel();
+												return;
+											}
+											return async ({ update }) => {
+												await update();
+												renamingId = null;
+											};
+										}}
+										class="flex items-center gap-1.5"
+									>
+										<input type="hidden" name="developerProfileId" value={profile.id} />
+										<Input name="name" bind:value={renameValue} class="h-8 w-48" required />
+										<Button type="submit" size="sm" variant="ghost">
+											{m.devprofile_rename_save()}
+										</Button>
+										<Button
+											type="button"
+											size="sm"
+											variant="ghost"
+											onclick={() => (renamingId = null)}
 										>
-											<BadgeCheck class="size-3" />
-											{m.devprofiles_verified()}
-										</span>
-									{/if}
-								</div>
-								<p class="text-xs text-muted-foreground">{profile.slug}</p>
+											{m.form_cancel()}
+										</Button>
+									</form>
+								{:else}
+									<div class="flex items-center gap-2">
+										<p class="font-medium">{profile.name}</p>
+										{#if isOwner || data.isStaff}
+											<button
+												type="button"
+												class="text-muted-foreground hover:text-foreground"
+												title={m.devprofile_rename()}
+												onclick={() => startRename(profile.id, profile.name)}
+											>
+												<Pencil class="size-3.5" />
+											</button>
+										{/if}
+										{#if profile.verified}
+											<span
+												class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600"
+											>
+												<BadgeCheck class="size-3" />
+												{m.devprofiles_verified()}
+											</span>
+										{/if}
+									</div>
+									<p class="text-xs text-muted-foreground">{profile.slug}</p>
+								{/if}
 							</div>
 							<div class="flex items-center gap-2">
 								<span

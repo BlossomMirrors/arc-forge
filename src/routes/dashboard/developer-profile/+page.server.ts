@@ -218,5 +218,41 @@ export const actions: Actions = {
 
 		const result = await deleteDeveloperProfile(developerProfileId);
 		if (!result.ok) return fail(500, { error: result.error, log: result.log });
+	},
+
+	// Owner (or staff) only, same bar as deleteProfile: renaming is a structural
+	// change to the whole team's public identity, not routine content editing.
+	// Always drops verified status on an actual name change (not resubmitting the
+	// same name) - a review only ever verified the OLD name, so it can't still
+	// vouch for a new one, the team has to request verification again.
+	renameProfile: async ({ request, locals }) => {
+		if (!locals.user) throw error(401);
+		const data = await request.formData();
+		const developerProfileId = data.get('developerProfileId') as string;
+		const name = ((data.get('name') as string) ?? '').trim();
+		if (!developerProfileId || !name) return fail(400, { error: 'Name is required' });
+
+		if (!isStaff(locals.user)) {
+			const membership = await db.developerProfileMember.findFirst({
+				where: { userId: locals.user.id, developerProfileId }
+			});
+			if (membership?.role !== 'owner') {
+				throw error(403, 'Only an owner can rename a developer profile');
+			}
+		}
+
+		const existing = await db.developerProfile.findUnique({ where: { id: developerProfileId } });
+		if (!existing) return fail(404);
+		if (name === existing.name) return;
+
+		const nameTaken = await db.developerProfile.findFirst({
+			where: { name: { equals: name, mode: 'insensitive' }, NOT: { id: developerProfileId } }
+		});
+		if (nameTaken) return fail(400, { error: 'That developer name is already taken' });
+
+		await db.developerProfile.update({
+			where: { id: developerProfileId },
+			data: { name, verified: false, verifiedById: null, verifiedAt: null }
+		});
 	}
 };
