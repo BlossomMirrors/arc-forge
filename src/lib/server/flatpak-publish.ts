@@ -87,17 +87,28 @@ flatpak-builder --gpg-sign="$GPG_ID" --repo="$STAGING_REPO" \\
 GIT_BUILT_REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/$APPID/" | head -n1)
 if [ -n "$GIT_BUILT_REF" ]; then
   ostree checkout -U --repo="$STAGING_REPO" "$GIT_BUILT_REF" post-build-checkout
-  GIT_METAINFO_PATH=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 -name '*.xml' 2>/dev/null | head -n1 || true)
+  # Named exactly $APPID, never a bare '*.xml'/'*.png' glob: a git build's tree
+  # isn't just the submitted app, it's also whatever base app/SDK
+  # extension/module the manifest pulled in (e.g. org.winehq.Wine as a base,
+  # or a bundled qemu module), and those ship their own metainfo/icon files
+  # in the exact same directories. An unscoped glob has no guarantee of
+  # landing on the submitted app's own file over one of those.
+  GIT_METAINFO_PATH=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
   if [ -n "$GIT_METAINFO_PATH" ]; then
     echo "${EXTRACT_METAINFO_START}"
     base64 -w0 "$GIT_METAINFO_PATH"
     echo ""
     echo "${EXTRACT_METAINFO_END}"
   fi
-  GIT_ICON_PATH=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/*.png \\
-    post-build-checkout/files/share/icons/hicolor/128x128/apps/*.png \\
-    post-build-checkout/files/share/icons/hicolor/64x64/apps/*.png \\
-    post-build-checkout/files/share/icons/hicolor/48x48/apps/*.png 2>/dev/null | head -n1 || true)
+  # Sized PNGs first, then scalable/apps as a fallback: some manifests only
+  # ship an svg there (no raster icon at all), and some mistakenly install a
+  # raster png into scalable/apps instead of a proper sized directory.
+  GIT_ICON_PATH=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
+    post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
+    post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
+    post-build-checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
+    post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
+    post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
   if [ -n "$GIT_ICON_PATH" ]; then
     echo "${EXTRACT_ICON_START}"
     base64 -w0 "$GIT_ICON_PATH"
@@ -284,6 +295,15 @@ const EXTRACT_METAINFO_END = 'FORGE_METAINFO_B64_END';
 const EXTRACT_ICON_START = 'FORGE_ICON_B64_START';
 const EXTRACT_ICON_END = 'FORGE_ICON_B64_END';
 
+const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+
+// The extraction scripts now fall back to hicolor/scalable/apps/$APPID.svg
+// when no sized raster icon exists, so an extracted icon is no longer
+// guaranteed to be a PNG, callers must not assume the extension/mime type.
+export function iconFileExtension(buffer: Buffer): 'png' | 'svg' {
+	return buffer.subarray(0, 4).equals(PNG_MAGIC) ? 'png' : 'svg';
+}
+
 // Read-only: imports the bundle into a throwaway staging repo (never touches the
 // shared repo) purely to read back its own, real AppStream metainfo.xml and icon, so
 // Forge's web UI can be populated from what's actually inside the bundle instead of
@@ -333,7 +353,10 @@ ostree checkout -U --repo="$STAGING_REPO" "$REF" checkout
 # just means the name/summary/description/icon fall back to placeholders below
 # rather than blocking the submission entirely.
 echo "FORGE_STEP: looking for metainfo.xml"
-METAINFO_PATH=$(find checkout/files/share/metainfo checkout/export/share/metainfo -maxdepth 1 -name '*.xml' 2>/dev/null | head -n1 || true)
+# Named exactly $APPID, not a bare '*.xml' glob, same reasoning as the git
+# build path below: a base app/SDK extension baked into the bundle can ship
+# its own metainfo/icon in the same directories as the submitted app's own.
+METAINFO_PATH=$(find checkout/files/share/metainfo checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
 if [ -n "$METAINFO_PATH" ]; then
   echo "${EXTRACT_METAINFO_START}"
   base64 -w0 "$METAINFO_PATH"
@@ -342,10 +365,14 @@ if [ -n "$METAINFO_PATH" ]; then
 fi
 
 echo "FORGE_STEP: looking for an icon"
-ICON_PATH=$(ls checkout/files/share/icons/hicolor/256x256/apps/*.png \\
-  checkout/files/share/icons/hicolor/128x128/apps/*.png \\
-  checkout/files/share/icons/hicolor/64x64/apps/*.png \\
-  checkout/files/share/icons/hicolor/48x48/apps/*.png 2>/dev/null | head -n1 || true)
+# Sized PNGs first, then scalable/apps as a fallback (svg-only icon, or a
+# raster png mistakenly installed into scalable/apps instead of a sized dir).
+ICON_PATH=$(ls checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
+  checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
+  checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
+  checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
+  checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
+  checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
 if [ -n "$ICON_PATH" ]; then
   echo "${EXTRACT_ICON_START}"
   base64 -w0 "$ICON_PATH"
@@ -658,7 +685,10 @@ async function updateDisplayDataFromBuildLog(
 			iconBuffer.byteOffset,
 			iconBuffer.byteOffset + iconBuffer.byteLength
 		) as ArrayBuffer;
-		data.iconUrl = await uploadFile(iconArrayBuffer, `${appId}-icon.png`);
+		data.iconUrl = await uploadFile(
+			iconArrayBuffer,
+			`${appId}-icon.${iconFileExtension(iconBuffer)}`
+		);
 	}
 
 	return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));

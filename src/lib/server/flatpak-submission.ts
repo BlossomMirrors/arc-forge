@@ -1,6 +1,6 @@
 import { db } from './db';
 import { uploadFile } from './bunny';
-import { extractAppstreamMetadata } from './flatpak-publish';
+import { extractAppstreamMetadata, iconFileExtension } from './flatpak-publish';
 import { checkRemoteHead, readManifestAppId } from './git-watch';
 import { scanForMalware } from './malware-scan';
 
@@ -153,7 +153,10 @@ async function resolveBundleSubmission(
 			extracted.iconBuffer.byteOffset,
 			extracted.iconBuffer.byteOffset + extracted.iconBuffer.byteLength
 		) as ArrayBuffer;
-		iconUrl = await uploadFile(iconArrayBuffer, `${extracted.appid}-icon.png`);
+		iconUrl = await uploadFile(
+			iconArrayBuffer,
+			`${extracted.appid}-icon.${iconFileExtension(extracted.iconBuffer)}`
+		);
 	}
 
 	let status: 'PENDING' | 'REJECTED' = 'PENDING';

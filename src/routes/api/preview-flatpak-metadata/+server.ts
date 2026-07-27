@@ -1,4 +1,4 @@
-import { extractAppstreamMetadata } from '$lib/server/flatpak-publish';
+import { extractAppstreamMetadata, iconFileExtension } from '$lib/server/flatpak-publish';
 import { isStaff } from '$lib/server/authz';
 import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
 import type { RequestHandler } from './$types';
@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		developerName: extracted.developerName ?? '',
 		screenshots: extracted.screenshots ?? [],
 		iconDataUrl: extracted.iconBuffer
-			? `data:image/png;base64,${extracted.iconBuffer.toString('base64')}`
+			? `data:image/${iconFileExtension(extracted.iconBuffer) === 'svg' ? 'svg+xml' : 'png'};base64,${extracted.iconBuffer.toString('base64')}`
 			: null,
 		translations,
 		defaultLang
