@@ -1,7 +1,18 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Search, Plus, Trash2, Copy, Check, Wand2 } from '@lucide/svelte';
+	import {
+		Search,
+		Plus,
+		Trash2,
+		Copy,
+		Check,
+		Wand2,
+		ChevronUp,
+		ChevronDown,
+		GripVertical
+	} from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import IconPicker from '$lib/components/icon-picker.svelte';
@@ -22,11 +33,67 @@
 	);
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	const existingRefs = $derived(new Set(data.list.items.map((item) => item.appRef)));
+	let items = $derived([...data.list.items]);
+	let draggingIdx = $state<number | null>(null);
+	let dragOverIdx = $state<number | null>(null);
+
+	const existingRefs = $derived(new Set(items.map((item) => item.appRef)));
 	const apiUrl = $derived(`${page.url.origin}/api/lists/${slug || data.list.id}`);
 
 	function generateSlug() {
 		slug = slugify(name);
+	}
+
+	async function persistOrder(order: typeof items) {
+		const body = new FormData();
+		for (const item of order) body.append('itemId', item.id);
+		await fetch('?/reorder', {
+			method: 'POST',
+			headers: { 'x-sveltekit-action': 'true' },
+			body
+		});
+		await invalidateAll();
+	}
+
+	function moveUp(i: number) {
+		if (i === 0) return;
+		const arr = [...items];
+		[arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+		items = arr;
+		persistOrder(arr);
+	}
+	function moveDown(i: number) {
+		if (i === items.length - 1) return;
+		const arr = [...items];
+		[arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+		items = arr;
+		persistOrder(arr);
+	}
+	function startDrag(i: number, e: DragEvent) {
+		draggingIdx = i;
+		e.dataTransfer?.setData('text/plain', String(i));
+	}
+	function onDragOver(e: DragEvent, i: number) {
+		e.preventDefault();
+		dragOverIdx = i;
+	}
+	function onDrop(i: number) {
+		if (draggingIdx === null || draggingIdx === i) {
+			draggingIdx = null;
+			dragOverIdx = null;
+			return;
+		}
+		const arr = [...items];
+		const [moved] = arr.splice(draggingIdx, 1);
+		arr.splice(draggingIdx < i ? i - 1 : i, 0, moved);
+		items = arr;
+		persistOrder(arr);
+		draggingIdx = null;
+		dragOverIdx = null;
+	}
+	function onDragEnd() {
+		draggingIdx = null;
+		dragOverIdx = null;
 	}
 
 	function onQueryInput() {
@@ -155,6 +222,8 @@
 
 		{#if searching}
 			<p class="text-sm text-muted-foreground">{m.search_placeholder()}</p>
+		{:else if query.trim() && results.length === 0}
+			<p class="text-sm text-muted-foreground">{m.search_no_results()}</p>
 		{:else if results.length > 0}
 			<ul class="divide-y divide-border rounded-lg border border-border">
 				{#each results as result (result.ref)}
@@ -189,14 +258,35 @@
 
 	<div class="space-y-3">
 		<h3 class="text-sm font-semibold text-muted-foreground">
-			{m.lists_item_count({ n: data.list.items.length })}
+			{m.lists_item_count({ n: items.length })}
 		</h3>
-		{#if data.list.items.length === 0}
+		{#if items.length === 0}
 			<p class="text-sm text-muted-foreground">{m.lists_no_items()}</p>
 		{:else}
 			<ul class="divide-y divide-border rounded-lg border border-border">
-				{#each data.list.items as item (item.id)}
-					<li class="flex items-center gap-3 px-4 py-2.5">
+				{#each items as item, i (item.id)}
+					<li
+						class="flex items-center gap-3 px-4 py-2.5 {draggingIdx === i
+							? 'opacity-40'
+							: ''} {dragOverIdx === i && draggingIdx !== null && draggingIdx !== i
+							? 'border-t-2 border-primary'
+							: ''}"
+						ondragover={(e) => onDragOver(e, i)}
+						ondrop={() => onDrop(i)}
+						ondragleave={(e) => {
+							if (!e.currentTarget.contains(e.relatedTarget as Node)) dragOverIdx = null;
+						}}
+					>
+						<button
+							type="button"
+							draggable="true"
+							ondragstart={(e) => startDrag(i, e)}
+							ondragend={onDragEnd}
+							class="shrink-0 cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
+							title={m.lists_drag_to_reorder()}
+						>
+							<GripVertical class="size-4" />
+						</button>
 						<img
 							src={item.iconUrl || '/default.svg'}
 							alt=""
@@ -206,6 +296,26 @@
 						<div class="min-w-0 flex-1">
 							<p class="truncate text-sm font-medium">{item.name}</p>
 							<code class="text-xs text-muted-foreground">{item.appRef}</code>
+						</div>
+						<div class="flex shrink-0 items-center gap-0.5">
+							<button
+								type="button"
+								onclick={() => moveUp(i)}
+								disabled={i === 0}
+								class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
+								title={m.lists_move_up()}
+							>
+								<ChevronUp class="size-4" />
+							</button>
+							<button
+								type="button"
+								onclick={() => moveDown(i)}
+								disabled={i === items.length - 1}
+								class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
+								title={m.lists_move_down()}
+							>
+								<ChevronDown class="size-4" />
+							</button>
 						</div>
 						<form method="POST" action="?/removeItem" use:enhance>
 							<input type="hidden" name="itemId" value={item.id} />

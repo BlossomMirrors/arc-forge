@@ -86,5 +86,25 @@ export const actions: Actions = {
 		if (!itemId) return fail(400);
 
 		await db.appListItem.deleteMany({ where: { id: itemId, listId: params.id } });
+	},
+
+	reorder: async ({ request, params, locals }) => {
+		if (!locals.user) throw error(401);
+		const list = await db.appList.findUnique({ where: { id: params.id } });
+		if (!list) return fail(404);
+		if (list.createdById !== locals.user.id) throw error(403);
+
+		const data = await request.formData();
+		const order = data.getAll('itemId') as string[];
+		if (!order.length) return fail(400);
+
+		await db.$transaction(
+			order.map((itemId, position) =>
+				db.appListItem.updateMany({
+					where: { id: itemId, listId: params.id },
+					data: { position }
+				})
+			)
+		);
 	}
 };

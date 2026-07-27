@@ -66,5 +66,12 @@ export async function searchApps(query: string): Promise<AppSearchResult[]> {
 	const trimmed = query.trim();
 	if (!trimmed) return [];
 	const [pwas, native] = await Promise.all([searchPwas(trimmed), searchNativeApps(trimmed)]);
-	return [...pwas, ...native];
+	const seen = new Set<string>();
+	const results: AppSearchResult[] = [];
+	for (const r of [...pwas, ...native]) {
+		if (seen.has(r.ref)) continue;
+		seen.add(r.ref);
+		results.push(r);
+	}
+	return results;
 }
