@@ -70,7 +70,9 @@
 			<ConfirmAppidInput {appid} bind:value={confirmText} />
 
 			<Dialog.Footer>
-				<Dialog.Close class={buttonVariants({ variant: 'ghost' })}>{m.form_cancel()}</Dialog.Close>
+				<Dialog.Close type="button" class={buttonVariants({ variant: 'ghost' })}
+					>{m.form_cancel()}</Dialog.Close
+				>
 				<Button type="submit" variant="destructive" disabled={!confirmed || submitting}>
 					{#if submitting}
 						<Loader2 class="size-4 animate-spin" />
