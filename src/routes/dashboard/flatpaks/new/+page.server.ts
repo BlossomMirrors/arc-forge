@@ -4,13 +4,18 @@ import { isStaff } from '$lib/server/authz';
 import { listMyDeveloperProfiles, requireOwnDeveloperProfile } from '$lib/server/developer-profile';
 import { notifyReviewers, notifyUser } from '$lib/server/notifications';
 import { resolveFlatpakSubmission, type FlatpakSource } from '$lib/server/flatpak-submission';
+import { hasGithubAccount } from '$lib/server/github';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) throw error(401);
 	const staff = isStaff(locals.user);
 	const developerProfiles = staff ? [] : await listMyDeveloperProfiles(locals.user.id);
-	return { isStaff: staff, developerProfiles };
+	return {
+		isStaff: staff,
+		developerProfiles,
+		hasGithubAccount: await hasGithubAccount(locals.user.id)
+	};
 };
 
 export const actions: Actions = {

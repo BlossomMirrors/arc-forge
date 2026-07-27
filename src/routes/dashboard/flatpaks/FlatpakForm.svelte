@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
 	import { Wand2, Loader2 } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import { authClient } from '$lib/auth-client';
 	import * as m from '$lib/paraglide/messages';
 	import BundleUploadButton from '$lib/components/bundle-upload-button.svelte';
 	import ConveyorLoader from '$lib/components/conveyor-loader.svelte';
@@ -31,12 +34,14 @@
 		submitLabel = 'Save',
 		isStaff = true,
 		developerProfiles = [],
+		hasGithubAccount = false,
 		processing = false
 	}: {
 		values?: FlatpakFormData;
 		submitLabel?: string;
 		isStaff?: boolean;
 		developerProfiles?: DeveloperProfile[];
+		hasGithubAccount?: boolean;
 		processing?: boolean;
 	} = $props();
 
@@ -106,6 +111,60 @@
 	let detecting = $state(false);
 	let detectError = $state('');
 
+	type GithubRepo = { id: number; fullName: string; cloneUrl: string; defaultBranch: string };
+	let githubRepos = $state<GithubRepo[]>([]);
+	let githubBranches = $state<string[]>([]);
+	let loadingGithubRepos = $state(false);
+	let selectedGithubRepo = $state('');
+	let githubReposLoaded = $state(false);
+	let disconnectingGithub = $state(false);
+
+	function connectGithub() {
+		authClient.linkSocial({ provider: 'github', callbackURL: page.url.pathname });
+	}
+
+	async function disconnectGithub() {
+		disconnectingGithub = true;
+		try {
+			await authClient.unlinkAccount({ providerId: 'github' });
+			githubRepos = [];
+			githubBranches = [];
+			selectedGithubRepo = '';
+			githubReposLoaded = false;
+			await invalidateAll();
+		} finally {
+			disconnectingGithub = false;
+		}
+	}
+
+	async function loadGithubRepos() {
+		if (githubReposLoaded || loadingGithubRepos) return;
+		loadingGithubRepos = true;
+		try {
+			const res = await fetch('/api/github/repos');
+			const data = await res.json();
+			githubRepos = data.repos ?? [];
+			githubReposLoaded = true;
+		} finally {
+			loadingGithubRepos = false;
+		}
+	}
+
+	async function selectGithubRepo(fullName: string) {
+		selectedGithubRepo = fullName;
+		const repo = githubRepos.find((r) => r.fullName === fullName);
+		if (!repo) return;
+		gitUrl = repo.cloneUrl;
+		gitBranch = repo.defaultBranch;
+		githubBranches = [];
+		const [owner, name] = fullName.split('/');
+		const res = await fetch(
+			`/api/github/branches?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(name)}`
+		);
+		const data = await res.json();
+		githubBranches = data.branches ?? [];
+	}
+
 	async function detectManifest() {
 		if (!gitUrl || !gitBranch) return;
 		detecting = true;
@@ -132,14 +191,21 @@
 	}
 
 	let canSubmit = $derived(sourceKind === 'bundle' ? !!bundleUrl : !!gitUrl && !!gitManifestPath);
+
+	$effect(() => {
+		if (sourceKind === 'git' && hasGithubAccount) loadGithubRepos();
+	});
 </script>
 
 <div class="space-y-4">
 	{#if values.appid}
 		<div class="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
-			{#if values.iconUrl}
-				<img src={values.iconUrl} alt={values.name} class="size-10 shrink-0 rounded" />
-			{/if}
+			<img
+				src={values.iconUrl || '/default.svg'}
+				alt={values.name}
+				class="size-10 shrink-0 rounded"
+				onerror={(e) => (e.currentTarget.src = '/default.svg')}
+			/>
 			<div class="min-w-0">
 				<p class="text-sm font-medium">{values.name}</p>
 				<code class="text-xs text-muted-foreground">{values.appid}</code>
@@ -312,6 +378,57 @@
 		</div>
 	{:else}
 		<div class="space-y-3 rounded-lg border border-border p-4">
+			{#if !hasGithubAccount}
+				<Button variant="default" type="button" size="sm" onclick={connectGithub}>
+					{m.form_git_connect_github()}
+				</Button>
+			{:else}
+				<div class="flex justify-end">
+					<Button
+						variant="ghost"
+						type="button"
+						size="sm"
+						disabled={disconnectingGithub}
+						onclick={disconnectGithub}
+					>
+						{m.form_git_disconnect_github()}
+					</Button>
+				</div>
+			{/if}
+			{#if hasGithubAccount && loadingGithubRepos}
+				<p class="text-sm text-muted-foreground">{m.form_git_loading_repos()}</p>
+			{:else if hasGithubAccount && githubRepos.length > 0}
+				<div class="grid gap-3 sm:grid-cols-2">
+					<label class="block">
+						<span class="text-sm font-medium">{m.form_git_select_repo()}</span>
+						<select
+							value={selectedGithubRepo}
+							onchange={(e) => selectGithubRepo(e.currentTarget.value)}
+							class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
+						>
+							<option value="">{m.form_git_select_repo_placeholder()}</option>
+							{#each githubRepos as repo (repo.id)}
+								<option value={repo.fullName}>{repo.fullName}</option>
+							{/each}
+						</select>
+					</label>
+					{#if selectedGithubRepo}
+						<label class="block">
+							<span class="text-sm font-medium">{m.form_git_select_branch()}</span>
+							<select
+								bind:value={gitBranch}
+								class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
+							>
+								{#each githubBranches as branch (branch)}
+									<option value={branch}>{branch}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+				</div>
+			{:else if hasGithubAccount}
+				<p class="text-sm text-muted-foreground">{m.form_git_no_repos()}</p>
+			{/if}
 			<label class="mb-3 block">
 				<span class="text-sm font-medium">{m.form_git_url()}</span>
 				<Input

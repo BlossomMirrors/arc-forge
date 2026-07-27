@@ -6,13 +6,16 @@ import { getRequestEvent } from '$app/server';
 import { PrismaClient } from '$lib/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { env } from '$env/dynamic/private';
+import { sendEmail, renderNotificationEmail } from '$lib/server/email';
 
 const {
 	DATABASE_URL,
 	BETTER_AUTH_URL,
 	AUTHENTIK_CLIENT_ID,
 	AUTHENTIK_CLIENT_SECRET,
-	AUTHENTIK_URL
+	AUTHENTIK_URL,
+	GITHUB_CLIENT_ID,
+	GITHUB_CLIENT_SECRET
 } = env;
 
 const pgAdapter = new PrismaPg({ connectionString: DATABASE_URL });
@@ -31,6 +34,15 @@ export const auth = betterAuth({
 		provider: 'postgresql'
 	}),
 	baseURL: BETTER_AUTH_URL,
+	account: {
+		accountLinking: {
+			// GitHub is only ever linked explicitly (via linkSocial, e.g. from the Flatpak
+			// Git submission form) by an already-authenticated user, not used to sign in
+			// as someone else's existing account - trusting it here just skips better-auth's
+			// email-match/verified-email requirement for that already-consensual link.
+			trustedProviders: ['github', 'blossom-accounts', 'email-password']
+		}
+	},
 	user: {
 		additionalFields: {
 			roles: {
@@ -40,6 +52,45 @@ export const auth = betterAuth({
 				// otherwise a user could self-grant "staff" by calling it directly
 				input: false
 			}
+		}
+	},
+	socialProviders: {
+		github: {
+			clientId: GITHUB_CLIENT_ID ?? '',
+			clientSecret: GITHUB_CLIENT_SECRET ?? '',
+			// public_repo (not repo) so the Flatpak Git submission repo picker can only
+			// ever see/list public repos - no private-repo access is ever requested
+			scope: ['read:user', 'user:email', 'public_repo']
+		}
+	},
+	emailAndPassword: {
+		enabled: true,
+		requireEmailVerification: true,
+		sendResetPassword: async ({ user, url }) => {
+			await sendEmail({
+				to: user.email,
+				subject: 'Reset your Forge password',
+				html: renderNotificationEmail({
+					title: 'Reset your password',
+					body: 'Click below to choose a new password. If you did not request this, ignore this email.',
+					linkUrl: url
+				})
+			});
+		}
+	},
+	emailVerification: {
+		sendOnSignUp: true,
+		autoSignInAfterVerification: true,
+		sendVerificationEmail: async ({ user, url }) => {
+			await sendEmail({
+				to: user.email,
+				subject: 'Verify your Forge email',
+				html: renderNotificationEmail({
+					title: 'Verify your email',
+					body: 'Click below to confirm this address and finish signing in to Arc Forge.',
+					linkUrl: url
+				})
+			});
 		}
 	},
 	plugins: [

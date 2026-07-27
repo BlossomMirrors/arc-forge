@@ -69,6 +69,7 @@
 				submitLabel={m.flatpak_save_changes()}
 				isStaff={data.isStaff}
 				developerProfiles={data.developerProfiles}
+				hasGithubAccount={data.hasGithubAccount}
 				{processing}
 			/>
 		</form>

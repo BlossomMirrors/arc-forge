@@ -4,6 +4,7 @@ import { isStaff } from '$lib/server/authz';
 import { listMyDeveloperProfiles, requireOwnDeveloperProfile } from '$lib/server/developer-profile';
 import { notifyReviewers, notifyUser } from '$lib/server/notifications';
 import { resolveFlatpakSubmission, type FlatpakSource } from '$lib/server/flatpak-submission';
+import { hasGithubAccount } from '$lib/server/github';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -16,7 +17,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const staff = isStaff(locals.user);
 	const developerProfiles = staff ? [] : await listMyDeveloperProfiles(locals.user.id);
-	return { app, isStaff: staff, developerProfiles };
+	return {
+		app,
+		isStaff: staff,
+		developerProfiles,
+		hasGithubAccount: await hasGithubAccount(locals.user.id)
+	};
 };
 
 export const actions: Actions = {

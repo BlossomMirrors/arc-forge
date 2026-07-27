@@ -1,15 +1,15 @@
 import { auth } from '$lib/auth';
-import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ request }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const GET: RequestHandler = async ({ request, locals }) => {
 	const signOutResponse = await auth.api.signOut({
 		headers: request.headers,
 		asResponse: true
 	});
 
 	const headers = new Headers({
-		Location: `${env.AUTHENTIK_URL}/application/o/arc-forge/end-session/`
+		Location: '/auth/login'
 	});
 	for (const cookie of signOutResponse.headers.getSetCookie?.() ?? []) {
 		headers.append('set-cookie', cookie);
