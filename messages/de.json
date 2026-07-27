@@ -184,6 +184,8 @@
 	"devprofile_role_member": "Mitglied",
 	"devprofile_role_admin": "Admin",
 	"devprofile_role_owner": "Eigentümer",
+	"devprofile_members": "Mitglieder",
+	"devprofile_remove_member": "Aus dem Profil entfernen",
 	"devprofile_invite": "Einladen",
 	"devprofile_invite_pending": "Ausstehend",
 	"devprofile_invite_cancel": "Einladung zurückziehen",

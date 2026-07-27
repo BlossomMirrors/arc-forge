@@ -1,6 +1,17 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X, LogOut, Plus, Trash2, BadgeCheck, FileText, Clock, Pencil } from '@lucide/svelte';
+	import {
+		Check,
+		X,
+		LogOut,
+		Plus,
+		Trash2,
+		BadgeCheck,
+		FileText,
+		Clock,
+		Pencil,
+		UserMinus
+	} from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import DocumentUploadButton from '$lib/components/document-upload-button.svelte';
@@ -197,6 +208,65 @@
 									</form>
 								{/if}
 							</div>
+						</div>
+
+						<div class="mt-4 space-y-1.5 border-t border-border pt-4">
+							<h4 class="text-xs font-semibold text-muted-foreground">
+								{m.devprofile_members()}
+							</h4>
+							<ul class="space-y-1">
+								{#each profile.members as teamMember (teamMember.id)}
+									{@const isSelf = teamMember.user.id === data.user?.id}
+									<li
+										class="flex items-center justify-between gap-2 rounded-md border border-input px-2.5 py-1.5 text-sm"
+									>
+										<div class="min-w-0">
+											<p class="truncate">{teamMember.user.name}</p>
+											<p class="truncate text-xs text-muted-foreground">
+												{teamMember.user.email}
+											</p>
+										</div>
+										<div class="flex shrink-0 items-center gap-2">
+											{#if canInvite && !isSelf}
+												<form
+													method="POST"
+													action="?/updateMemberRole"
+													use:enhance
+													class="contents"
+												>
+													<input type="hidden" name="developerProfileId" value={profile.id} />
+													<input type="hidden" name="memberId" value={teamMember.id} />
+													<select
+														name="role"
+														value={teamMember.role}
+														onchange={(e) => e.currentTarget.form?.requestSubmit()}
+														class="h-7 rounded-md border border-input bg-background px-1.5 text-xs"
+													>
+														<option value="member">{m.devprofile_role_member()}</option>
+														<option value="admin">{m.devprofile_role_admin()}</option>
+														{#if isOwner}
+															<option value="owner">{m.devprofile_role_owner()}</option>
+														{/if}
+													</select>
+												</form>
+												<form method="POST" action="?/removeMember" use:enhance>
+													<input type="hidden" name="developerProfileId" value={profile.id} />
+													<input type="hidden" name="memberId" value={teamMember.id} />
+													<button
+														type="submit"
+														class="text-muted-foreground hover:text-destructive"
+														title={m.devprofile_remove_member()}
+													>
+														<UserMinus class="size-3.5" />
+													</button>
+												</form>
+											{:else}
+												<span class="text-xs text-muted-foreground">{teamMember.role}</span>
+											{/if}
+										</div>
+									</li>
+								{/each}
+							</ul>
 						</div>
 
 						{#if canInvite}

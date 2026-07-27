@@ -20,7 +20,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 						verificationRequests: { orderBy: { createdAt: 'desc' }, take: 1 },
 						// Outgoing invites this profile has sent that haven't been accepted/declined
 						// yet, shown as a "Pending" badge so inviting someone has visible feedback.
-						invitations: { where: { status: 'pending' }, orderBy: { createdAt: 'desc' } }
+						invitations: { where: { status: 'pending' }, orderBy: { createdAt: 'desc' } },
+						members: {
+							include: { user: { select: { id: true, name: true, email: true } } },
+							orderBy: { createdAt: 'asc' }
+						}
 					}
 				}
 			},
@@ -154,6 +158,53 @@ export const actions: Actions = {
 		} catch (e) {
 			if (e instanceof APIError)
 				return fail(400, { error: e.body?.message ?? 'Could not cancel invitation' });
+			throw e;
+		}
+	},
+
+	// better-auth enforces the actual rules here (owner/admin only via member:delete,
+	// and refuses to remove the last owner), no need to re-check either one ourselves,
+	// same trust-the-plugin posture as cancelInvitation above.
+	removeMember: async ({ request, locals }) => {
+		if (!locals.user) throw error(401);
+		const data = await request.formData();
+		const developerProfileId = data.get('developerProfileId') as string;
+		const memberIdOrEmail = data.get('memberId') as string;
+		if (!developerProfileId || !memberIdOrEmail) return fail(400);
+
+		try {
+			await auth.api.removeMember({
+				headers: request.headers,
+				body: { organizationId: developerProfileId, memberIdOrEmail }
+			});
+		} catch (e) {
+			if (e instanceof APIError)
+				return fail(400, { error: e.body?.message ?? 'Could not remove member' });
+			throw e;
+		}
+	},
+
+	// Same trust-the-plugin posture: better-auth already refuses to hand out/take away
+	// owner unless the caller is themselves an owner, and won't let the last owner
+	// demote themselves.
+	updateMemberRole: async ({ request, locals }) => {
+		if (!locals.user) throw error(401);
+		const data = await request.formData();
+		const developerProfileId = data.get('developerProfileId') as string;
+		const memberId = data.get('memberId') as string;
+		const requestedRole = data.get('role') as string;
+		const role =
+			requestedRole === 'owner' ? 'owner' : requestedRole === 'admin' ? 'admin' : 'member';
+		if (!developerProfileId || !memberId) return fail(400);
+
+		try {
+			await auth.api.updateMemberRole({
+				headers: request.headers,
+				body: { organizationId: developerProfileId, memberId, role }
+			});
+		} catch (e) {
+			if (e instanceof APIError)
+				return fail(400, { error: e.body?.message ?? 'Could not update member role' });
 			throw e;
 		}
 	},
