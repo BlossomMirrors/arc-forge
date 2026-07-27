@@ -7,7 +7,7 @@ export const GET: RequestHandler = async () => {
 	const sections = ((row?.sections as unknown[]) ?? []) as Section[];
 
 	const listRefs = sections
-		.filter((s): s is Extract<Section, { type: 'custom' }> => s.type === 'custom')
+		.filter((s): s is Extract<Section, { type: 'list' }> => s.type === 'list')
 		.map((s) => s.listRef)
 		.filter(Boolean);
 

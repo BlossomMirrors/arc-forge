@@ -34,6 +34,7 @@
 	} from '$lib/frontpage.js';
 	import * as m from '$lib/paraglide/messages';
 	import UploadButton from '$lib/components/upload-button.svelte';
+	import ListPicker from '$lib/components/list-picker.svelte';
 
 	let { data } = $props();
 
@@ -42,7 +43,7 @@
 	let expandedIndex = $state<number | null>(null);
 	let blockRefs: (HTMLTextAreaElement | HTMLInputElement | null)[] = [];
 
-	// Custom blocks reference an AppList by id or slug, keyed both ways here
+	// List blocks reference an AppList by id or slug, keyed both ways here
 	// so a listRef of either form resolves to the same list for display.
 	const listsByRef = $derived.by(() => {
 		const map = new Map<string, (typeof data.lists)[number]>();
@@ -108,8 +109,8 @@
 		},
 		{ type: 'category' as const, label: m.cmd_category(), badge: null, icon: Tag, shorthand: '' },
 		{
-			type: 'custom' as const,
-			label: m.cmd_custom(),
+			type: 'list' as const,
+			label: m.cmd_list(),
 			badge: null,
 			icon: LayoutList,
 			shorthand: ''
@@ -436,7 +437,7 @@
 		'trending',
 		'categories',
 		'category',
-		'custom',
+		'list',
 		'charts',
 		'links'
 	]);
@@ -448,7 +449,7 @@
 		trending: m.cmd_trending,
 		categories: m.cmd_categories,
 		category: m.cmd_category,
-		custom: m.cmd_custom,
+		list: m.cmd_list,
 		charts: m.cmd_charts,
 		links: m.cmd_links
 	};
@@ -652,8 +653,7 @@
 									<span class="text-xs text-muted-foreground/50">
 										{#if section.type === 'carousel'}{section.items.length} items · breakpoint={section.breakpoint}
 										{:else if section.type === 'category'}{section.value || '—'}
-										{:else if section.type === 'custom'}{listsByRef.get(section.listRef)?.name ||
-												'—'}
+										{:else if section.type === 'list'}{listsByRef.get(section.listRef)?.name || '—'}
 										{:else if section.type === 'charts'}cards={section.cards}
 										{:else if section.type === 'links'}{section.titles[0]?.text || '—'} · {section
 												.items.length} links
@@ -784,7 +784,7 @@
 												<input type="checkbox" bind:checked={section.cards} onchange={mark} />
 												{m.frontpage_cards_view()}
 											</label>
-										{:else if section.type === 'custom'}
+										{:else if section.type === 'list'}
 											<div class="space-y-3">
 												<div class="space-y-2">
 													<p class="text-xs text-muted-foreground">{m.frontpage_titles()}</p>
@@ -817,28 +817,13 @@
 														><Plus class="size-3" /> title</button
 													>
 												</div>
-												<div class="space-y-2">
+												<div class="max-w-xs space-y-2">
 													<p class="text-xs text-muted-foreground">{m.frontpage_list_label()}</p>
-													{#if data.lists.length === 0}
-														<p class="text-xs text-muted-foreground">
-															{m.frontpage_no_lists()}
-															<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-															<a href="/dashboard/lists" class="underline">{m.lists_heading()}</a>
-														</p>
-													{:else}
-														<select
-															class="h-8 w-full max-w-xs rounded-md border border-input bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-															bind:value={section.listRef}
-															onchange={mark}
-														>
-															<option value="">{m.frontpage_choose_list()}</option>
-															{#each data.lists as list (list.id)}
-																<option value={list.slug || list.id}>
-																	{list.name} ({list._count.items})
-																</option>
-															{/each}
-														</select>
-													{/if}
+													<ListPicker
+														bind:value={section.listRef}
+														initial={listsByRef.get(section.listRef) ?? null}
+														onchange={mark}
+													/>
 												</div>
 											</div>
 										{:else if section.type === 'links'}

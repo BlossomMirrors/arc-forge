@@ -22,7 +22,7 @@ export type Section =
 	| { type: 'trending' }
 	| { type: 'categories' }
 	| { type: 'category'; value: string }
-	| { type: 'custom'; titles: LangString[]; listRef: string }
+	| { type: 'list'; titles: LangString[]; listRef: string }
 	| { type: 'charts'; cards: boolean }
 	| { type: 'links'; titles: LangString[]; items: LinksItem[] };
 
@@ -34,7 +34,7 @@ export const APP_TYPES = [
 	'trending',
 	'categories',
 	'category',
-	'custom',
+	'list',
 	'charts',
 	'links'
 ] as const;
@@ -59,9 +59,10 @@ function carouselItemToXml(item: CarouselItem): string {
 	return `    <story banner="${esc(item.banner)}">\n${titles}\n        <body>\n            ${item.body}\n        </body>\n    </story>`;
 }
 
-// The custom block stores a reference to an AppList (by id or slug) rather
+// The list block stores a reference to an AppList (by id or slug) rather
 // than app ids directly, so turning it into XML needs the caller to have
-// already resolved that list's items to app refs.
+// already resolved that list's items to app refs. It's still emitted as
+// <custom> on the wire, that's the documented public API shape (see API.md).
 function sectionToXml(s: Section, listApps: Map<string, string[]>): string {
 	switch (s.type) {
 		case 'h1':
@@ -90,7 +91,7 @@ function sectionToXml(s: Section, listApps: Map<string, string[]>): string {
 			return '<categories />';
 		case 'category':
 			return `<category>${esc(s.value)}</category>`;
-		case 'custom': {
+		case 'list': {
 			const titles = langStrings(s.titles, '    ');
 			const apps = (listApps.get(s.listRef) ?? [])
 				.map((id) => `    <app id="${esc(id)}" />`)
@@ -141,7 +142,7 @@ export function newSection(type: Section['type']): Section {
 			return { type, breakpoint: 5, items: [], appCloudOverlay: false };
 		case 'category':
 			return { type, value: '' };
-		case 'custom':
+		case 'list':
 			return { type, titles: [{ lang: 'en', text: '' }], listRef: '' };
 		case 'charts':
 			return { type, cards: false };

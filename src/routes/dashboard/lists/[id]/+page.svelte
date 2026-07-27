@@ -134,7 +134,7 @@
 		</label>
 		<label class="block space-y-1.5">
 			<span class="text-sm font-medium">{m.lists_icon_label()}</span>
-			<IconPicker bind:value={icon} />
+			<IconPicker bind:value={icon} {name} />
 		</label>
 		<Button type="submit" size="sm">{m.lists_save()}</Button>
 	</form>

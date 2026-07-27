@@ -49,7 +49,7 @@
 		<ul class="divide-y divide-border rounded-lg border border-border">
 			{#each data.lists as list (list.id)}
 				<li class="flex items-center gap-3 px-4 py-3">
-					<ListIcon icon={list.icon} />
+					<ListIcon icon={list.icon} name={list.name} />
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium">{list.name}</p>
 						<p class="text-xs text-muted-foreground">
