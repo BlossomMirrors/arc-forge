@@ -2,7 +2,11 @@ import { fail, redirect, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { saveTranslations, uploadCodeField, fetchCodeField } from '$lib/server/pwa-form';
 import { isStaff } from '$lib/server/authz';
-import { listMyDeveloperProfiles, requireOwnDeveloperProfile } from '$lib/server/developer-profile';
+import {
+	listMyDeveloperProfiles,
+	requireOwnDeveloperProfile,
+	canMoveBetweenProfiles
+} from '$lib/server/developer-profile';
 import { notifyReviewers } from '$lib/server/notifications';
 import { isValidRegex } from '$lib/server/pwa-form';
 import type { Actions, PageServerLoad } from './$types';
@@ -76,13 +80,26 @@ export const actions: Actions = {
 		if (!isValidRegex(fields.urlFilter)) return fail(400, { error: 'Invalid URL filter regex' });
 
 		// developerName/developerProfileId, like status, are never taken from the submitted
-		// form for non-staff: they're pinned to a developer profile the editor actually belongs to
+		// form for non-staff: they're pinned to a developer profile the editor actually belongs to.
+		// Leaving the profile unchanged only needs plain membership (any role), same as before,
+		// so a routine edit by an ordinary member still works. Actually moving it to a different
+		// profile needs owner/admin on both sides, see canMoveBetweenProfiles.
 		let developerProfileId: string | null = existing.developerProfileId;
 		if (!isStaff(locals.user)) {
 			const requestedProfileId = data.get('developerProfileId') as string;
 			if (!requestedProfileId) return fail(400, { error: 'Select a developer profile' });
-			const profile = await requireOwnDeveloperProfile(locals.user.id, requestedProfileId);
-			if (!profile) return fail(403, { error: 'You are not a member of that developer profile' });
+			const profile =
+				requestedProfileId === existing.developerProfileId
+					? await requireOwnDeveloperProfile(locals.user.id, requestedProfileId)
+					: await canMoveBetweenProfiles(
+							locals.user.id,
+							false,
+							existing.developerProfileId,
+							requestedProfileId
+						);
+			if (!profile) {
+				return fail(403, { error: 'You do not have permission to file this under that developer profile' });
+			}
 			fields.developerName = profile.name;
 			developerProfileId = profile.id;
 		}

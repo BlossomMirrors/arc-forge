@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import ListIcon from '$lib/components/list-icon.svelte';
+	import MoveToProfileDialog from '$lib/components/move-to-profile-dialog.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data, form } = $props();
@@ -43,7 +44,12 @@
 		<Button type="submit">{m.lists_create()}</Button>
 	</form>
 
-	{#if data.lists.length === 0}
+	{#if !data.isStaff && !data.activeDeveloperProfileId}
+		<div class="rounded-lg border border-border p-4">
+			<p class="text-sm font-medium">{m.devprofile_none_active_heading()}</p>
+			<p class="text-sm text-muted-foreground">{m.devprofile_none_active_hint()}</p>
+		</div>
+	{:else if data.lists.length === 0}
 		<p class="text-sm text-muted-foreground">{m.lists_empty()}</p>
 	{:else}
 		<ul class="divide-y divide-border rounded-lg border border-border">
@@ -57,8 +63,18 @@
 							{#if list.slug}
 								<code class="ml-1 text-muted-foreground">/{list.slug}</code>
 							{/if}
+							{#if data.isStaff && list.developerProfile}
+								· {m.row_via_profile({ name: list.developerProfile.name })}
+							{/if}
 						</p>
 					</div>
+					<MoveToProfileDialog
+						id={list.id}
+						itemName={list.name}
+						currentDeveloperProfileId={list.developerProfileId}
+						eligibleProfiles={data.eligibleProfiles}
+						action="?/moveToProfile"
+					/>
 					<button
 						type="button"
 						class="shrink-0 text-muted-foreground hover:text-foreground"

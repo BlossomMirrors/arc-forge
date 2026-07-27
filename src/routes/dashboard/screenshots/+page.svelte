@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { Trash2, Copy, Check } from '@lucide/svelte';
 	import ScreenshotUploadButton from '$lib/components/screenshot-upload-button.svelte';
+	import MoveToProfileDialog from '$lib/components/move-to-profile-dialog.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data, form } = $props();
@@ -89,7 +90,12 @@
 		<p class="text-sm text-destructive">{form.error}</p>
 	{/if}
 
-	{#if data.submissions.length === 0}
+	{#if !data.isStaff && !data.activeDeveloperProfileId}
+		<div class="rounded-lg border border-border p-4">
+			<p class="text-sm font-medium">{m.devprofile_none_active_heading()}</p>
+			<p class="text-sm text-muted-foreground">{m.devprofile_none_active_hint()}</p>
+		</div>
+	{:else if data.submissions.length === 0}
 		<p class="text-sm text-muted-foreground">{m.screenshots_empty()}</p>
 	{:else}
 		<ul class="divide-y divide-border rounded-lg border border-border">
@@ -107,6 +113,11 @@
 							<span class="rounded-full px-2 py-0.5 text-xs font-medium {badge.class}">
 								{badge.label}
 							</span>
+							{#if data.isStaff && submission.developerProfile}
+								<span class="text-xs text-muted-foreground">
+									{m.row_via_profile({ name: submission.developerProfile.name })}
+								</span>
+							{/if}
 						</div>
 						{#if submission.status === 'APPROVED'}
 							<div class="mt-1 flex items-center gap-1.5">
@@ -134,6 +145,13 @@
 							<p class="mt-1 text-xs text-muted-foreground italic">"{submission.reviewNote}"</p>
 						{/if}
 					</div>
+					<MoveToProfileDialog
+						id={submission.id}
+						itemName={submission.fileName}
+						currentDeveloperProfileId={submission.developerProfileId}
+						eligibleProfiles={data.eligibleProfiles}
+						action="?/moveToProfile"
+					/>
 					<form method="POST" action="?/delete" use:enhance>
 						<input type="hidden" name="id" value={submission.id} />
 						<button

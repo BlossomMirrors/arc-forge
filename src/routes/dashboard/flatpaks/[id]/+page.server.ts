@@ -1,7 +1,11 @@
 import { fail, redirect, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
-import { listMyDeveloperProfiles, requireOwnDeveloperProfile } from '$lib/server/developer-profile';
+import {
+	listMyDeveloperProfiles,
+	requireOwnDeveloperProfile,
+	canMoveBetweenProfiles
+} from '$lib/server/developer-profile';
 import { notifyReviewers, notifyUser } from '$lib/server/notifications';
 import { resolveFlatpakSubmission, type FlatpakSource } from '$lib/server/flatpak-submission';
 import { hasGithubAccount } from '$lib/server/github';
@@ -89,8 +93,18 @@ export const actions: Actions = {
 		if (!staff) {
 			const requestedProfileId = data.get('developerProfileId') as string;
 			if (!requestedProfileId) return fail(400, { error: 'Select a developer profile' });
-			const profile = await requireOwnDeveloperProfile(locals.user.id, requestedProfileId);
-			if (!profile) return fail(403, { error: 'You are not a member of that developer profile' });
+			const profile =
+				requestedProfileId === existing.developerProfileId
+					? await requireOwnDeveloperProfile(locals.user.id, requestedProfileId)
+					: await canMoveBetweenProfiles(
+							locals.user.id,
+							false,
+							existing.developerProfileId,
+							requestedProfileId
+						);
+			if (!profile) {
+				return fail(403, { error: 'You do not have permission to file this under that developer profile' });
+			}
 			developerProfileId = profile.id;
 			claimedDeveloperName = profile.name;
 		}

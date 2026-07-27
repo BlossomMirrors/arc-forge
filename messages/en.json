@@ -420,5 +420,11 @@
 	"form_git_select_repo_placeholder": "Select a repository",
 	"form_git_select_branch": "Branch",
 	"form_git_loading_repos": "Loading your repositories…",
-	"form_git_no_repos": "No public repositories found"
+	"form_git_no_repos": "No public repositories found",
+	"move_dialog_heading": "Move to another developer profile",
+	"move_dialog_hint": "Choose which developer profile {name} should be filed under.",
+	"move_dialog_submit": "Move",
+	"row_via_profile": "via {name}",
+	"devprofile_none_active_heading": "No active developer profile",
+	"devprofile_none_active_hint": "Select or create a developer profile to see what's filed under it."
 }

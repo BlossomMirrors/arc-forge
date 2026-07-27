@@ -3,6 +3,7 @@
 	import { Trash2, Pencil, Plus } from '@lucide/svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import SearchInput from '$lib/components/search-input.svelte';
+	import MoveToProfileDialog from '$lib/components/move-to-profile-dialog.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
@@ -58,7 +59,12 @@
 
 	<SearchInput bind:value={search} placeholder={m.search_placeholder()} />
 
-	{#if data.apps.length === 0}
+	{#if !data.isStaff && !data.activeDeveloperProfileId}
+		<div class="rounded-lg border border-border p-4">
+			<p class="text-sm font-medium">{m.devprofile_none_active_heading()}</p>
+			<p class="text-sm text-muted-foreground">{m.devprofile_none_active_hint()}</p>
+		</div>
+	{:else if data.apps.length === 0}
 		<p class="text-sm text-muted-foreground">{m.pwas_empty()}</p>
 	{:else if filteredApps.length === 0}
 		<p class="text-sm text-muted-foreground">{m.search_no_results()}</p>
@@ -76,13 +82,25 @@
 						/>
 						<div>
 							<p class="text-sm font-medium">{app.name}</p>
-							<p class="text-xs text-muted-foreground">{app.appid}</p>
+							<p class="text-xs text-muted-foreground">
+								{app.appid}
+								{#if data.isStaff && app.developerProfile}
+									· {m.row_via_profile({ name: app.developerProfile.name })}
+								{/if}
+							</p>
 						</div>
 						<span class="rounded-full px-2 py-0.5 text-xs font-medium {badge.class}">
 							{badge.label}
 						</span>
 					</div>
 					<div class="flex items-center gap-1">
+						<MoveToProfileDialog
+							id={app.id}
+							itemName={app.name}
+							currentDeveloperProfileId={app.developerProfileId}
+							eligibleProfiles={data.eligibleProfiles}
+							action="?/moveToProfile"
+						/>
 						<a
 							href="/dashboard/pwas/{app.id}"
 							class={buttonVariants({ variant: 'ghost', size: 'icon' })}

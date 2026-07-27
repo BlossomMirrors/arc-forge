@@ -59,3 +59,31 @@ export async function requireOwnDeveloperProfile(userId: string, developerProfil
 	});
 	return membership?.developerProfile ?? null;
 }
+
+async function isOwnerOrAdmin(userId: string, developerProfileId: string): Promise<boolean> {
+	const membership = await db.developerProfileMember.findFirst({
+		where: { userId, developerProfileId }
+	});
+	return membership?.role === 'owner' || membership?.role === 'admin';
+}
+
+// Staff can move anything anywhere, same bypass used everywhere else in Forge.
+// Everyone else needs owner/admin on the destination profile, and, if the item
+// already belongs to a profile, owner/admin there too, so a plain member can't
+// pull content out of a team profile on their own, and can't drop content into
+// a profile they don't actually help run.
+export async function canMoveBetweenProfiles(
+	userId: string,
+	isUserStaff: boolean,
+	sourceProfileId: string | null,
+	destProfileId: string
+) {
+	const destProfile = await db.developerProfile.findUnique({ where: { id: destProfileId } });
+	if (!destProfile) return null;
+	if (isUserStaff) return destProfile;
+
+	if (!(await isOwnerOrAdmin(userId, destProfileId))) return null;
+	if (sourceProfileId && !(await isOwnerOrAdmin(userId, sourceProfileId))) return null;
+
+	return destProfile;
+}

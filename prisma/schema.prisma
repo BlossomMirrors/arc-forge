@@ -95,25 +95,27 @@ enum PwaStatus {
 // Better-auth's "organization" plugin, renamed throughout to "developer profile"
 // since that's what an org represents in Forge: the publisher identity behind PWA submissions.
 model DeveloperProfile {
-  id                   String                         @id
-  name                 String                         @unique
-  slug                 String                         @unique
-  logo                 String?
-  metadata             String?
-  createdAt            DateTime
+  id                    String                         @id
+  name                  String                         @unique
+  slug                  String                         @unique
+  logo                  String?
+  metadata              String?
+  createdAt             DateTime
   // Set/revoked by a reviewer (or higher) via /dashboard/verified-developers.
   // Checked by the public /api/verified/[appid] endpoint - a staff-submitted
   // Flatpak (no developerProfileId at all) is always treated as verified there
   // regardless of this flag, see that route.
-  verified             Boolean                        @default(false)
-  verifiedById         String?
-  verifiedBy           User?                          @relation("DeveloperProfileVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
-  verifiedAt           DateTime?
-  members              DeveloperProfileMember[]
-  invitations          DeveloperProfileInvitation[]
-  pwaApps              PwaApp[]
-  flatpakApps          FlatpakApp[]
-  verificationRequests DeveloperVerificationRequest[]
+  verified              Boolean                        @default(false)
+  verifiedById          String?
+  verifiedBy            User?                          @relation("DeveloperProfileVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt            DateTime?
+  members               DeveloperProfileMember[]
+  invitations           DeveloperProfileInvitation[]
+  pwaApps               PwaApp[]
+  flatpakApps           FlatpakApp[]
+  verificationRequests  DeveloperVerificationRequest[]
+  screenshotSubmissions ScreenshotSubmission[]
+  appLists              AppList[]
 }
 
 enum VerificationRequestStatus {
@@ -158,23 +160,26 @@ enum ScreenshotStatus {
 // through the same review queue as PWA/Flatpak submissions rather than being
 // usable immediately, so Forge's storage isn't an open, unmoderated image host.
 model ScreenshotSubmission {
-  id            String           @id @default(cuid())
-  url           String
-  mimeType      String
-  fileName      String
-  fileSize      Int
-  status        ScreenshotStatus @default(PENDING)
-  submittedById String?
-  submittedBy   User?            @relation("ScreenshotSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
-  reviewedById  String?
-  reviewedBy    User?            @relation("ScreenshotReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
-  reviewedAt    DateTime?
-  reviewNote    String?          @db.Text
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id                 String            @id @default(cuid())
+  url                String
+  mimeType           String
+  fileName           String
+  fileSize           Int
+  status             ScreenshotStatus  @default(PENDING)
+  submittedById      String?
+  submittedBy        User?             @relation("ScreenshotSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedById       String?
+  reviewedBy         User?             @relation("ScreenshotReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  reviewNote         String?           @db.Text
+  developerProfileId String?
+  developerProfile   DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@index([status])
   @@index([submittedById])
+  @@index([developerProfileId])
 }
 
 model DeveloperProfileMember {
@@ -239,6 +244,7 @@ model PwaApp {
   translations       PwaTranslation[]
 
   @@index([status])
+  @@index([developerProfileId])
 }
 
 enum FlatpakStatus {
@@ -304,6 +310,7 @@ model FlatpakApp {
 
   @@index([status])
   @@index([sourceType, status])
+  @@index([developerProfileId])
 }
 
 // One row per build attempt (approve/retry), capped at the 10 most recent per
@@ -417,24 +424,30 @@ model FlathubCache {
 // it via GET /api/lists/:id, no login required. Only the creator can edit it
 // though, that's checked against createdById in the dashboard actions.
 model AppList {
-  id          String        @id @default(uuid())
-  name        String
+  id                 String            @id @default(uuid())
+  name               String
   // Optional human-friendly alternative to the id, chosen by the creator.
   // Setting one trades away some of the id's unguessability for a memorable
   // reference, e.g. for use in the frontpage designer's custom block.
-  slug        String?       @unique
+  slug               String?           @unique
   // A plain URL, or an encoded value from src/lib/icon-value.ts: emoji:<char>
   // or lucide:<PascalName>:<hexColor>. Consumers other than the Forge
   // dashboard must parse this format themselves.
-  icon        String?
-  description String?       @db.Text
-  createdById String?
-  createdBy   User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  items       AppListItem[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  icon               String?
+  description        String?           @db.Text
+  createdById        String?
+  createdBy          User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  // Optional - a list is still a personal curation feature anyone can make
+  // without belonging to any developer profile, this just lets one be filed
+  // under a profile (and moved between profiles) once it exists.
+  developerProfileId String?
+  developerProfile   DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
+  items              AppListItem[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@index([createdById])
+  @@index([developerProfileId])
 }
 
 // name/iconUrl are a snapshot taken when the app was added, not re-fetched live,
