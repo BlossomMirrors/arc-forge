@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
-import { canMoveBetweenProfiles } from '$lib/server/developer-profile';
+import { canMoveBetweenProfiles, canDeleteListing } from '$lib/server/developer-profile';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
@@ -64,7 +64,7 @@ export const actions: Actions = {
 
 		const list = await db.appList.findUnique({ where: { id } });
 		if (!list) return fail(404);
-		if (!isStaff(locals.user) && list.createdById !== locals.user.id) {
+		if (!(await canDeleteListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
 			throw error(403, 'You can only delete your own lists');
 		}
 

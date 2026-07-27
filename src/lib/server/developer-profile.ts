@@ -67,6 +67,42 @@ async function isOwnerOrAdmin(userId: string, developerProfileId: string): Promi
 	return membership?.role === 'owner' || membership?.role === 'admin';
 }
 
+async function isProfileMember(userId: string, developerProfileId: string): Promise<boolean> {
+	const membership = await db.developerProfileMember.findFirst({
+		where: { userId, developerProfileId }
+	});
+	return membership !== null;
+}
+
+// Editing a PWA/Flatpak/Screenshot/List is normal team collaboration, so any
+// member of the same developer profile can do it, not just the original
+// submitter, matching why the listing pages already show it to the whole team.
+export async function canEditListing(
+	userId: string,
+	isUserStaff: boolean,
+	submitterId: string | null,
+	developerProfileId: string | null
+): Promise<boolean> {
+	if (isUserStaff || submitterId === userId) return true;
+	if (!developerProfileId) return false;
+	return isProfileMember(userId, developerProfileId);
+}
+
+// Deleting is more consequential than editing (an approved Flatpak comes off the
+// signed repo immediately, with no re-review step the way an edit gets), so a
+// teammate needs owner/admin to delete someone else's submission, not just
+// membership. Deleting your own is still always allowed regardless of role.
+export async function canDeleteListing(
+	userId: string,
+	isUserStaff: boolean,
+	submitterId: string | null,
+	developerProfileId: string | null
+): Promise<boolean> {
+	if (isUserStaff || submitterId === userId) return true;
+	if (!developerProfileId) return false;
+	return isOwnerOrAdmin(userId, developerProfileId);
+}
+
 // Staff can move anything anywhere, same bypass used everywhere else in Forge.
 // Everyone else needs owner/admin on the destination profile, and, if the item
 // already belongs to a profile, owner/admin there too, so a plain member can't

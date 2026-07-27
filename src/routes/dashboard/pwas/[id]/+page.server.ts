@@ -5,7 +5,8 @@ import { isStaff } from '$lib/server/authz';
 import {
 	listMyDeveloperProfiles,
 	requireOwnDeveloperProfile,
-	canMoveBetweenProfiles
+	canMoveBetweenProfiles,
+	canEditListing
 } from '$lib/server/developer-profile';
 import { notifyReviewers } from '$lib/server/notifications';
 import { isValidRegex } from '$lib/server/pwa-form';
@@ -45,7 +46,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		include: { translations: true }
 	});
 	if (!app) throw error(404, 'PWA not found');
-	if (!isStaff(locals.user) && app.submittedById !== locals.user.id) {
+	if (!(await canEditListing(locals.user.id, isStaff(locals.user), app.submittedById, app.developerProfileId))) {
 		throw error(403, 'You can only edit your own submissions');
 	}
 
@@ -70,7 +71,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const existing = await db.pwaApp.findUnique({ where: { id: params.id } });
 		if (!existing) throw error(404, 'PWA not found');
-		if (!isStaff(locals.user) && existing.submittedById !== locals.user.id) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				existing.submittedById,
+				existing.developerProfileId
+			))
+		) {
 			throw error(403, 'You can only edit your own submissions');
 		}
 

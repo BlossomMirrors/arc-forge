@@ -4,7 +4,8 @@ import { isStaff } from '$lib/server/authz';
 import {
 	listMyDeveloperProfiles,
 	requireOwnDeveloperProfile,
-	canMoveBetweenProfiles
+	canMoveBetweenProfiles,
+	canEditListing
 } from '$lib/server/developer-profile';
 import { notifyReviewers, notifyUser } from '$lib/server/notifications';
 import { resolveFlatpakSubmission, type FlatpakSource } from '$lib/server/flatpak-submission';
@@ -15,7 +16,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) throw error(401);
 	const app = await db.flatpakApp.findUnique({ where: { id: params.id } });
 	if (!app) throw error(404, 'Flatpak not found');
-	if (!isStaff(locals.user) && app.submittedById !== locals.user.id) {
+	if (!(await canEditListing(locals.user.id, isStaff(locals.user), app.submittedById, app.developerProfileId))) {
 		throw error(403, 'You can only edit your own submissions');
 	}
 
@@ -59,7 +60,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const existing = await db.flatpakApp.findUnique({ where: { id: params.id } });
 		if (!existing) throw error(404, 'Flatpak not found');
-		if (!isStaff(locals.user) && existing.submittedById !== locals.user.id) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				existing.submittedById,
+				existing.developerProfileId
+			))
+		) {
 			throw error(403, 'You can only edit your own submissions');
 		}
 		if (existing.status === 'PROCESSING') {

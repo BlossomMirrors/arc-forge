@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
+import { canEditListing } from '$lib/server/developer-profile';
 import { slugify } from '$lib/slug';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -11,7 +12,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		include: { items: { orderBy: { position: 'asc' } } }
 	});
 	if (!list) throw error(404, 'List not found');
-	if (!isStaff(locals.user) && list.createdById !== locals.user.id) {
+	if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
 		throw error(403, 'You can only edit your own lists');
 	}
 	return { list };
@@ -22,7 +23,9 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!isStaff(locals.user) && list.createdById !== locals.user.id) throw error(403);
+		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+			throw error(403);
+		}
 
 		const data = await request.formData();
 		const name = ((data.get('name') as string) ?? '').trim();
@@ -49,7 +52,9 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!isStaff(locals.user) && list.createdById !== locals.user.id) throw error(403);
+		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+			throw error(403);
+		}
 
 		const data = await request.formData();
 		const ref = ((data.get('ref') as string) ?? '').trim();
@@ -80,7 +85,9 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!isStaff(locals.user) && list.createdById !== locals.user.id) throw error(403);
+		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+			throw error(403);
+		}
 
 		const data = await request.formData();
 		const itemId = data.get('itemId') as string;
@@ -93,7 +100,9 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!isStaff(locals.user) && list.createdById !== locals.user.id) throw error(403);
+		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+			throw error(403);
+		}
 
 		const data = await request.formData();
 		const order = data.getAll('itemId') as string[];

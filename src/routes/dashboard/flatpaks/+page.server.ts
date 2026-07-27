@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
-import { canMoveBetweenProfiles } from '$lib/server/developer-profile';
+import { canMoveBetweenProfiles, canDeleteListing } from '$lib/server/developer-profile';
 import { unpublishFlatpak } from '$lib/server/flatpak-publish';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -42,7 +42,7 @@ export const actions: Actions = {
 
 		const app = await db.flatpakApp.findUnique({ where: { id } });
 		if (!app) return fail(404);
-		if (!isStaff(locals.user) && app.submittedById !== locals.user.id) {
+		if (!(await canDeleteListing(locals.user.id, isStaff(locals.user), app.submittedById, app.developerProfileId))) {
 			throw error(403, 'You can only delete your own submissions');
 		}
 		if (app.status === 'PROCESSING') {

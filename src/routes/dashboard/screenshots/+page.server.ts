@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
-import { canMoveBetweenProfiles } from '$lib/server/developer-profile';
+import { canMoveBetweenProfiles, canDeleteListing } from '$lib/server/developer-profile';
 import { notifyReviewers } from '$lib/server/notifications';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -74,7 +74,14 @@ export const actions: Actions = {
 
 		const submission = await db.screenshotSubmission.findUnique({ where: { id } });
 		if (!submission) return fail(404);
-		if (!isStaff(locals.user) && submission.submittedById !== locals.user.id) {
+		if (
+			!(await canDeleteListing(
+				locals.user.id,
+				isStaff(locals.user),
+				submission.submittedById,
+				submission.developerProfileId
+			))
+		) {
 			throw error(403, 'You can only delete your own submissions');
 		}
 
