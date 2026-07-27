@@ -165,11 +165,12 @@
 					{@const badge = flatpakBadge(app.status)}
 					<li class="rounded-lg border border-border p-4">
 						<div class="flex items-start gap-3">
-							{#if app.iconUrl}
-								<img src={app.iconUrl} alt={app.name} class="size-12 shrink-0 rounded" />
-							{:else}
-								<div class="size-12 shrink-0 rounded bg-muted"></div>
-							{/if}
+							<img
+								src={app.iconUrl || '/default.svg'}
+								alt={app.name}
+								class="size-12 shrink-0 rounded"
+								onerror={(e) => (e.currentTarget.src = '/default.svg')}
+							/>
 							<div class="min-w-0 flex-1 space-y-1">
 								<div class="flex items-baseline gap-2">
 									<p class="font-medium">{app.name}</p>
@@ -219,11 +220,12 @@
 					{@const badge = flatpakBadge(app.status)}
 					<li class="rounded-lg border border-border p-4">
 						<div class="flex items-start gap-3">
-							{#if app.iconUrl}
-								<img src={app.iconUrl} alt={app.name} class="size-12 shrink-0 rounded" />
-							{:else}
-								<div class="size-12 shrink-0 rounded bg-muted"></div>
-							{/if}
+							<img
+								src={app.iconUrl || '/default.svg'}
+								alt={app.name}
+								class="size-12 shrink-0 rounded"
+								onerror={(e) => (e.currentTarget.src = '/default.svg')}
+							/>
 							<div class="min-w-0 flex-1 space-y-1">
 								<div class="flex items-baseline gap-2">
 									<p class="font-medium">{app.name}</p>
@@ -325,11 +327,12 @@
 					{@const badge = flatpakBadge(app.status)}
 					<li class="rounded-lg border border-border p-4">
 						<div class="flex items-start gap-3">
-							{#if app.iconUrl}
-								<img src={app.iconUrl} alt={app.name} class="size-12 shrink-0 rounded" />
-							{:else}
-								<div class="size-12 shrink-0 rounded bg-muted"></div>
-							{/if}
+							<img
+								src={app.iconUrl || '/default.svg'}
+								alt={app.name}
+								class="size-12 shrink-0 rounded"
+								onerror={(e) => (e.currentTarget.src = '/default.svg')}
+							/>
 							<div class="min-w-0 flex-1 space-y-1">
 								<div class="flex items-baseline gap-2">
 									<p class="font-medium">{app.name}</p>

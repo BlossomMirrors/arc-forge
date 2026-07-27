@@ -14,7 +14,6 @@ type ArcSearchHit = {
 	id: string;
 	name: string;
 	summary: string;
-	icon_url: string | null;
 };
 
 // Native (Flathub + blossomos) apps, via the already-deployed arc HTTP API rather
@@ -32,7 +31,7 @@ async function searchNativeApps(query: string): Promise<AppSearchResult[]> {
 			ref: h.id,
 			name: h.name,
 			summary: h.summary,
-			iconUrl: h.icon_url ?? null
+			iconUrl: `${ARC_API_BASE}/apps/${encodeURIComponent(h.id)}/icon`
 		}));
 	} catch {
 		return [];

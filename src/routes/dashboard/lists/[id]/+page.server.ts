@@ -1,5 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
+import { slugify } from '$lib/slug';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -26,11 +27,20 @@ export const actions: Actions = {
 		const name = ((data.get('name') as string) ?? '').trim();
 		const icon = ((data.get('icon') as string) ?? '').trim();
 		const description = ((data.get('description') as string) ?? '').trim();
+		const rawSlug = ((data.get('slug') as string) ?? '').trim();
 		if (!name) return fail(400, { error: 'Name is required' });
+
+		const slug = rawSlug ? slugify(rawSlug) : null;
+		if (rawSlug && !slug) return fail(400, { error: 'Could not derive a slug from that value' });
+
+		if (slug) {
+			const slugTaken = await db.appList.findFirst({ where: { slug, NOT: { id: params.id } } });
+			if (slugTaken) return fail(400, { error: 'That slug is already taken' });
+		}
 
 		await db.appList.update({
 			where: { id: params.id },
-			data: { name, icon: icon || null, description: description || null }
+			data: { name, icon: icon || null, description: description || null, slug }
 		});
 	},
 

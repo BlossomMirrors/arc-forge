@@ -169,7 +169,12 @@
 
 			<div class="max-h-96 space-y-4 overflow-y-auto">
 				<div class="flex items-start gap-3">
-					<img src={app.iconUrl} alt={app.name} class="size-12 shrink-0 rounded" />
+					<img
+						src={app.iconUrl || '/default.svg'}
+						alt={app.name}
+						class="size-12 shrink-0 rounded"
+						onerror={(e) => (e.currentTarget.src = '/default.svg')}
+					/>
 					<div class="min-w-0 flex-1 space-y-1">
 						<div class="flex items-baseline gap-2">
 							<p class="font-medium">{app.name}</p>

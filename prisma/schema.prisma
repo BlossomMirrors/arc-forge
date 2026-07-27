@@ -376,6 +376,13 @@ model FlathubCache {
 model AppList {
   id          String        @id @default(uuid())
   name        String
+  // Optional human-friendly alternative to the id, chosen by the creator.
+  // Setting one trades away some of the id's unguessability for a memorable
+  // reference, e.g. for use in the frontpage designer's custom block.
+  slug        String?       @unique
+  // A plain URL, or an encoded value from src/lib/icon-value.ts: emoji:<char>
+  // or lucide:<PascalName>:<hexColor>. Consumers other than the Forge
+  // dashboard must parse this format themselves.
   icon        String?
   description String?       @db.Text
   createdById String?

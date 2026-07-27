@@ -22,7 +22,7 @@ export type Section =
 	| { type: 'trending' }
 	| { type: 'categories' }
 	| { type: 'category'; value: string }
-	| { type: 'custom'; titles: LangString[]; apps: string[] }
+	| { type: 'custom'; titles: LangString[]; listRef: string }
 	| { type: 'charts'; cards: boolean }
 	| { type: 'links'; titles: LangString[]; items: LinksItem[] };
 
@@ -59,7 +59,10 @@ function carouselItemToXml(item: CarouselItem): string {
 	return `    <story banner="${esc(item.banner)}">\n${titles}\n        <body>\n            ${item.body}\n        </body>\n    </story>`;
 }
 
-function sectionToXml(s: Section): string {
+// The custom block stores a reference to an AppList (by id or slug) rather
+// than app ids directly, so turning it into XML needs the caller to have
+// already resolved that list's items to app refs.
+function sectionToXml(s: Section, listApps: Map<string, string[]>): string {
 	switch (s.type) {
 		case 'h1':
 			return `<h1>${esc(s.text)}</h1>`;
@@ -89,7 +92,9 @@ function sectionToXml(s: Section): string {
 			return `<category>${esc(s.value)}</category>`;
 		case 'custom': {
 			const titles = langStrings(s.titles, '    ');
-			const apps = s.apps.map((id) => `    <app id="${esc(id)}" />`).join('\n');
+			const apps = (listApps.get(s.listRef) ?? [])
+				.map((id) => `    <app id="${esc(id)}" />`)
+				.join('\n');
 			return `<custom>\n${titles}\n${apps}\n</custom>`;
 		}
 		case 'charts':
@@ -113,8 +118,12 @@ function sectionToXml(s: Section): string {
 	}
 }
 
-export function sectionsToXml(sections: Section[]): string {
-	return `<?xml version="1.0" encoding="UTF-8" ?>\n${sections.map(sectionToXml).join('\n')}`;
+export function sectionsToXml(
+	sections: Section[],
+	listApps: Map<string, string[]> = new Map()
+): string {
+	const xml = sections.map((s) => sectionToXml(s, listApps)).join('\n');
+	return `<?xml version="1.0" encoding="UTF-8" ?>\n${xml}`;
 }
 
 export function newSection(type: Section['type']): Section {
@@ -133,7 +142,7 @@ export function newSection(type: Section['type']): Section {
 		case 'category':
 			return { type, value: '' };
 		case 'custom':
-			return { type, titles: [{ lang: 'en', text: '' }], apps: [] };
+			return { type, titles: [{ lang: 'en', text: '' }], listRef: '' };
 		case 'charts':
 			return { type, cards: false };
 		case 'links':

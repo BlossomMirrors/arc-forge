@@ -1,21 +1,22 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { Trash2, Copy, Check, ListMusic } from '@lucide/svelte';
+	import { Trash2, Copy, Check } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import ListIcon from '$lib/components/list-icon.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data, form } = $props();
 
 	let copiedId = $state('');
 
-	function apiUrl(id: string): string {
-		return `${page.url.origin}/api/lists/${id}`;
+	function apiUrl(ref: string): string {
+		return `${page.url.origin}/api/lists/${ref}`;
 	}
 
-	async function copyUrl(id: string) {
-		await navigator.clipboard.writeText(apiUrl(id));
+	async function copyUrl(id: string, ref: string) {
+		await navigator.clipboard.writeText(apiUrl(ref));
 		copiedId = id;
 		setTimeout(() => {
 			if (copiedId === id) copiedId = '';
@@ -48,24 +49,21 @@
 		<ul class="divide-y divide-border rounded-lg border border-border">
 			{#each data.lists as list (list.id)}
 				<li class="flex items-center gap-3 px-4 py-3">
-					{#if list.icon}
-						<img src={list.icon} alt={list.name} class="size-10 shrink-0 rounded object-cover" />
-					{:else}
-						<div class="flex size-10 shrink-0 items-center justify-center rounded bg-muted">
-							<ListMusic class="size-4 text-muted-foreground" />
-						</div>
-					{/if}
+					<ListIcon icon={list.icon} />
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium">{list.name}</p>
 						<p class="text-xs text-muted-foreground">
 							{m.lists_item_count({ n: list._count.items })}
+							{#if list.slug}
+								<code class="ml-1 text-muted-foreground">/{list.slug}</code>
+							{/if}
 						</p>
 					</div>
 					<button
 						type="button"
 						class="shrink-0 text-muted-foreground hover:text-foreground"
 						title={m.lists_copy_url()}
-						onclick={() => copyUrl(list.id)}
+						onclick={() => copyUrl(list.id, list.slug || list.id)}
 					>
 						{#if copiedId === list.id}
 							<Check class="size-4 text-green-600" />

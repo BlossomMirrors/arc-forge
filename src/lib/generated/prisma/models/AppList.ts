@@ -26,6 +26,7 @@ export type AggregateAppList = {
 export type AppListMinAggregateOutputType = {
 	id: string | null;
 	name: string | null;
+	slug: string | null;
 	icon: string | null;
 	description: string | null;
 	createdById: string | null;
@@ -36,6 +37,7 @@ export type AppListMinAggregateOutputType = {
 export type AppListMaxAggregateOutputType = {
 	id: string | null;
 	name: string | null;
+	slug: string | null;
 	icon: string | null;
 	description: string | null;
 	createdById: string | null;
@@ -46,6 +48,7 @@ export type AppListMaxAggregateOutputType = {
 export type AppListCountAggregateOutputType = {
 	id: number;
 	name: number;
+	slug: number;
 	icon: number;
 	description: number;
 	createdById: number;
@@ -57,6 +60,7 @@ export type AppListCountAggregateOutputType = {
 export type AppListMinAggregateInputType = {
 	id?: true;
 	name?: true;
+	slug?: true;
 	icon?: true;
 	description?: true;
 	createdById?: true;
@@ -67,6 +71,7 @@ export type AppListMinAggregateInputType = {
 export type AppListMaxAggregateInputType = {
 	id?: true;
 	name?: true;
+	slug?: true;
 	icon?: true;
 	description?: true;
 	createdById?: true;
@@ -77,6 +82,7 @@ export type AppListMaxAggregateInputType = {
 export type AppListCountAggregateInputType = {
 	id?: true;
 	name?: true;
+	slug?: true;
 	icon?: true;
 	description?: true;
 	createdById?: true;
@@ -161,6 +167,7 @@ export type AppListGroupByArgs<
 export type AppListGroupByOutputType = {
 	id: string;
 	name: string;
+	slug: string | null;
 	icon: string | null;
 	description: string | null;
 	createdById: string | null;
@@ -189,6 +196,7 @@ export type AppListWhereInput = {
 	NOT?: Prisma.AppListWhereInput | Prisma.AppListWhereInput[];
 	id?: Prisma.StringFilter<'AppList'> | string;
 	name?: Prisma.StringFilter<'AppList'> | string;
+	slug?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	icon?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	description?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	createdById?: Prisma.StringNullableFilter<'AppList'> | string | null;
@@ -201,6 +209,7 @@ export type AppListWhereInput = {
 export type AppListOrderByWithRelationInput = {
 	id?: Prisma.SortOrder;
 	name?: Prisma.SortOrder;
+	slug?: Prisma.SortOrderInput | Prisma.SortOrder;
 	icon?: Prisma.SortOrderInput | Prisma.SortOrder;
 	description?: Prisma.SortOrderInput | Prisma.SortOrder;
 	createdById?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -213,6 +222,7 @@ export type AppListOrderByWithRelationInput = {
 export type AppListWhereUniqueInput = Prisma.AtLeast<
 	{
 		id?: string;
+		slug?: string;
 		AND?: Prisma.AppListWhereInput | Prisma.AppListWhereInput[];
 		OR?: Prisma.AppListWhereInput[];
 		NOT?: Prisma.AppListWhereInput | Prisma.AppListWhereInput[];
@@ -225,12 +235,13 @@ export type AppListWhereUniqueInput = Prisma.AtLeast<
 		createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
 		items?: Prisma.AppListItemListRelationFilter;
 	},
-	'id'
+	'id' | 'slug'
 >;
 
 export type AppListOrderByWithAggregationInput = {
 	id?: Prisma.SortOrder;
 	name?: Prisma.SortOrder;
+	slug?: Prisma.SortOrderInput | Prisma.SortOrder;
 	icon?: Prisma.SortOrderInput | Prisma.SortOrder;
 	description?: Prisma.SortOrderInput | Prisma.SortOrder;
 	createdById?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -251,6 +262,7 @@ export type AppListScalarWhereWithAggregatesInput = {
 		| Prisma.AppListScalarWhereWithAggregatesInput[];
 	id?: Prisma.StringWithAggregatesFilter<'AppList'> | string;
 	name?: Prisma.StringWithAggregatesFilter<'AppList'> | string;
+	slug?: Prisma.StringNullableWithAggregatesFilter<'AppList'> | string | null;
 	icon?: Prisma.StringNullableWithAggregatesFilter<'AppList'> | string | null;
 	description?: Prisma.StringNullableWithAggregatesFilter<'AppList'> | string | null;
 	createdById?: Prisma.StringNullableWithAggregatesFilter<'AppList'> | string | null;
@@ -261,6 +273,7 @@ export type AppListScalarWhereWithAggregatesInput = {
 export type AppListCreateInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdAt?: Date | string;
@@ -272,6 +285,7 @@ export type AppListCreateInput = {
 export type AppListUncheckedCreateInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdById?: string | null;
@@ -283,6 +297,7 @@ export type AppListUncheckedCreateInput = {
 export type AppListUpdateInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -294,6 +309,7 @@ export type AppListUpdateInput = {
 export type AppListUncheckedUpdateInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -305,6 +321,7 @@ export type AppListUncheckedUpdateInput = {
 export type AppListCreateManyInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdById?: string | null;
@@ -315,6 +332,7 @@ export type AppListCreateManyInput = {
 export type AppListUpdateManyMutationInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -324,6 +342,7 @@ export type AppListUpdateManyMutationInput = {
 export type AppListUncheckedUpdateManyInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -344,6 +363,7 @@ export type AppListOrderByRelationAggregateInput = {
 export type AppListCountOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	name?: Prisma.SortOrder;
+	slug?: Prisma.SortOrder;
 	icon?: Prisma.SortOrder;
 	description?: Prisma.SortOrder;
 	createdById?: Prisma.SortOrder;
@@ -354,6 +374,7 @@ export type AppListCountOrderByAggregateInput = {
 export type AppListMaxOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	name?: Prisma.SortOrder;
+	slug?: Prisma.SortOrder;
 	icon?: Prisma.SortOrder;
 	description?: Prisma.SortOrder;
 	createdById?: Prisma.SortOrder;
@@ -364,6 +385,7 @@ export type AppListMaxOrderByAggregateInput = {
 export type AppListMinOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	name?: Prisma.SortOrder;
+	slug?: Prisma.SortOrder;
 	icon?: Prisma.SortOrder;
 	description?: Prisma.SortOrder;
 	createdById?: Prisma.SortOrder;
@@ -491,6 +513,7 @@ export type AppListUpdateOneRequiredWithoutItemsNestedInput = {
 export type AppListCreateWithoutCreatedByInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdAt?: Date | string;
@@ -501,6 +524,7 @@ export type AppListCreateWithoutCreatedByInput = {
 export type AppListUncheckedCreateWithoutCreatedByInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdAt?: Date | string;
@@ -555,6 +579,7 @@ export type AppListScalarWhereInput = {
 	NOT?: Prisma.AppListScalarWhereInput | Prisma.AppListScalarWhereInput[];
 	id?: Prisma.StringFilter<'AppList'> | string;
 	name?: Prisma.StringFilter<'AppList'> | string;
+	slug?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	icon?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	description?: Prisma.StringNullableFilter<'AppList'> | string | null;
 	createdById?: Prisma.StringNullableFilter<'AppList'> | string | null;
@@ -565,6 +590,7 @@ export type AppListScalarWhereInput = {
 export type AppListCreateWithoutItemsInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdAt?: Date | string;
@@ -575,6 +601,7 @@ export type AppListCreateWithoutItemsInput = {
 export type AppListUncheckedCreateWithoutItemsInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdById?: string | null;
@@ -613,6 +640,7 @@ export type AppListUpdateToOneWithWhereWithoutItemsInput = {
 export type AppListUpdateWithoutItemsInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -623,6 +651,7 @@ export type AppListUpdateWithoutItemsInput = {
 export type AppListUncheckedUpdateWithoutItemsInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -633,6 +662,7 @@ export type AppListUncheckedUpdateWithoutItemsInput = {
 export type AppListCreateManyCreatedByInput = {
 	id?: string;
 	name: string;
+	slug?: string | null;
 	icon?: string | null;
 	description?: string | null;
 	createdAt?: Date | string;
@@ -642,6 +672,7 @@ export type AppListCreateManyCreatedByInput = {
 export type AppListUpdateWithoutCreatedByInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -652,6 +683,7 @@ export type AppListUpdateWithoutCreatedByInput = {
 export type AppListUncheckedUpdateWithoutCreatedByInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -662,6 +694,7 @@ export type AppListUncheckedUpdateWithoutCreatedByInput = {
 export type AppListUncheckedUpdateManyWithoutCreatedByInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	name?: Prisma.StringFieldUpdateOperationsInput | string;
+	slug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -709,6 +742,7 @@ export type AppListSelect<
 	{
 		id?: boolean;
 		name?: boolean;
+		slug?: boolean;
 		icon?: boolean;
 		description?: boolean;
 		createdById?: boolean;
@@ -727,6 +761,7 @@ export type AppListSelectCreateManyAndReturn<
 	{
 		id?: boolean;
 		name?: boolean;
+		slug?: boolean;
 		icon?: boolean;
 		description?: boolean;
 		createdById?: boolean;
@@ -743,6 +778,7 @@ export type AppListSelectUpdateManyAndReturn<
 	{
 		id?: boolean;
 		name?: boolean;
+		slug?: boolean;
 		icon?: boolean;
 		description?: boolean;
 		createdById?: boolean;
@@ -756,6 +792,7 @@ export type AppListSelectUpdateManyAndReturn<
 export type AppListSelectScalar = {
 	id?: boolean;
 	name?: boolean;
+	slug?: boolean;
 	icon?: boolean;
 	description?: boolean;
 	createdById?: boolean;
@@ -766,7 +803,7 @@ export type AppListSelectScalar = {
 export type AppListOmit<
 	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > = runtime.Types.Extensions.GetOmit<
-	'id' | 'name' | 'icon' | 'description' | 'createdById' | 'createdAt' | 'updatedAt',
+	'id' | 'name' | 'slug' | 'icon' | 'description' | 'createdById' | 'createdAt' | 'updatedAt',
 	ExtArgs['result']['appList']
 >;
 export type AppListInclude<
@@ -799,6 +836,7 @@ export type $AppListPayload<
 		{
 			id: string;
 			name: string;
+			slug: string | null;
 			icon: string | null;
 			description: string | null;
 			createdById: string | null;
@@ -1376,6 +1414,7 @@ export interface Prisma__AppListClient<
 export interface AppListFieldRefs {
 	readonly id: Prisma.FieldRef<'AppList', 'String'>;
 	readonly name: Prisma.FieldRef<'AppList', 'String'>;
+	readonly slug: Prisma.FieldRef<'AppList', 'String'>;
 	readonly icon: Prisma.FieldRef<'AppList', 'String'>;
 	readonly description: Prisma.FieldRef<'AppList', 'String'>;
 	readonly createdById: Prisma.FieldRef<'AppList', 'String'>;

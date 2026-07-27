@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { Search, Plus, Trash2, Copy, Check, ListMusic } from '@lucide/svelte';
+	import { Search, Plus, Trash2, Copy, Check, Wand2 } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import UploadButton from '$lib/components/upload-button.svelte';
+	import IconPicker from '$lib/components/icon-picker.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { slugify } from '$lib/slug';
 	import { untrack } from 'svelte';
 
 	let { data, form } = $props();
 
 	let icon = $state(untrack(() => data.list.icon ?? ''));
+	let name = $state(untrack(() => data.list.name));
+	let slug = $state(untrack(() => data.list.slug ?? ''));
 	let copied = $state(false);
 	let query = $state('');
 	let searching = $state(false);
@@ -20,7 +23,11 @@
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	const existingRefs = $derived(new Set(data.list.items.map((item) => item.appRef)));
-	const apiUrl = $derived(`${page.url.origin}/api/lists/${data.list.id}`);
+	const apiUrl = $derived(`${page.url.origin}/api/lists/${slug || data.list.id}`);
+
+	function generateSlug() {
+		slug = slugify(name);
+	}
 
 	function onQueryInput() {
 		clearTimeout(searchTimeout);
@@ -82,14 +89,39 @@
 	<form
 		method="POST"
 		action="?/update"
-		use:enhance
+		use:enhance={() => {
+			return async ({ update }) => {
+				await update({ reset: false });
+			};
+		}}
 		class="space-y-3 rounded-lg border border-border p-4"
 	>
 		<h3 class="text-sm font-semibold text-muted-foreground">{m.lists_details_heading()}</h3>
 		<input type="hidden" name="icon" value={icon} />
 		<label class="block space-y-1.5">
 			<span class="text-sm font-medium">{m.lists_name_placeholder()}</span>
-			<Input name="name" value={data.list.name} required />
+			<Input name="name" bind:value={name} required />
+		</label>
+		<label class="block space-y-1.5">
+			<span class="text-sm font-medium">{m.lists_slug_label()}</span>
+			<div class="flex gap-2">
+				<Input
+					name="slug"
+					bind:value={slug}
+					placeholder={m.lists_slug_placeholder()}
+					class="flex-1 font-mono"
+				/>
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					onclick={generateSlug}
+					title={m.lists_slug_generate()}
+				>
+					<Wand2 class="size-4" />
+				</Button>
+			</div>
+			<p class="text-xs text-muted-foreground">{m.lists_slug_hint()}</p>
 		</label>
 		<label class="block space-y-1.5">
 			<span class="text-sm font-medium">{m.lists_description()}</span>
@@ -100,16 +132,10 @@
 				>{data.list.description ?? ''}</textarea
 			>
 		</label>
-		<div class="flex items-center gap-3">
-			{#if icon}
-				<img src={icon} alt="" class="size-10 shrink-0 rounded object-cover" />
-			{:else}
-				<div class="flex size-10 shrink-0 items-center justify-center rounded bg-muted">
-					<ListMusic class="size-4 text-muted-foreground" />
-				</div>
-			{/if}
-			<UploadButton onurl={(url) => (icon = url)} />
-		</div>
+		<label class="block space-y-1.5">
+			<span class="text-sm font-medium">{m.lists_icon_label()}</span>
+			<IconPicker bind:value={icon} />
+		</label>
 		<Button type="submit" size="sm">{m.lists_save()}</Button>
 	</form>
 
@@ -133,11 +159,12 @@
 			<ul class="divide-y divide-border rounded-lg border border-border">
 				{#each results as result (result.ref)}
 					<li class="flex items-center gap-3 px-4 py-2.5">
-						{#if result.iconUrl}
-							<img src={result.iconUrl} alt="" class="size-8 shrink-0 rounded object-cover" />
-						{:else}
-							<div class="size-8 shrink-0 rounded bg-muted"></div>
-						{/if}
+						<img
+							src={result.iconUrl || '/default.svg'}
+							alt=""
+							class="size-8 shrink-0 rounded object-cover"
+							onerror={(e) => (e.currentTarget.src = '/default.svg')}
+						/>
 						<div class="min-w-0 flex-1">
 							<p class="truncate text-sm font-medium">{result.name}</p>
 							<p class="truncate text-xs text-muted-foreground">{result.summary}</p>
@@ -170,11 +197,12 @@
 			<ul class="divide-y divide-border rounded-lg border border-border">
 				{#each data.list.items as item (item.id)}
 					<li class="flex items-center gap-3 px-4 py-2.5">
-						{#if item.iconUrl}
-							<img src={item.iconUrl} alt="" class="size-8 shrink-0 rounded object-cover" />
-						{:else}
-							<div class="size-8 shrink-0 rounded bg-muted"></div>
-						{/if}
+						<img
+							src={item.iconUrl || '/default.svg'}
+							alt=""
+							class="size-8 shrink-0 rounded object-cover"
+							onerror={(e) => (e.currentTarget.src = '/default.svg')}
+						/>
 						<div class="min-w-0 flex-1">
 							<p class="truncate text-sm font-medium">{item.name}</p>
 							<code class="text-xs text-muted-foreground">{item.appRef}</code>

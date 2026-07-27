@@ -68,7 +68,12 @@
 				{@const badge = statusBadge(app.status)}
 				<li class="flex items-center justify-between px-4 py-3">
 					<div class="flex items-center gap-3">
-						<img src={app.iconUrl} alt={app.name} class="size-8 rounded" />
+						<img
+							src={app.iconUrl || '/default.svg'}
+							alt={app.name}
+							class="size-8 rounded"
+							onerror={(e) => (e.currentTarget.src = '/default.svg')}
+						/>
 						<div>
 							<p class="text-sm font-medium">{app.name}</p>
 							<p class="text-xs text-muted-foreground">{app.appid}</p>

@@ -2352,6 +2352,7 @@ export type FlathubCacheScalarFieldEnum =
 export const AppListScalarFieldEnum = {
 	id: 'id',
 	name: 'name',
+	slug: 'slug',
 	icon: 'icon',
 	description: 'description',
 	createdById: 'createdById',

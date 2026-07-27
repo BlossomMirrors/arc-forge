@@ -73,11 +73,12 @@
 				{@const badge = statusBadge(app.status)}
 				<li class="flex items-center justify-between px-4 py-3">
 					<div class="flex items-center gap-3">
-						{#if app.iconUrl}
-							<img src={app.iconUrl} alt={app.name} class="size-8 rounded" />
-						{:else}
-							<div class="size-8 rounded bg-muted"></div>
-						{/if}
+						<img
+							src={app.iconUrl || '/default.svg'}
+							alt={app.name}
+							class="size-8 rounded"
+							onerror={(e) => (e.currentTarget.src = '/default.svg')}
+						/>
 						<div>
 							<p class="text-sm font-medium">{app.name}</p>
 							<p class="text-xs text-muted-foreground">{app.appid}</p>

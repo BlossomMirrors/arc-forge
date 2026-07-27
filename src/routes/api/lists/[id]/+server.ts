@@ -2,8 +2,8 @@ import { db } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params }) => {
-	const list = await db.appList.findUnique({
-		where: { id: params.id },
+	const list = await db.appList.findFirst({
+		where: { OR: [{ id: params.id }, { slug: params.id }] },
 		include: { items: { orderBy: { position: 'asc' } } }
 	});
 	if (!list) return new Response('Not found', { status: 404 });

@@ -42,6 +42,17 @@
 	let expandedIndex = $state<number | null>(null);
 	let blockRefs: (HTMLTextAreaElement | HTMLInputElement | null)[] = [];
 
+	// Custom blocks reference an AppList by id or slug, keyed both ways here
+	// so a listRef of either form resolves to the same list for display.
+	const listsByRef = $derived.by(() => {
+		const map = new Map<string, (typeof data.lists)[number]>();
+		for (const list of data.lists) {
+			map.set(list.id, list);
+			if (list.slug) map.set(list.slug, list);
+		}
+		return map;
+	});
+
 	// Palette state
 	let paletteOpen = $state(false);
 	let paletteFilter = $state('');
@@ -340,7 +351,6 @@
 	}
 
 	type Carousel = Extract<Section, { type: 'carousel' }>;
-	type Custom = Extract<Section, { type: 'custom' }>;
 	type Links = Extract<Section, { type: 'links' }>;
 
 	function addCarouselApp(s: Carousel) {
@@ -356,14 +366,6 @@
 	}
 	function removeCarouselItem(s: Carousel, j: number) {
 		s.items = s.items.filter((_s, k) => k !== j);
-		mark();
-	}
-	function addCustomApp(s: Custom) {
-		s.apps = [...s.apps, ''];
-		mark();
-	}
-	function removeCustomApp(s: Custom, j: number) {
-		s.apps = s.apps.filter((_s, k) => k !== j);
 		mark();
 	}
 	function addTitle(arr: LangString[]) {
@@ -650,7 +652,8 @@
 									<span class="text-xs text-muted-foreground/50">
 										{#if section.type === 'carousel'}{section.items.length} items · breakpoint={section.breakpoint}
 										{:else if section.type === 'category'}{section.value || '—'}
-										{:else if section.type === 'custom'}{section.titles[0]?.text || '—'}
+										{:else if section.type === 'custom'}{listsByRef.get(section.listRef)?.name ||
+												'—'}
 										{:else if section.type === 'charts'}cards={section.cards}
 										{:else if section.type === 'links'}{section.titles[0]?.text || '—'} · {section
 												.items.length} links
@@ -815,29 +818,27 @@
 													>
 												</div>
 												<div class="space-y-2">
-													<p class="text-xs text-muted-foreground">{m.frontpage_apps_label()}</p>
-													{#each section.apps, k (k)}
-														<div class="flex gap-2">
-															<Input
-																class="h-8 flex-1 font-mono text-sm"
-																placeholder="io.github.example.App"
-																bind:value={section.apps[k]}
-																oninput={mark}
-															/>
-															<button
-																type="button"
-																onclick={() => removeCustomApp(section, k)}
-																class="text-muted-foreground hover:text-destructive"
-																><Trash2 class="size-3.5" /></button
-															>
-														</div>
-													{/each}
-													<button
-														type="button"
-														class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-														onclick={() => addCustomApp(section)}
-														><Plus class="size-3" /> app</button
-													>
+													<p class="text-xs text-muted-foreground">{m.frontpage_list_label()}</p>
+													{#if data.lists.length === 0}
+														<p class="text-xs text-muted-foreground">
+															{m.frontpage_no_lists()}
+															<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+															<a href="/dashboard/lists" class="underline">{m.lists_heading()}</a>
+														</p>
+													{:else}
+														<select
+															class="h-8 w-full max-w-xs rounded-md border border-input bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+															bind:value={section.listRef}
+															onchange={mark}
+														>
+															<option value="">{m.frontpage_choose_list()}</option>
+															{#each data.lists as list (list.id)}
+																<option value={list.slug || list.id}>
+																	{list.name} ({list._count.items})
+																</option>
+															{/each}
+														</select>
+													{/if}
 												</div>
 											</div>
 										{:else if section.type === 'links'}

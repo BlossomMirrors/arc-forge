@@ -4,8 +4,14 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	requireStaff(locals.user);
-	const row = await db.frontPage.findUnique({ where: { id: 'singleton' } });
-	return { sections: (row?.sections ?? []) as unknown[] };
+	const [row, lists] = await Promise.all([
+		db.frontPage.findUnique({ where: { id: 'singleton' } }),
+		db.appList.findMany({
+			select: { id: true, slug: true, name: true, _count: { select: { items: true } } },
+			orderBy: { name: 'asc' }
+		})
+	]);
+	return { sections: (row?.sections ?? []) as unknown[], lists };
 };
 
 export const actions: Actions = {

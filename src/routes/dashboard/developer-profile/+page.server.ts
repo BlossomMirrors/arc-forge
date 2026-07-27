@@ -6,15 +6,8 @@ import { isStaff } from '$lib/server/authz';
 import { notifyUser } from '$lib/server/notifications';
 import { requestDeveloperVerification } from '$lib/server/developer-verification';
 import { deleteDeveloperProfile } from '$lib/server/developer-profile';
+import { slugify } from '$lib/slug';
 import type { Actions, PageServerLoad } from './$types';
-
-function slugify(value: string): string {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-}
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) throw error(401);
