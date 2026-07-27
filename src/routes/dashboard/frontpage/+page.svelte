@@ -370,7 +370,7 @@
 		mark();
 	}
 	function addTitle(arr: LangString[]) {
-		arr.push({ lang: 'de', text: '' });
+		arr.push({ lang: '', text: '' });
 		mark();
 	}
 	function removeTitle(arr: LangString[], j: number) {

@@ -151,6 +151,8 @@
 	"pwas_delete_confirm": "Bist du sicher, dass du diese App löschen möchtest?",
 	"form_translations": "Übersetzungen",
 	"form_translation_fallback_note": "Optional, fällt auf Englisch zurück, wenn leer",
+	"form_language": "Sprache",
+	"form_add_translation": "Übersetzung hinzufügen",
 	"review_heading": "PWAs",
 	"review_hint": "Zur Überprüfung eingereichte PWAs genehmigen oder ablehnen.",
 	"review_empty": "Nichts wartet auf Überprüfung.",

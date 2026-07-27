@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
-	import { CONTENT_LANGS } from '$lib/content-langs';
 	import UploadButton from '$lib/components/upload-button.svelte';
 
 	type PwaFormData = {
@@ -47,6 +47,26 @@
 	let widevine = $state(untrack(() => values.widevine ?? false));
 	let tray = $state(untrack(() => values.tray ?? false));
 	let iconUrl = $state(untrack(() => values.iconUrl ?? ''));
+
+	type TranslationRow = { lang: string; name: string; summary: string; description: string };
+
+	let translationRows = $state<TranslationRow[]>(
+		untrack(() =>
+			Object.entries(translations).map(([lang, t]) => ({
+				lang,
+				name: t.name ?? '',
+				summary: t.summary ?? '',
+				description: t.description ?? ''
+			}))
+		)
+	);
+
+	function addTranslation() {
+		translationRows = [...translationRows, { lang: '', name: '', summary: '', description: '' }];
+	}
+	function removeTranslation(i: number) {
+		translationRows = translationRows.filter((_, j) => j !== i);
+	}
 </script>
 
 <div class="space-y-4">
@@ -211,41 +231,49 @@
 			<p class="text-sm font-medium">{m.form_translations()}</p>
 			<p class="text-xs text-muted-foreground">{m.form_translation_fallback_note()}</p>
 		</div>
-		{#each CONTENT_LANGS as lang (lang.code)}
-			<details class="rounded-lg border border-border">
-				<summary class="cursor-pointer px-4 py-2.5 text-sm font-medium select-none">
-					{lang.label}
-				</summary>
-				<div class="space-y-3 px-4 pt-3 pb-4">
+		{#each translationRows as row, i (i)}
+			<div class="space-y-3 rounded-lg border border-border p-4">
+				<div class="flex items-center gap-2">
 					<label class="space-y-1.5">
-						<span class="text-sm font-medium">{m.form_name()}</span>
-						<Input
-							name="trans_{lang.code}_name"
-							value={translations[lang.code]?.name ?? ''}
-							placeholder={values.name ?? ''}
-						/>
+						<span class="text-sm font-medium">{m.form_language()}</span>
+						<Input name="trans_lang_{i}" bind:value={row.lang} placeholder="fr" class="w-20" />
 					</label>
-					<label class="space-y-1.5">
-						<span class="text-sm font-medium">{m.form_summary()}</span>
-						<Input
-							name="trans_{lang.code}_summary"
-							value={translations[lang.code]?.summary ?? ''}
-							placeholder={values.summary ?? ''}
-						/>
-					</label>
-					<label class="space-y-1.5">
-						<span class="text-sm font-medium">{m.form_description()}</span>
-						<textarea
-							name="trans_{lang.code}_description"
-							rows={3}
-							class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
-							placeholder={values.description ?? ''}
-							>{translations[lang.code]?.description ?? ''}</textarea
-						>
-					</label>
+					<button
+						type="button"
+						onclick={() => removeTranslation(i)}
+						class="mt-6 text-muted-foreground hover:text-destructive"
+						><Trash2 class="size-3.5" /></button
+					>
 				</div>
-			</details>
+				<label class="space-y-1.5">
+					<span class="text-sm font-medium">{m.form_name()}</span>
+					<Input name="trans_name_{i}" bind:value={row.name} placeholder={values.name ?? ''} />
+				</label>
+				<label class="space-y-1.5">
+					<span class="text-sm font-medium">{m.form_summary()}</span>
+					<Input
+						name="trans_summary_{i}"
+						bind:value={row.summary}
+						placeholder={values.summary ?? ''}
+					/>
+				</label>
+				<label class="space-y-1.5">
+					<span class="text-sm font-medium">{m.form_description()}</span>
+					<textarea
+						name="trans_description_{i}"
+						rows={3}
+						class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
+						placeholder={values.description ?? ''}
+						bind:value={row.description}
+					></textarea>
+				</label>
+			</div>
 		{/each}
+		<button
+			type="button"
+			class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+			onclick={addTranslation}><Plus class="size-3" /> {m.form_add_translation()}</button
+		>
 	</div>
 
 	<div class="flex gap-2 pt-2">

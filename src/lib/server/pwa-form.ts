@@ -1,5 +1,4 @@
 import { db } from './db';
-import { CONTENT_LANGS } from '$lib/content-langs';
 import { CDN_BASE, uploadText } from './bunny';
 
 export async function fetchCodeField(value: string): Promise<string> {
@@ -15,16 +14,34 @@ export async function uploadCodeField(value: string, ext: 'css' | 'js'): Promise
 }
 
 export function parseTranslations(data: FormData) {
-	return CONTENT_LANGS.map(({ code }) => ({
-		lang: code,
-		name: ((data.get(`trans_${code}_name`) as string) ?? '').trim() || null,
-		summary: ((data.get(`trans_${code}_summary`) as string) ?? '').trim() || null,
-		description: ((data.get(`trans_${code}_description`) as string) ?? '').trim() || null
-	}));
+	const seen = new Set<string>();
+	const translations: {
+		lang: string;
+		name: string | null;
+		summary: string | null;
+		description: string | null;
+	}[] = [];
+	for (const key of data.keys()) {
+		const match = key.match(/^trans_lang_(\d+)$/);
+		if (!match) continue;
+		const idx = match[1];
+		const lang = ((data.get(key) as string) ?? '').trim().toLowerCase().slice(0, 10);
+		if (!lang || seen.has(lang)) continue;
+		seen.add(lang);
+		translations.push({
+			lang,
+			name: ((data.get(`trans_name_${idx}`) as string) ?? '').trim() || null,
+			summary: ((data.get(`trans_summary_${idx}`) as string) ?? '').trim() || null,
+			description: ((data.get(`trans_description_${idx}`) as string) ?? '').trim() || null
+		});
+	}
+	return translations;
 }
 
 export async function saveTranslations(appId: string, data: FormData) {
 	const translations = parseTranslations(data);
+	const langs = translations.map((t) => t.lang);
+	await db.pwaTranslation.deleteMany({ where: { appId, lang: { notIn: langs } } });
 	for (const t of translations) {
 		if (t.name || t.summary || t.description) {
 			await db.pwaTranslation.upsert({
