@@ -10,7 +10,9 @@
 		FileText,
 		Clock,
 		Pencil,
-		UserMinus
+		UserMinus,
+		ShieldOff,
+		ShieldCheck
 	} from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -157,6 +159,14 @@
 												{m.devprofiles_verified()}
 											</span>
 										{/if}
+										{#if profile.suspended}
+											<span
+												class="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
+											>
+												<ShieldOff class="size-3" />
+												{m.devprofile_suspended()}
+											</span>
+										{/if}
 									</div>
 								{/if}
 							</div>
@@ -178,6 +188,47 @@
 										<LogOut class="size-4" />
 									</Button>
 								</form>
+								{#if data.isStaff}
+									<form
+										method="POST"
+										action={profile.suspended ? '?/unsuspendProfile' : '?/suspendProfile'}
+										id="suspend-form-{profile.id}"
+										use:enhance
+									>
+										<input type="hidden" name="developerProfileId" value={profile.id} />
+										<input type="hidden" name="reason" id="suspend-reason-{profile.id}" />
+										<Button
+											type="submit"
+											variant="ghost"
+											size="icon"
+											class="text-muted-foreground hover:text-destructive"
+											title={profile.suspended ? m.devprofile_unsuspend() : m.devprofile_suspend()}
+											onclick={(e) => {
+												if (profile.suspended) return;
+												e.preventDefault?.();
+												e.stopPropagation?.();
+												const reason = prompt(m.devprofile_suspend_reason_prompt());
+												if (reason === null) return;
+												(
+													document.getElementById(
+														`suspend-reason-${profile.id}`
+													) as HTMLInputElement
+												).value = reason;
+												(
+													document.getElementById(
+														`suspend-form-${profile.id}`
+													) as HTMLFormElement
+												).submit();
+											}}
+										>
+											{#if profile.suspended}
+												<ShieldCheck class="size-4" />
+											{:else}
+												<ShieldOff class="size-4" />
+											{/if}
+										</Button>
+									</form>
+								{/if}
 								{#if isOwner || data.isStaff}
 									<form
 										method="POST"

@@ -59,6 +59,7 @@ export const ModelName = {
   DeveloperProfile: 'DeveloperProfile',
   DeveloperVerificationRequest: 'DeveloperVerificationRequest',
   ScreenshotSubmission: 'ScreenshotSubmission',
+  Report: 'Report',
   DeveloperProfileMember: 'DeveloperProfileMember',
   DeveloperProfileInvitation: 'DeveloperProfileInvitation',
   PwaApp: 'PwaApp',
@@ -172,7 +173,11 @@ export const DeveloperProfileScalarFieldEnum = {
   createdAt: 'createdAt',
   verified: 'verified',
   verifiedById: 'verifiedById',
-  verifiedAt: 'verifiedAt'
+  verifiedAt: 'verifiedAt',
+  suspended: 'suspended',
+  suspendedById: 'suspendedById',
+  suspendedAt: 'suspendedAt',
+  suspendReason: 'suspendReason'
 } as const
 
 export type DeveloperProfileScalarFieldEnum = (typeof DeveloperProfileScalarFieldEnum)[keyof typeof DeveloperProfileScalarFieldEnum]
@@ -212,6 +217,23 @@ export const ScreenshotSubmissionScalarFieldEnum = {
 } as const
 
 export type ScreenshotSubmissionScalarFieldEnum = (typeof ScreenshotSubmissionScalarFieldEnum)[keyof typeof ScreenshotSubmissionScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  details: 'details',
+  reporterEmail: 'reporterEmail',
+  status: 'status',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
 
 
 export const DeveloperProfileMemberScalarFieldEnum = {

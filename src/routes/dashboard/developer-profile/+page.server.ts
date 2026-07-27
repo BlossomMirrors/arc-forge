@@ -5,7 +5,11 @@ import { db } from '$lib/server/db';
 import { isStaff } from '$lib/server/authz';
 import { notifyUser } from '$lib/server/notifications';
 import { requestDeveloperVerification } from '$lib/server/developer-verification';
-import { deleteDeveloperProfile } from '$lib/server/developer-profile';
+import {
+	deleteDeveloperProfile,
+	suspendDeveloperProfile,
+	unsuspendDeveloperProfile
+} from '$lib/server/developer-profile';
 import { slugify } from '$lib/slug';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -305,5 +309,44 @@ export const actions: Actions = {
 			where: { id: developerProfileId },
 			data: { name, verified: false, verifiedById: null, verifiedAt: null }
 		});
+	},
+
+	// Staff-only, reachable independently of a formal abuse report - see
+	// suspendDeveloperProfile for what this actually does (pulls every APPROVED
+	// PWA/Flatpak, unpublishes any live Flatpak from the repo, blocks new
+	// submissions while set).
+	suspendProfile: async ({ request, locals }) => {
+		const staff = isStaff(locals.user);
+		if (!locals.user || !staff) throw error(403);
+		const data = await request.formData();
+		const developerProfileId = data.get('developerProfileId') as string;
+		const reason = ((data.get('reason') as string) ?? '').trim();
+		if (!developerProfileId) return fail(400);
+
+		const result = await suspendDeveloperProfile(developerProfileId, locals.user.id, reason);
+		if (!result.ok) return fail(500, { error: result.error, log: result.log });
+
+		const members = await db.developerProfileMember.findMany({
+			where: { developerProfileId }
+		});
+		await Promise.all(
+			members.map((member) =>
+				notifyUser(member.userId, {
+					type: 'profile_suspended',
+					title: 'Your developer profile was suspended',
+					body: reason || undefined,
+					link: '/dashboard/developer-profile'
+				})
+			)
+		);
+	},
+
+	unsuspendProfile: async ({ locals, request }) => {
+		if (!locals.user || !isStaff(locals.user)) throw error(403);
+		const data = await request.formData();
+		const developerProfileId = data.get('developerProfileId') as string;
+		if (!developerProfileId) return fail(400);
+
+		await unsuspendDeveloperProfile(developerProfileId);
 	}
 };

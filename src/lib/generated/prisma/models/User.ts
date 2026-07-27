@@ -220,12 +220,14 @@ export type UserWhereInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppListRelationFilter
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildListRelationFilter
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileListRelationFilter
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileListRelationFilter
   requestedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter
   reviewedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter
   reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter
   appLists?: Prisma.AppListListRelationFilter
+  reviewedReports?: Prisma.ReportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -248,12 +250,14 @@ export type UserOrderByWithRelationInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppOrderByRelationAggregateInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildOrderByRelationAggregateInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileOrderByRelationAggregateInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileOrderByRelationAggregateInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestOrderByRelationAggregateInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionOrderByRelationAggregateInput
   appLists?: Prisma.AppListOrderByRelationAggregateInput
+  reviewedReports?: Prisma.ReportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -279,12 +283,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviewedFlatpaks?: Prisma.FlatpakAppListRelationFilter
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildListRelationFilter
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileListRelationFilter
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileListRelationFilter
   requestedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter
   reviewedVerifications?: Prisma.DeveloperVerificationRequestListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   submittedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter
   reviewedScreenshots?: Prisma.ScreenshotSubmissionListRelationFilter
   appLists?: Prisma.AppListListRelationFilter
+  reviewedReports?: Prisma.ReportListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -337,12 +343,14 @@ export type UserCreateInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -365,12 +373,14 @@ export type UserUncheckedCreateInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUpdateInput = {
@@ -393,12 +403,14 @@ export type UserUpdateInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -421,12 +433,14 @@ export type UserUncheckedUpdateInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -576,6 +590,12 @@ export type UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutSuspendedDeveloperProfilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSuspendedDeveloperProfilesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutVerifiedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutVerifiedDeveloperProfilesInput
@@ -584,6 +604,16 @@ export type UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVerifiedDeveloperProfilesInput, Prisma.UserUpdateWithoutVerifiedDeveloperProfilesInput>, Prisma.UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput>
+}
+
+export type UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutSuspendedDeveloperProfilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSuspendedDeveloperProfilesInput
+  upsert?: Prisma.UserUpsertWithoutSuspendedDeveloperProfilesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSuspendedDeveloperProfilesInput, Prisma.UserUpdateWithoutSuspendedDeveloperProfilesInput>, Prisma.UserUncheckedUpdateWithoutSuspendedDeveloperProfilesInput>
 }
 
 export type UserCreateNestedOneWithoutRequestedVerificationsInput = {
@@ -648,6 +678,22 @@ export type UserUpdateOneWithoutReviewedScreenshotsNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewedScreenshotsInput, Prisma.UserUpdateWithoutReviewedScreenshotsInput>, Prisma.UserUncheckedUpdateWithoutReviewedScreenshotsInput>
+}
+
+export type UserCreateNestedOneWithoutReviewedReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReviewedReportsInput, Prisma.UserUncheckedCreateWithoutReviewedReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReviewedReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutReviewedReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReviewedReportsInput, Prisma.UserUncheckedCreateWithoutReviewedReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReviewedReportsInput
+  upsert?: Prisma.UserUpsertWithoutReviewedReportsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewedReportsInput, Prisma.UserUpdateWithoutReviewedReportsInput>, Prisma.UserUncheckedUpdateWithoutReviewedReportsInput>
 }
 
 export type UserCreateNestedOneWithoutDeveloperProfileMembersInput = {
@@ -807,12 +853,14 @@ export type UserCreateWithoutSessionsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -834,12 +882,14 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -877,12 +927,14 @@ export type UserUpdateWithoutSessionsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -904,12 +956,14 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -931,12 +985,14 @@ export type UserCreateWithoutAccountsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -958,12 +1014,14 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1001,12 +1059,14 @@ export type UserUpdateWithoutAccountsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1028,12 +1088,14 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1055,12 +1117,14 @@ export type UserCreateWithoutVerifiedDeveloperProfilesInput = {
   submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
@@ -1082,17 +1146,82 @@ export type UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutVerifiedDeveloperProfilesInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutVerifiedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutVerifiedDeveloperProfilesInput>
+}
+
+export type UserCreateWithoutSuspendedDeveloperProfilesInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  roles?: Prisma.UserCreaterolesInput | string[]
+  emailNotificationsEnabled?: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  submittedPwas?: Prisma.PwaAppCreateNestedManyWithoutSubmittedByInput
+  reviewedPwas?: Prisma.PwaAppCreateNestedManyWithoutReviewedByInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutUserInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutInviterInput
+  submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput
+  reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
+  appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserUncheckedCreateWithoutSuspendedDeveloperProfilesInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  roles?: Prisma.UserCreaterolesInput | string[]
+  emailNotificationsEnabled?: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  submittedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutReviewedByInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutUserInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutInviterInput
+  submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
+}
+
+export type UserCreateOrConnectWithoutSuspendedDeveloperProfilesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutSuspendedDeveloperProfilesInput>
 }
 
 export type UserUpsertWithoutVerifiedDeveloperProfilesInput = {
@@ -1125,12 +1254,14 @@ export type UserUpdateWithoutVerifiedDeveloperProfilesInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
@@ -1152,12 +1283,83 @@ export type UserUncheckedUpdateWithoutVerifiedDeveloperProfilesInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserUpsertWithoutSuspendedDeveloperProfilesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedUpdateWithoutSuspendedDeveloperProfilesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedCreateWithoutSuspendedDeveloperProfilesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSuspendedDeveloperProfilesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSuspendedDeveloperProfilesInput, Prisma.UserUncheckedUpdateWithoutSuspendedDeveloperProfilesInput>
+}
+
+export type UserUpdateWithoutSuspendedDeveloperProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | string[]
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  submittedPwas?: Prisma.PwaAppUpdateManyWithoutSubmittedByNestedInput
+  reviewedPwas?: Prisma.PwaAppUpdateManyWithoutReviewedByNestedInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUpdateManyWithoutUserNestedInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutInviterNestedInput
+  submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
+  appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSuspendedDeveloperProfilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | string[]
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  submittedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutReviewedByNestedInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutUserNestedInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutRequestedVerificationsInput = {
@@ -1180,11 +1382,13 @@ export type UserCreateWithoutRequestedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
@@ -1207,11 +1411,13 @@ export type UserUncheckedCreateWithoutRequestedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutRequestedVerificationsInput = {
@@ -1239,11 +1445,13 @@ export type UserCreateWithoutReviewedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
@@ -1266,11 +1474,13 @@ export type UserUncheckedCreateWithoutReviewedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedVerificationsInput = {
@@ -1309,11 +1519,13 @@ export type UserUpdateWithoutRequestedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
@@ -1336,11 +1548,13 @@ export type UserUncheckedUpdateWithoutRequestedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedVerificationsInput = {
@@ -1374,11 +1588,13 @@ export type UserUpdateWithoutReviewedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
@@ -1401,11 +1617,13 @@ export type UserUncheckedUpdateWithoutReviewedVerificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutSubmittedScreenshotsInput = {
@@ -1428,11 +1646,13 @@ export type UserCreateWithoutSubmittedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedScreenshotsInput = {
@@ -1455,11 +1675,13 @@ export type UserUncheckedCreateWithoutSubmittedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedScreenshotsInput = {
@@ -1487,11 +1709,13 @@ export type UserCreateWithoutReviewedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedScreenshotsInput = {
@@ -1514,11 +1738,13 @@ export type UserUncheckedCreateWithoutReviewedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedScreenshotsInput = {
@@ -1557,11 +1783,13 @@ export type UserUpdateWithoutSubmittedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedScreenshotsInput = {
@@ -1584,11 +1812,13 @@ export type UserUncheckedUpdateWithoutSubmittedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedScreenshotsInput = {
@@ -1622,11 +1852,13 @@ export type UserUpdateWithoutReviewedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedScreenshotsInput = {
@@ -1649,10 +1881,144 @@ export type UserUncheckedUpdateWithoutReviewedScreenshotsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
+}
+
+export type UserCreateWithoutReviewedReportsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  roles?: Prisma.UserCreaterolesInput | string[]
+  emailNotificationsEnabled?: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  submittedPwas?: Prisma.PwaAppCreateNestedManyWithoutSubmittedByInput
+  reviewedPwas?: Prisma.PwaAppCreateNestedManyWithoutReviewedByInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutUserInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutInviterInput
+  submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput
+  reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
+  appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutReviewedReportsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  roles?: Prisma.UserCreaterolesInput | string[]
+  emailNotificationsEnabled?: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  submittedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedPwas?: Prisma.PwaAppUncheckedCreateNestedManyWithoutReviewedByInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutUserInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutInviterInput
+  submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutReviewedReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReviewedReportsInput, Prisma.UserUncheckedCreateWithoutReviewedReportsInput>
+}
+
+export type UserUpsertWithoutReviewedReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReviewedReportsInput, Prisma.UserUncheckedUpdateWithoutReviewedReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReviewedReportsInput, Prisma.UserUncheckedCreateWithoutReviewedReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReviewedReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReviewedReportsInput, Prisma.UserUncheckedUpdateWithoutReviewedReportsInput>
+}
+
+export type UserUpdateWithoutReviewedReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | string[]
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  submittedPwas?: Prisma.PwaAppUpdateManyWithoutSubmittedByNestedInput
+  reviewedPwas?: Prisma.PwaAppUpdateManyWithoutReviewedByNestedInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUpdateManyWithoutUserNestedInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutInviterNestedInput
+  submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
+  appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReviewedReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roles?: Prisma.UserUpdaterolesInput | string[]
+  emailNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  submittedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedPwas?: Prisma.PwaAppUncheckedUpdateManyWithoutReviewedByNestedInput
+  developerProfileMembers?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutUserNestedInput
+  sentDeveloperInvitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
+  triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
+  verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
+  requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
+  reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
@@ -1675,12 +2041,14 @@ export type UserCreateWithoutDeveloperProfileMembersInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
@@ -1702,12 +2070,14 @@ export type UserUncheckedCreateWithoutDeveloperProfileMembersInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutDeveloperProfileMembersInput = {
@@ -1745,12 +2115,14 @@ export type UserUpdateWithoutDeveloperProfileMembersInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
@@ -1772,12 +2144,14 @@ export type UserUncheckedUpdateWithoutDeveloperProfileMembersInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutSentDeveloperInvitationsInput = {
@@ -1799,12 +2173,14 @@ export type UserCreateWithoutSentDeveloperInvitationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
@@ -1826,12 +2202,14 @@ export type UserUncheckedCreateWithoutSentDeveloperInvitationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSentDeveloperInvitationsInput = {
@@ -1869,12 +2247,14 @@ export type UserUpdateWithoutSentDeveloperInvitationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
@@ -1896,12 +2276,14 @@ export type UserUncheckedUpdateWithoutSentDeveloperInvitationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutSubmittedPwasInput = {
@@ -1923,12 +2305,14 @@ export type UserCreateWithoutSubmittedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedPwasInput = {
@@ -1950,12 +2334,14 @@ export type UserUncheckedCreateWithoutSubmittedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedPwasInput = {
@@ -1982,12 +2368,14 @@ export type UserCreateWithoutReviewedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedPwasInput = {
@@ -2009,12 +2397,14 @@ export type UserUncheckedCreateWithoutReviewedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedPwasInput = {
@@ -2052,12 +2442,14 @@ export type UserUpdateWithoutSubmittedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
@@ -2079,12 +2471,14 @@ export type UserUncheckedUpdateWithoutSubmittedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedPwasInput = {
@@ -2117,12 +2511,14 @@ export type UserUpdateWithoutReviewedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedPwasInput = {
@@ -2144,12 +2540,14 @@ export type UserUncheckedUpdateWithoutReviewedPwasInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutSubmittedFlatpaksInput = {
@@ -2171,12 +2569,14 @@ export type UserCreateWithoutSubmittedFlatpaksInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
@@ -2198,12 +2598,14 @@ export type UserUncheckedCreateWithoutSubmittedFlatpaksInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedFlatpaksInput = {
@@ -2230,12 +2632,14 @@ export type UserCreateWithoutReviewedFlatpaksInput = {
   submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
@@ -2257,12 +2661,14 @@ export type UserUncheckedCreateWithoutReviewedFlatpaksInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewedFlatpaksInput = {
@@ -2300,12 +2706,14 @@ export type UserUpdateWithoutSubmittedFlatpaksInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
@@ -2327,12 +2735,14 @@ export type UserUncheckedUpdateWithoutSubmittedFlatpaksInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUpsertWithoutReviewedFlatpaksInput = {
@@ -2365,12 +2775,14 @@ export type UserUpdateWithoutReviewedFlatpaksInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
@@ -2392,12 +2804,14 @@ export type UserUncheckedUpdateWithoutReviewedFlatpaksInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutTriggeredFlatpakBuildsInput = {
@@ -2419,12 +2833,14 @@ export type UserCreateWithoutTriggeredFlatpakBuildsInput = {
   submittedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutSubmittedByInput
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutTriggeredFlatpakBuildsInput = {
@@ -2446,12 +2862,14 @@ export type UserUncheckedCreateWithoutTriggeredFlatpakBuildsInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutTriggeredFlatpakBuildsInput = {
@@ -2489,12 +2907,14 @@ export type UserUpdateWithoutTriggeredFlatpakBuildsInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutSubmittedByNestedInput
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTriggeredFlatpakBuildsInput = {
@@ -2516,12 +2936,14 @@ export type UserUncheckedUpdateWithoutTriggeredFlatpakBuildsInput = {
   submittedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -2544,11 +2966,13 @@ export type UserCreateWithoutNotificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -2571,11 +2995,13 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
   appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutCreatedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2614,11 +3040,13 @@ export type UserUpdateWithoutNotificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -2641,11 +3069,13 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
   appLists?: Prisma.AppListUncheckedUpdateManyWithoutCreatedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserCreateWithoutAppListsInput = {
@@ -2668,11 +3098,13 @@ export type UserCreateWithoutAppListsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutReviewedByInput
+  reviewedReports?: Prisma.ReportCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserUncheckedCreateWithoutAppListsInput = {
@@ -2695,11 +3127,13 @@ export type UserUncheckedCreateWithoutAppListsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutReviewedByInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedCreateNestedManyWithoutTriggeredByInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutRequestedByInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutReviewedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  reviewedReports?: Prisma.ReportUncheckedCreateNestedManyWithoutReviewedByInput
 }
 
 export type UserCreateOrConnectWithoutAppListsInput = {
@@ -2738,11 +3172,13 @@ export type UserUpdateWithoutAppListsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUpdateManyWithoutReviewedByNestedInput
+  reviewedReports?: Prisma.ReportUpdateManyWithoutReviewedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppListsInput = {
@@ -2765,11 +3201,13 @@ export type UserUncheckedUpdateWithoutAppListsInput = {
   reviewedFlatpaks?: Prisma.FlatpakAppUncheckedUpdateManyWithoutReviewedByNestedInput
   triggeredFlatpakBuilds?: Prisma.FlatpakBuildUncheckedUpdateManyWithoutTriggeredByNestedInput
   verifiedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput
+  suspendedDeveloperProfiles?: Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput
   requestedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutRequestedByNestedInput
   reviewedVerifications?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutReviewedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
   reviewedScreenshots?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  reviewedReports?: Prisma.ReportUncheckedUpdateManyWithoutReviewedByNestedInput
 }
 
 
@@ -2788,12 +3226,14 @@ export type UserCountOutputType = {
   reviewedFlatpaks: number
   triggeredFlatpakBuilds: number
   verifiedDeveloperProfiles: number
+  suspendedDeveloperProfiles: number
   requestedVerifications: number
   reviewedVerifications: number
   notifications: number
   submittedScreenshots: number
   reviewedScreenshots: number
   appLists: number
+  reviewedReports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2807,12 +3247,14 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviewedFlatpaks?: boolean | UserCountOutputTypeCountReviewedFlatpaksArgs
   triggeredFlatpakBuilds?: boolean | UserCountOutputTypeCountTriggeredFlatpakBuildsArgs
   verifiedDeveloperProfiles?: boolean | UserCountOutputTypeCountVerifiedDeveloperProfilesArgs
+  suspendedDeveloperProfiles?: boolean | UserCountOutputTypeCountSuspendedDeveloperProfilesArgs
   requestedVerifications?: boolean | UserCountOutputTypeCountRequestedVerificationsArgs
   reviewedVerifications?: boolean | UserCountOutputTypeCountReviewedVerificationsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   submittedScreenshots?: boolean | UserCountOutputTypeCountSubmittedScreenshotsArgs
   reviewedScreenshots?: boolean | UserCountOutputTypeCountReviewedScreenshotsArgs
   appLists?: boolean | UserCountOutputTypeCountAppListsArgs
+  reviewedReports?: boolean | UserCountOutputTypeCountReviewedReportsArgs
 }
 
 /**
@@ -2898,6 +3340,13 @@ export type UserCountOutputTypeCountVerifiedDeveloperProfilesArgs<ExtArgs extend
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountSuspendedDeveloperProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeveloperProfileWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountRequestedVerificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DeveloperVerificationRequestWhereInput
 }
@@ -2937,6 +3386,13 @@ export type UserCountOutputTypeCountAppListsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.AppListWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReviewedReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2958,12 +3414,14 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviewedFlatpaks?: boolean | Prisma.User$reviewedFlatpaksArgs<ExtArgs>
   triggeredFlatpakBuilds?: boolean | Prisma.User$triggeredFlatpakBuildsArgs<ExtArgs>
   verifiedDeveloperProfiles?: boolean | Prisma.User$verifiedDeveloperProfilesArgs<ExtArgs>
+  suspendedDeveloperProfiles?: boolean | Prisma.User$suspendedDeveloperProfilesArgs<ExtArgs>
   requestedVerifications?: boolean | Prisma.User$requestedVerificationsArgs<ExtArgs>
   reviewedVerifications?: boolean | Prisma.User$reviewedVerificationsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>
   reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>
   appLists?: boolean | Prisma.User$appListsArgs<ExtArgs>
+  reviewedReports?: boolean | Prisma.User$reviewedReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3015,12 +3473,14 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviewedFlatpaks?: boolean | Prisma.User$reviewedFlatpaksArgs<ExtArgs>
   triggeredFlatpakBuilds?: boolean | Prisma.User$triggeredFlatpakBuildsArgs<ExtArgs>
   verifiedDeveloperProfiles?: boolean | Prisma.User$verifiedDeveloperProfilesArgs<ExtArgs>
+  suspendedDeveloperProfiles?: boolean | Prisma.User$suspendedDeveloperProfilesArgs<ExtArgs>
   requestedVerifications?: boolean | Prisma.User$requestedVerificationsArgs<ExtArgs>
   reviewedVerifications?: boolean | Prisma.User$reviewedVerificationsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   submittedScreenshots?: boolean | Prisma.User$submittedScreenshotsArgs<ExtArgs>
   reviewedScreenshots?: boolean | Prisma.User$reviewedScreenshotsArgs<ExtArgs>
   appLists?: boolean | Prisma.User$appListsArgs<ExtArgs>
+  reviewedReports?: boolean | Prisma.User$reviewedReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3039,12 +3499,14 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviewedFlatpaks: Prisma.$FlatpakAppPayload<ExtArgs>[]
     triggeredFlatpakBuilds: Prisma.$FlatpakBuildPayload<ExtArgs>[]
     verifiedDeveloperProfiles: Prisma.$DeveloperProfilePayload<ExtArgs>[]
+    suspendedDeveloperProfiles: Prisma.$DeveloperProfilePayload<ExtArgs>[]
     requestedVerifications: Prisma.$DeveloperVerificationRequestPayload<ExtArgs>[]
     reviewedVerifications: Prisma.$DeveloperVerificationRequestPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     submittedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[]
     reviewedScreenshots: Prisma.$ScreenshotSubmissionPayload<ExtArgs>[]
     appLists: Prisma.$AppListPayload<ExtArgs>[]
+    reviewedReports: Prisma.$ReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3460,12 +3922,14 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviewedFlatpaks<T extends Prisma.User$reviewedFlatpaksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedFlatpaksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlatpakAppPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   triggeredFlatpakBuilds<T extends Prisma.User$triggeredFlatpakBuildsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$triggeredFlatpakBuildsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlatpakBuildPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   verifiedDeveloperProfiles<T extends Prisma.User$verifiedDeveloperProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$verifiedDeveloperProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  suspendedDeveloperProfiles<T extends Prisma.User$suspendedDeveloperProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$suspendedDeveloperProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requestedVerifications<T extends Prisma.User$requestedVerificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$requestedVerificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperVerificationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewedVerifications<T extends Prisma.User$reviewedVerificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedVerificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperVerificationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submittedScreenshots<T extends Prisma.User$submittedScreenshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submittedScreenshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScreenshotSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewedScreenshots<T extends Prisma.User$reviewedScreenshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedScreenshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScreenshotSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appLists<T extends Prisma.User$appListsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$appListsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppListPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reviewedReports<T extends Prisma.User$reviewedReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4137,6 +4601,30 @@ export type User$verifiedDeveloperProfilesArgs<ExtArgs extends runtime.Types.Ext
 }
 
 /**
+ * User.suspendedDeveloperProfiles
+ */
+export type User$suspendedDeveloperProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeveloperProfile
+   */
+  select?: Prisma.DeveloperProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeveloperProfile
+   */
+  omit?: Prisma.DeveloperProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeveloperProfileInclude<ExtArgs> | null
+  where?: Prisma.DeveloperProfileWhereInput
+  orderBy?: Prisma.DeveloperProfileOrderByWithRelationInput | Prisma.DeveloperProfileOrderByWithRelationInput[]
+  cursor?: Prisma.DeveloperProfileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeveloperProfileScalarFieldEnum | Prisma.DeveloperProfileScalarFieldEnum[]
+}
+
+/**
  * User.requestedVerifications
  */
 export type User$requestedVerificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4278,6 +4766,30 @@ export type User$appListsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.AppListScalarFieldEnum | Prisma.AppListScalarFieldEnum[]
+}
+
+/**
+ * User.reviewedReports
+ */
+export type User$reviewedReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Report
+   */
+  select?: Prisma.ReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Report
+   */
+  omit?: Prisma.ReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReportInclude<ExtArgs> | null
+  where?: Prisma.ReportWhereInput
+  orderBy?: Prisma.ReportOrderByWithRelationInput | Prisma.ReportOrderByWithRelationInput[]
+  cursor?: Prisma.ReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReportScalarFieldEnum | Prisma.ReportScalarFieldEnum[]
 }
 
 /**

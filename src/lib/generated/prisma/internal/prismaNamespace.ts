@@ -392,6 +392,7 @@ export const ModelName = {
   DeveloperProfile: 'DeveloperProfile',
   DeveloperVerificationRequest: 'DeveloperVerificationRequest',
   ScreenshotSubmission: 'ScreenshotSubmission',
+  Report: 'Report',
   DeveloperProfileMember: 'DeveloperProfileMember',
   DeveloperProfileInvitation: 'DeveloperProfileInvitation',
   PwaApp: 'PwaApp',
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "frontPage" | "pwaTranslation" | "developerProfile" | "developerVerificationRequest" | "screenshotSubmission" | "developerProfileMember" | "developerProfileInvitation" | "pwaApp" | "flatpakApp" | "flatpakBuild" | "infraSettings" | "infraAccessVerification" | "notification" | "whitelistEntry" | "verification" | "appInstall" | "flathubCache" | "appList" | "appListItem"
+    modelProps: "user" | "session" | "account" | "frontPage" | "pwaTranslation" | "developerProfile" | "developerVerificationRequest" | "screenshotSubmission" | "report" | "developerProfileMember" | "developerProfileInvitation" | "pwaApp" | "flatpakApp" | "flatpakBuild" | "infraSettings" | "infraAccessVerification" | "notification" | "whitelistEntry" | "verification" | "appInstall" | "flathubCache" | "appList" | "appListItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1014,6 +1015,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ScreenshotSubmissionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ScreenshotSubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
+    Report: {
+      payload: Prisma.$ReportPayload<ExtArgs>
+      fields: Prisma.ReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findMany: {
+          args: Prisma.ReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        create: {
+          args: Prisma.ReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        createMany: {
+          args: Prisma.ReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        update: {
+          args: Prisma.ReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReport>
+        }
+        groupBy: {
+          args: Prisma.ReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportCountAggregateOutputType> | number
         }
       }
     }
@@ -2173,7 +2248,11 @@ export const DeveloperProfileScalarFieldEnum = {
   createdAt: 'createdAt',
   verified: 'verified',
   verifiedById: 'verifiedById',
-  verifiedAt: 'verifiedAt'
+  verifiedAt: 'verifiedAt',
+  suspended: 'suspended',
+  suspendedById: 'suspendedById',
+  suspendedAt: 'suspendedAt',
+  suspendReason: 'suspendReason'
 } as const
 
 export type DeveloperProfileScalarFieldEnum = (typeof DeveloperProfileScalarFieldEnum)[keyof typeof DeveloperProfileScalarFieldEnum]
@@ -2213,6 +2292,23 @@ export const ScreenshotSubmissionScalarFieldEnum = {
 } as const
 
 export type ScreenshotSubmissionScalarFieldEnum = (typeof ScreenshotSubmissionScalarFieldEnum)[keyof typeof ScreenshotSubmissionScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  details: 'details',
+  reporterEmail: 'reporterEmail',
+  status: 'status',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
 
 
 export const DeveloperProfileMemberScalarFieldEnum = {
@@ -2571,6 +2667,48 @@ export type ListEnumScreenshotStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'ReportTargetType'
+ */
+export type EnumReportTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportTargetType'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportTargetType[]'
+ */
+export type ListEnumReportTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportTargetType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportReason'
+ */
+export type EnumReportReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportReason'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportReason[]'
+ */
+export type ListEnumReportReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportReason[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportStatus'
+ */
+export type EnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportStatus[]'
+ */
+export type ListEnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'PwaStatus'
  */
 export type EnumPwaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PwaStatus'>
@@ -2757,6 +2895,7 @@ export type GlobalOmitConfig = {
   developerProfile?: Prisma.DeveloperProfileOmit
   developerVerificationRequest?: Prisma.DeveloperVerificationRequestOmit
   screenshotSubmission?: Prisma.ScreenshotSubmissionOmit
+  report?: Prisma.ReportOmit
   developerProfileMember?: Prisma.DeveloperProfileMemberOmit
   developerProfileInvitation?: Prisma.DeveloperProfileInvitationOmit
   pwaApp?: Prisma.PwaAppOmit

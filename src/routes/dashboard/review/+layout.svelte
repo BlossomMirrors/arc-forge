@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppWindow, Package, BadgeCheck, Image } from '@lucide/svelte';
+	import { AppWindow, Package, BadgeCheck, Image, Flag } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 
@@ -13,7 +13,8 @@
 			label: m.review_verifications_heading(),
 			icon: BadgeCheck
 		},
-		{ href: '/dashboard/review/screenshots', label: m.review_screenshots_heading(), icon: Image }
+		{ href: '/dashboard/review/screenshots', label: m.review_screenshots_heading(), icon: Image },
+		{ href: '/dashboard/review/reports', label: m.review_reports_heading(), icon: Flag }
 	];
 </script>
 

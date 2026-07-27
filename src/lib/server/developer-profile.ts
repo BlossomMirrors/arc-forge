@@ -34,6 +34,71 @@ export async function deleteDeveloperProfile(
 	return { ok: true };
 }
 
+export type SuspendProfileResult = { ok: true } | { ok: false; error: string; log?: string };
+
+// Pulls every APPROVED PWA/Flatpak under a profile (unpublishing any live Flatpak
+// from the signed repo first, same rule as deleteDeveloperProfile) and marks the
+// profile itself suspended - used both from an abuse report and as a standalone
+// staff action. Deliberately non-destructive, nothing gets deleted: PULLED is
+// already the codebase's existing "re-approvable" state, suspension just forces
+// every currently-live thing into it and blocks new submissions while set (see
+// the developerProfileId.suspended check in the PWA/Flatpak new/edit actions).
+export async function suspendDeveloperProfile(
+	developerProfileId: string,
+	staffId: string,
+	reason: string
+): Promise<SuspendProfileResult> {
+	const flatpaks = await db.flatpakApp.findMany({ where: { developerProfileId } });
+
+	if (flatpaks.some((app) => app.status === 'PROCESSING')) {
+		return { ok: false, error: 'A build is currently in progress for one of these Flatpaks' };
+	}
+
+	for (const app of flatpaks) {
+		if (app.status !== 'APPROVED') continue;
+		const { ok, log } = await unpublishFlatpak(app);
+		if (!ok) {
+			return { ok: false, error: `Could not remove ${app.appid} from the repo`, log };
+		}
+	}
+
+	const reviewData = {
+		reviewedById: staffId,
+		reviewedAt: new Date(),
+		reviewNote: reason || 'Developer profile suspended'
+	};
+	await db.$transaction([
+		db.flatpakApp.updateMany({
+			where: { developerProfileId, status: 'APPROVED' },
+			data: { status: 'PULLED', ...reviewData }
+		}),
+		db.pwaApp.updateMany({
+			where: { developerProfileId, status: 'APPROVED' },
+			data: { status: 'PULLED', ...reviewData }
+		}),
+		db.developerProfile.update({
+			where: { id: developerProfileId },
+			data: {
+				suspended: true,
+				suspendedById: staffId,
+				suspendedAt: new Date(),
+				suspendReason: reason || null
+			}
+		})
+	]);
+	return { ok: true };
+}
+
+// Lifts a suspension without touching anything it pulled - those stay PULLED,
+// same as any other pull, an explicit reviewer re-approval is still needed to
+// bring them back live rather than an automatic republish.
+export async function unsuspendDeveloperProfile(developerProfileId: string): Promise<void> {
+	await db.developerProfile.update({
+		where: { id: developerProfileId },
+		data: { suspended: false, suspendedById: null, suspendedAt: null, suspendReason: null }
+	});
+}
+
 export async function listMyDeveloperProfiles(userId: string) {
 	const memberships = await db.developerProfileMember.findMany({
 		where: { userId },

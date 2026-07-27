@@ -37,6 +37,36 @@ export const ScreenshotStatus = {
 export type ScreenshotStatus = (typeof ScreenshotStatus)[keyof typeof ScreenshotStatus]
 
 
+export const ReportTargetType = {
+  PWA: 'PWA',
+  FLATPAK: 'FLATPAK',
+  LIST: 'LIST',
+  DEVELOPER_PROFILE: 'DEVELOPER_PROFILE'
+} as const
+
+export type ReportTargetType = (typeof ReportTargetType)[keyof typeof ReportTargetType]
+
+
+export const ReportReason = {
+  MALWARE_SECURITY: 'MALWARE_SECURITY',
+  IMPERSONATION: 'IMPERSONATION',
+  INAPPROPRIATE_CONTENT: 'INAPPROPRIATE_CONTENT',
+  BROKEN: 'BROKEN',
+  OTHER: 'OTHER'
+} as const
+
+export type ReportReason = (typeof ReportReason)[keyof typeof ReportReason]
+
+
+export const ReportStatus = {
+  PENDING: 'PENDING',
+  DISMISSED: 'DISMISSED',
+  ACTIONED: 'ACTIONED'
+} as const
+
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus]
+
+
 export const FlatpakStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',

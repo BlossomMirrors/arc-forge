@@ -108,6 +108,9 @@ export const actions: Actions = {
 			if (!profile) {
 				return fail(403, { error: 'You do not have permission to file this under that developer profile' });
 			}
+			if (profile.suspended) {
+				return fail(403, { error: 'This developer profile is suspended and cannot submit changes' });
+			}
 			fields.developerName = profile.name;
 			developerProfileId = profile.id;
 		}

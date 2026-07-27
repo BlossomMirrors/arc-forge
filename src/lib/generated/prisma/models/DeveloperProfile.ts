@@ -34,6 +34,10 @@ export type DeveloperProfileMinAggregateOutputType = {
   verified: boolean | null
   verifiedById: string | null
   verifiedAt: Date | null
+  suspended: boolean | null
+  suspendedById: string | null
+  suspendedAt: Date | null
+  suspendReason: string | null
 }
 
 export type DeveloperProfileMaxAggregateOutputType = {
@@ -46,6 +50,10 @@ export type DeveloperProfileMaxAggregateOutputType = {
   verified: boolean | null
   verifiedById: string | null
   verifiedAt: Date | null
+  suspended: boolean | null
+  suspendedById: string | null
+  suspendedAt: Date | null
+  suspendReason: string | null
 }
 
 export type DeveloperProfileCountAggregateOutputType = {
@@ -58,6 +66,10 @@ export type DeveloperProfileCountAggregateOutputType = {
   verified: number
   verifiedById: number
   verifiedAt: number
+  suspended: number
+  suspendedById: number
+  suspendedAt: number
+  suspendReason: number
   _all: number
 }
 
@@ -72,6 +84,10 @@ export type DeveloperProfileMinAggregateInputType = {
   verified?: true
   verifiedById?: true
   verifiedAt?: true
+  suspended?: true
+  suspendedById?: true
+  suspendedAt?: true
+  suspendReason?: true
 }
 
 export type DeveloperProfileMaxAggregateInputType = {
@@ -84,6 +100,10 @@ export type DeveloperProfileMaxAggregateInputType = {
   verified?: true
   verifiedById?: true
   verifiedAt?: true
+  suspended?: true
+  suspendedById?: true
+  suspendedAt?: true
+  suspendReason?: true
 }
 
 export type DeveloperProfileCountAggregateInputType = {
@@ -96,6 +116,10 @@ export type DeveloperProfileCountAggregateInputType = {
   verified?: true
   verifiedById?: true
   verifiedAt?: true
+  suspended?: true
+  suspendedById?: true
+  suspendedAt?: true
+  suspendReason?: true
   _all?: true
 }
 
@@ -181,6 +205,10 @@ export type DeveloperProfileGroupByOutputType = {
   verified: boolean
   verifiedById: string | null
   verifiedAt: Date | null
+  suspended: boolean
+  suspendedById: string | null
+  suspendedAt: Date | null
+  suspendReason: string | null
   _count: DeveloperProfileCountAggregateOutputType | null
   _min: DeveloperProfileMinAggregateOutputType | null
   _max: DeveloperProfileMaxAggregateOutputType | null
@@ -214,7 +242,12 @@ export type DeveloperProfileWhereInput = {
   verified?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
   verifiedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspended?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
+  suspendedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspendReason?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
   verifiedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  suspendedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   members?: Prisma.DeveloperProfileMemberListRelationFilter
   invitations?: Prisma.DeveloperProfileInvitationListRelationFilter
   pwaApps?: Prisma.PwaAppListRelationFilter
@@ -234,7 +267,12 @@ export type DeveloperProfileOrderByWithRelationInput = {
   verified?: Prisma.SortOrder
   verifiedById?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspended?: Prisma.SortOrder
+  suspendedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendReason?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedBy?: Prisma.UserOrderByWithRelationInput
+  suspendedBy?: Prisma.UserOrderByWithRelationInput
   members?: Prisma.DeveloperProfileMemberOrderByRelationAggregateInput
   invitations?: Prisma.DeveloperProfileInvitationOrderByRelationAggregateInput
   pwaApps?: Prisma.PwaAppOrderByRelationAggregateInput
@@ -257,7 +295,12 @@ export type DeveloperProfileWhereUniqueInput = Prisma.AtLeast<{
   verified?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
   verifiedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspended?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
+  suspendedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspendReason?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
   verifiedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  suspendedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   members?: Prisma.DeveloperProfileMemberListRelationFilter
   invitations?: Prisma.DeveloperProfileInvitationListRelationFilter
   pwaApps?: Prisma.PwaAppListRelationFilter
@@ -277,6 +320,10 @@ export type DeveloperProfileOrderByWithAggregationInput = {
   verified?: Prisma.SortOrder
   verifiedById?: Prisma.SortOrderInput | Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspended?: Prisma.SortOrder
+  suspendedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  suspendReason?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.DeveloperProfileCountOrderByAggregateInput
   _max?: Prisma.DeveloperProfileMaxOrderByAggregateInput
   _min?: Prisma.DeveloperProfileMinOrderByAggregateInput
@@ -295,6 +342,10 @@ export type DeveloperProfileScalarWhereWithAggregatesInput = {
   verified?: Prisma.BoolWithAggregatesFilter<"DeveloperProfile"> | boolean
   verifiedById?: Prisma.StringNullableWithAggregatesFilter<"DeveloperProfile"> | string | null
   verifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DeveloperProfile"> | Date | string | null
+  suspended?: Prisma.BoolWithAggregatesFilter<"DeveloperProfile"> | boolean
+  suspendedById?: Prisma.StringNullableWithAggregatesFilter<"DeveloperProfile"> | string | null
+  suspendedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"DeveloperProfile"> | Date | string | null
+  suspendReason?: Prisma.StringNullableWithAggregatesFilter<"DeveloperProfile"> | string | null
 }
 
 export type DeveloperProfileCreateInput = {
@@ -306,7 +357,11 @@ export type DeveloperProfileCreateInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -326,6 +381,10 @@ export type DeveloperProfileUncheckedCreateInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -344,7 +403,11 @@ export type DeveloperProfileUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -364,6 +427,10 @@ export type DeveloperProfileUncheckedUpdateInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -383,6 +450,10 @@ export type DeveloperProfileCreateManyInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
 }
 
 export type DeveloperProfileUpdateManyMutationInput = {
@@ -394,6 +465,9 @@ export type DeveloperProfileUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type DeveloperProfileUncheckedUpdateManyInput = {
@@ -406,6 +480,10 @@ export type DeveloperProfileUncheckedUpdateManyInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type DeveloperProfileListRelationFilter = {
@@ -428,6 +506,10 @@ export type DeveloperProfileCountOrderByAggregateInput = {
   verified?: Prisma.SortOrder
   verifiedById?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
+  suspended?: Prisma.SortOrder
+  suspendedById?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  suspendReason?: Prisma.SortOrder
 }
 
 export type DeveloperProfileMaxOrderByAggregateInput = {
@@ -440,6 +522,10 @@ export type DeveloperProfileMaxOrderByAggregateInput = {
   verified?: Prisma.SortOrder
   verifiedById?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
+  suspended?: Prisma.SortOrder
+  suspendedById?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  suspendReason?: Prisma.SortOrder
 }
 
 export type DeveloperProfileMinOrderByAggregateInput = {
@@ -452,6 +538,10 @@ export type DeveloperProfileMinOrderByAggregateInput = {
   verified?: Prisma.SortOrder
   verifiedById?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
+  suspended?: Prisma.SortOrder
+  suspendedById?: Prisma.SortOrder
+  suspendedAt?: Prisma.SortOrder
+  suspendReason?: Prisma.SortOrder
 }
 
 export type DeveloperProfileScalarRelationFilter = {
@@ -471,10 +561,24 @@ export type DeveloperProfileCreateNestedManyWithoutVerifiedByInput = {
   connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
 }
 
+export type DeveloperProfileCreateNestedManyWithoutSuspendedByInput = {
+  create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput> | Prisma.DeveloperProfileCreateWithoutSuspendedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput[]
+  connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput[]
+  createMany?: Prisma.DeveloperProfileCreateManySuspendedByInputEnvelope
+  connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+}
+
 export type DeveloperProfileUncheckedCreateNestedManyWithoutVerifiedByInput = {
   create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutVerifiedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutVerifiedByInput> | Prisma.DeveloperProfileCreateWithoutVerifiedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutVerifiedByInput[]
   connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutVerifiedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutVerifiedByInput[]
   createMany?: Prisma.DeveloperProfileCreateManyVerifiedByInputEnvelope
+  connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+}
+
+export type DeveloperProfileUncheckedCreateNestedManyWithoutSuspendedByInput = {
+  create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput> | Prisma.DeveloperProfileCreateWithoutSuspendedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput[]
+  connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput[]
+  createMany?: Prisma.DeveloperProfileCreateManySuspendedByInputEnvelope
   connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
 }
 
@@ -492,6 +596,20 @@ export type DeveloperProfileUpdateManyWithoutVerifiedByNestedInput = {
   deleteMany?: Prisma.DeveloperProfileScalarWhereInput | Prisma.DeveloperProfileScalarWhereInput[]
 }
 
+export type DeveloperProfileUpdateManyWithoutSuspendedByNestedInput = {
+  create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput> | Prisma.DeveloperProfileCreateWithoutSuspendedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput[]
+  connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput[]
+  upsert?: Prisma.DeveloperProfileUpsertWithWhereUniqueWithoutSuspendedByInput | Prisma.DeveloperProfileUpsertWithWhereUniqueWithoutSuspendedByInput[]
+  createMany?: Prisma.DeveloperProfileCreateManySuspendedByInputEnvelope
+  set?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  disconnect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  delete?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  update?: Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutSuspendedByInput | Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutSuspendedByInput[]
+  updateMany?: Prisma.DeveloperProfileUpdateManyWithWhereWithoutSuspendedByInput | Prisma.DeveloperProfileUpdateManyWithWhereWithoutSuspendedByInput[]
+  deleteMany?: Prisma.DeveloperProfileScalarWhereInput | Prisma.DeveloperProfileScalarWhereInput[]
+}
+
 export type DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput = {
   create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutVerifiedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutVerifiedByInput> | Prisma.DeveloperProfileCreateWithoutVerifiedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutVerifiedByInput[]
   connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutVerifiedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutVerifiedByInput[]
@@ -503,6 +621,20 @@ export type DeveloperProfileUncheckedUpdateManyWithoutVerifiedByNestedInput = {
   connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
   update?: Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutVerifiedByInput | Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutVerifiedByInput[]
   updateMany?: Prisma.DeveloperProfileUpdateManyWithWhereWithoutVerifiedByInput | Prisma.DeveloperProfileUpdateManyWithWhereWithoutVerifiedByInput[]
+  deleteMany?: Prisma.DeveloperProfileScalarWhereInput | Prisma.DeveloperProfileScalarWhereInput[]
+}
+
+export type DeveloperProfileUncheckedUpdateManyWithoutSuspendedByNestedInput = {
+  create?: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput> | Prisma.DeveloperProfileCreateWithoutSuspendedByInput[] | Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput[]
+  connectOrCreate?: Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput | Prisma.DeveloperProfileCreateOrConnectWithoutSuspendedByInput[]
+  upsert?: Prisma.DeveloperProfileUpsertWithWhereUniqueWithoutSuspendedByInput | Prisma.DeveloperProfileUpsertWithWhereUniqueWithoutSuspendedByInput[]
+  createMany?: Prisma.DeveloperProfileCreateManySuspendedByInputEnvelope
+  set?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  disconnect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  delete?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  connect?: Prisma.DeveloperProfileWhereUniqueInput | Prisma.DeveloperProfileWhereUniqueInput[]
+  update?: Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutSuspendedByInput | Prisma.DeveloperProfileUpdateWithWhereUniqueWithoutSuspendedByInput[]
+  updateMany?: Prisma.DeveloperProfileUpdateManyWithWhereWithoutSuspendedByInput | Prisma.DeveloperProfileUpdateManyWithWhereWithoutSuspendedByInput[]
   deleteMany?: Prisma.DeveloperProfileScalarWhereInput | Prisma.DeveloperProfileScalarWhereInput[]
 }
 
@@ -621,6 +753,10 @@ export type DeveloperProfileCreateWithoutVerifiedByInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -639,6 +775,10 @@ export type DeveloperProfileUncheckedCreateWithoutVerifiedByInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -655,6 +795,60 @@ export type DeveloperProfileCreateOrConnectWithoutVerifiedByInput = {
 
 export type DeveloperProfileCreateManyVerifiedByInputEnvelope = {
   data: Prisma.DeveloperProfileCreateManyVerifiedByInput | Prisma.DeveloperProfileCreateManyVerifiedByInput[]
+  skipDuplicates?: boolean
+}
+
+export type DeveloperProfileCreateWithoutSuspendedByInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt: Date | string
+  verified?: boolean
+  verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
+  verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
+  invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
+  pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
+  flatpakApps?: Prisma.FlatpakAppCreateNestedManyWithoutDeveloperProfileInput
+  verificationRequests?: Prisma.DeveloperVerificationRequestCreateNestedManyWithoutDeveloperProfileInput
+  screenshotSubmissions?: Prisma.ScreenshotSubmissionCreateNestedManyWithoutDeveloperProfileInput
+  appLists?: Prisma.AppListCreateNestedManyWithoutDeveloperProfileInput
+}
+
+export type DeveloperProfileUncheckedCreateWithoutSuspendedByInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt: Date | string
+  verified?: boolean
+  verifiedById?: string | null
+  verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
+  members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  flatpakApps?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  verificationRequests?: Prisma.DeveloperVerificationRequestUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  screenshotSubmissions?: Prisma.ScreenshotSubmissionUncheckedCreateNestedManyWithoutDeveloperProfileInput
+  appLists?: Prisma.AppListUncheckedCreateNestedManyWithoutDeveloperProfileInput
+}
+
+export type DeveloperProfileCreateOrConnectWithoutSuspendedByInput = {
+  where: Prisma.DeveloperProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput>
+}
+
+export type DeveloperProfileCreateManySuspendedByInputEnvelope = {
+  data: Prisma.DeveloperProfileCreateManySuspendedByInput | Prisma.DeveloperProfileCreateManySuspendedByInput[]
   skipDuplicates?: boolean
 }
 
@@ -687,6 +881,26 @@ export type DeveloperProfileScalarWhereInput = {
   verified?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
   verifiedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
   verifiedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspended?: Prisma.BoolFilter<"DeveloperProfile"> | boolean
+  suspendedById?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
+  suspendedAt?: Prisma.DateTimeNullableFilter<"DeveloperProfile"> | Date | string | null
+  suspendReason?: Prisma.StringNullableFilter<"DeveloperProfile"> | string | null
+}
+
+export type DeveloperProfileUpsertWithWhereUniqueWithoutSuspendedByInput = {
+  where: Prisma.DeveloperProfileWhereUniqueInput
+  update: Prisma.XOR<Prisma.DeveloperProfileUpdateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedUpdateWithoutSuspendedByInput>
+  create: Prisma.XOR<Prisma.DeveloperProfileCreateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedCreateWithoutSuspendedByInput>
+}
+
+export type DeveloperProfileUpdateWithWhereUniqueWithoutSuspendedByInput = {
+  where: Prisma.DeveloperProfileWhereUniqueInput
+  data: Prisma.XOR<Prisma.DeveloperProfileUpdateWithoutSuspendedByInput, Prisma.DeveloperProfileUncheckedUpdateWithoutSuspendedByInput>
+}
+
+export type DeveloperProfileUpdateManyWithWhereWithoutSuspendedByInput = {
+  where: Prisma.DeveloperProfileScalarWhereInput
+  data: Prisma.XOR<Prisma.DeveloperProfileUpdateManyMutationInput, Prisma.DeveloperProfileUncheckedUpdateManyWithoutSuspendedByInput>
 }
 
 export type DeveloperProfileCreateWithoutVerificationRequestsInput = {
@@ -698,7 +912,11 @@ export type DeveloperProfileCreateWithoutVerificationRequestsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -717,6 +935,10 @@ export type DeveloperProfileUncheckedCreateWithoutVerificationRequestsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -750,7 +972,11 @@ export type DeveloperProfileUpdateWithoutVerificationRequestsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -769,6 +995,10 @@ export type DeveloperProfileUncheckedUpdateWithoutVerificationRequestsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -786,7 +1016,11 @@ export type DeveloperProfileCreateWithoutScreenshotSubmissionsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -805,6 +1039,10 @@ export type DeveloperProfileUncheckedCreateWithoutScreenshotSubmissionsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -838,7 +1076,11 @@ export type DeveloperProfileUpdateWithoutScreenshotSubmissionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -857,6 +1099,10 @@ export type DeveloperProfileUncheckedUpdateWithoutScreenshotSubmissionsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -874,7 +1120,11 @@ export type DeveloperProfileCreateWithoutMembersInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppCreateNestedManyWithoutDeveloperProfileInput
@@ -893,6 +1143,10 @@ export type DeveloperProfileUncheckedCreateWithoutMembersInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -926,7 +1180,11 @@ export type DeveloperProfileUpdateWithoutMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -945,6 +1203,10 @@ export type DeveloperProfileUncheckedUpdateWithoutMembersInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -962,7 +1224,11 @@ export type DeveloperProfileCreateWithoutInvitationsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppCreateNestedManyWithoutDeveloperProfileInput
@@ -981,6 +1247,10 @@ export type DeveloperProfileUncheckedCreateWithoutInvitationsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -1014,7 +1284,11 @@ export type DeveloperProfileUpdateWithoutInvitationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -1033,6 +1307,10 @@ export type DeveloperProfileUncheckedUpdateWithoutInvitationsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -1050,7 +1328,11 @@ export type DeveloperProfileCreateWithoutPwaAppsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppCreateNestedManyWithoutDeveloperProfileInput
@@ -1069,6 +1351,10 @@ export type DeveloperProfileUncheckedCreateWithoutPwaAppsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   flatpakApps?: Prisma.FlatpakAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -1102,7 +1388,11 @@ export type DeveloperProfileUpdateWithoutPwaAppsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -1121,6 +1411,10 @@ export type DeveloperProfileUncheckedUpdateWithoutPwaAppsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   flatpakApps?: Prisma.FlatpakAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -1138,7 +1432,11 @@ export type DeveloperProfileCreateWithoutFlatpakAppsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -1157,6 +1455,10 @@ export type DeveloperProfileUncheckedCreateWithoutFlatpakAppsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -1190,7 +1492,11 @@ export type DeveloperProfileUpdateWithoutFlatpakAppsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -1209,6 +1515,10 @@ export type DeveloperProfileUncheckedUpdateWithoutFlatpakAppsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -1226,7 +1536,11 @@ export type DeveloperProfileCreateWithoutAppListsInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   verifiedBy?: Prisma.UserCreateNestedOneWithoutVerifiedDeveloperProfilesInput
+  suspendedBy?: Prisma.UserCreateNestedOneWithoutSuspendedDeveloperProfilesInput
   members?: Prisma.DeveloperProfileMemberCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppCreateNestedManyWithoutDeveloperProfileInput
@@ -1245,6 +1559,10 @@ export type DeveloperProfileUncheckedCreateWithoutAppListsInput = {
   verified?: boolean
   verifiedById?: string | null
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
   members?: Prisma.DeveloperProfileMemberUncheckedCreateNestedManyWithoutDeveloperProfileInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedCreateNestedManyWithoutDeveloperProfileInput
   pwaApps?: Prisma.PwaAppUncheckedCreateNestedManyWithoutDeveloperProfileInput
@@ -1278,7 +1596,11 @@ export type DeveloperProfileUpdateWithoutAppListsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -1297,6 +1619,10 @@ export type DeveloperProfileUncheckedUpdateWithoutAppListsInput = {
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -1314,6 +1640,25 @@ export type DeveloperProfileCreateManyVerifiedByInput = {
   createdAt: Date | string
   verified?: boolean
   verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedById?: string | null
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
+}
+
+export type DeveloperProfileCreateManySuspendedByInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt: Date | string
+  verified?: boolean
+  verifiedById?: string | null
+  verifiedAt?: Date | string | null
+  suspended?: boolean
+  suspendedAt?: Date | string | null
+  suspendReason?: string | null
 }
 
 export type DeveloperProfileUpdateWithoutVerifiedByInput = {
@@ -1325,6 +1670,10 @@ export type DeveloperProfileUpdateWithoutVerifiedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedBy?: Prisma.UserUpdateOneWithoutSuspendedDeveloperProfilesNestedInput
   members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
@@ -1343,6 +1692,10 @@ export type DeveloperProfileUncheckedUpdateWithoutVerifiedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
   pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
@@ -1361,6 +1714,69 @@ export type DeveloperProfileUncheckedUpdateManyWithoutVerifiedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type DeveloperProfileUpdateWithoutSuspendedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedBy?: Prisma.UserUpdateOneWithoutVerifiedDeveloperProfilesNestedInput
+  members?: Prisma.DeveloperProfileMemberUpdateManyWithoutDeveloperProfileNestedInput
+  invitations?: Prisma.DeveloperProfileInvitationUpdateManyWithoutDeveloperProfileNestedInput
+  pwaApps?: Prisma.PwaAppUpdateManyWithoutDeveloperProfileNestedInput
+  flatpakApps?: Prisma.FlatpakAppUpdateManyWithoutDeveloperProfileNestedInput
+  verificationRequests?: Prisma.DeveloperVerificationRequestUpdateManyWithoutDeveloperProfileNestedInput
+  screenshotSubmissions?: Prisma.ScreenshotSubmissionUpdateManyWithoutDeveloperProfileNestedInput
+  appLists?: Prisma.AppListUpdateManyWithoutDeveloperProfileNestedInput
+}
+
+export type DeveloperProfileUncheckedUpdateWithoutSuspendedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  members?: Prisma.DeveloperProfileMemberUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  invitations?: Prisma.DeveloperProfileInvitationUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  pwaApps?: Prisma.PwaAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  flatpakApps?: Prisma.FlatpakAppUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  verificationRequests?: Prisma.DeveloperVerificationRequestUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  screenshotSubmissions?: Prisma.ScreenshotSubmissionUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+  appLists?: Prisma.AppListUncheckedUpdateManyWithoutDeveloperProfileNestedInput
+}
+
+export type DeveloperProfileUncheckedUpdateManyWithoutSuspendedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verifiedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  suspendReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1458,7 +1874,12 @@ export type DeveloperProfileSelect<ExtArgs extends runtime.Types.Extensions.Inte
   verified?: boolean
   verifiedById?: boolean
   verifiedAt?: boolean
+  suspended?: boolean
+  suspendedById?: boolean
+  suspendedAt?: boolean
+  suspendReason?: boolean
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
   members?: boolean | Prisma.DeveloperProfile$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.DeveloperProfile$invitationsArgs<ExtArgs>
   pwaApps?: boolean | Prisma.DeveloperProfile$pwaAppsArgs<ExtArgs>
@@ -1479,7 +1900,12 @@ export type DeveloperProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   verified?: boolean
   verifiedById?: boolean
   verifiedAt?: boolean
+  suspended?: boolean
+  suspendedById?: boolean
+  suspendedAt?: boolean
+  suspendReason?: boolean
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
 }, ExtArgs["result"]["developerProfile"]>
 
 export type DeveloperProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1492,7 +1918,12 @@ export type DeveloperProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   verified?: boolean
   verifiedById?: boolean
   verifiedAt?: boolean
+  suspended?: boolean
+  suspendedById?: boolean
+  suspendedAt?: boolean
+  suspendReason?: boolean
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
 }, ExtArgs["result"]["developerProfile"]>
 
 export type DeveloperProfileSelectScalar = {
@@ -1505,11 +1936,16 @@ export type DeveloperProfileSelectScalar = {
   verified?: boolean
   verifiedById?: boolean
   verifiedAt?: boolean
+  suspended?: boolean
+  suspendedById?: boolean
+  suspendedAt?: boolean
+  suspendReason?: boolean
 }
 
-export type DeveloperProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "metadata" | "createdAt" | "verified" | "verifiedById" | "verifiedAt", ExtArgs["result"]["developerProfile"]>
+export type DeveloperProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "metadata" | "createdAt" | "verified" | "verifiedById" | "verifiedAt" | "suspended" | "suspendedById" | "suspendedAt" | "suspendReason", ExtArgs["result"]["developerProfile"]>
 export type DeveloperProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
   members?: boolean | Prisma.DeveloperProfile$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.DeveloperProfile$invitationsArgs<ExtArgs>
   pwaApps?: boolean | Prisma.DeveloperProfile$pwaAppsArgs<ExtArgs>
@@ -1521,15 +1957,18 @@ export type DeveloperProfileInclude<ExtArgs extends runtime.Types.Extensions.Int
 }
 export type DeveloperProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
 }
 export type DeveloperProfileIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   verifiedBy?: boolean | Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>
+  suspendedBy?: boolean | Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>
 }
 
 export type $DeveloperProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "DeveloperProfile"
   objects: {
     verifiedBy: Prisma.$UserPayload<ExtArgs> | null
+    suspendedBy: Prisma.$UserPayload<ExtArgs> | null
     members: Prisma.$DeveloperProfileMemberPayload<ExtArgs>[]
     invitations: Prisma.$DeveloperProfileInvitationPayload<ExtArgs>[]
     pwaApps: Prisma.$PwaAppPayload<ExtArgs>[]
@@ -1548,6 +1987,10 @@ export type $DeveloperProfilePayload<ExtArgs extends runtime.Types.Extensions.In
     verified: boolean
     verifiedById: string | null
     verifiedAt: Date | null
+    suspended: boolean
+    suspendedById: string | null
+    suspendedAt: Date | null
+    suspendReason: string | null
   }, ExtArgs["result"]["developerProfile"]>
   composites: {}
 }
@@ -1943,6 +2386,7 @@ readonly fields: DeveloperProfileFieldRefs;
 export interface Prisma__DeveloperProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   verifiedBy<T extends Prisma.DeveloperProfile$verifiedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeveloperProfile$verifiedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  suspendedBy<T extends Prisma.DeveloperProfile$suspendedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeveloperProfile$suspendedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   members<T extends Prisma.DeveloperProfile$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeveloperProfile$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperProfileMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.DeveloperProfile$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeveloperProfile$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeveloperProfileInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   pwaApps<T extends Prisma.DeveloperProfile$pwaAppsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeveloperProfile$pwaAppsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PwaAppPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1988,6 +2432,10 @@ export interface DeveloperProfileFieldRefs {
   readonly verified: Prisma.FieldRef<"DeveloperProfile", 'Boolean'>
   readonly verifiedById: Prisma.FieldRef<"DeveloperProfile", 'String'>
   readonly verifiedAt: Prisma.FieldRef<"DeveloperProfile", 'DateTime'>
+  readonly suspended: Prisma.FieldRef<"DeveloperProfile", 'Boolean'>
+  readonly suspendedById: Prisma.FieldRef<"DeveloperProfile", 'String'>
+  readonly suspendedAt: Prisma.FieldRef<"DeveloperProfile", 'DateTime'>
+  readonly suspendReason: Prisma.FieldRef<"DeveloperProfile", 'String'>
 }
     
 
@@ -2392,6 +2840,25 @@ export type DeveloperProfileDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
  * DeveloperProfile.verifiedBy
  */
 export type DeveloperProfile$verifiedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * DeveloperProfile.suspendedBy
+ */
+export type DeveloperProfile$suspendedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the User
    */

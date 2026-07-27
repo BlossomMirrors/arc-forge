@@ -8,31 +8,33 @@ datasource db {
 }
 
 model User {
-  id                        String                         @id
-  name                      String
-  email                     String                         @unique
-  emailVerified             Boolean
-  image                     String?
-  roles                     String[]                       @default([])
-  emailNotificationsEnabled Boolean                        @default(true)
-  createdAt                 DateTime
-  updatedAt                 DateTime
-  sessions                  Session[]
-  accounts                  Account[]
-  submittedPwas             PwaApp[]                       @relation("PwaSubmittedBy")
-  reviewedPwas              PwaApp[]                       @relation("PwaReviewedBy")
-  developerProfileMembers   DeveloperProfileMember[]
-  sentDeveloperInvitations  DeveloperProfileInvitation[]
-  submittedFlatpaks         FlatpakApp[]                   @relation("FlatpakSubmittedBy")
-  reviewedFlatpaks          FlatpakApp[]                   @relation("FlatpakReviewedBy")
-  triggeredFlatpakBuilds    FlatpakBuild[]                 @relation("FlatpakBuildTriggeredBy")
-  verifiedDeveloperProfiles DeveloperProfile[]             @relation("DeveloperProfileVerifiedBy")
-  requestedVerifications    DeveloperVerificationRequest[] @relation("VerificationRequestedBy")
-  reviewedVerifications     DeveloperVerificationRequest[] @relation("VerificationRequestReviewedBy")
-  notifications             Notification[]
-  submittedScreenshots      ScreenshotSubmission[]         @relation("ScreenshotSubmittedBy")
-  reviewedScreenshots       ScreenshotSubmission[]         @relation("ScreenshotReviewedBy")
-  appLists                  AppList[]
+  id                         String                         @id
+  name                       String
+  email                      String                         @unique
+  emailVerified              Boolean
+  image                      String?
+  roles                      String[]                       @default([])
+  emailNotificationsEnabled  Boolean                        @default(true)
+  createdAt                  DateTime
+  updatedAt                  DateTime
+  sessions                   Session[]
+  accounts                   Account[]
+  submittedPwas              PwaApp[]                       @relation("PwaSubmittedBy")
+  reviewedPwas               PwaApp[]                       @relation("PwaReviewedBy")
+  developerProfileMembers    DeveloperProfileMember[]
+  sentDeveloperInvitations   DeveloperProfileInvitation[]
+  submittedFlatpaks          FlatpakApp[]                   @relation("FlatpakSubmittedBy")
+  reviewedFlatpaks           FlatpakApp[]                   @relation("FlatpakReviewedBy")
+  triggeredFlatpakBuilds     FlatpakBuild[]                 @relation("FlatpakBuildTriggeredBy")
+  verifiedDeveloperProfiles  DeveloperProfile[]             @relation("DeveloperProfileVerifiedBy")
+  suspendedDeveloperProfiles DeveloperProfile[]             @relation("DeveloperProfileSuspendedBy")
+  requestedVerifications     DeveloperVerificationRequest[] @relation("VerificationRequestedBy")
+  reviewedVerifications      DeveloperVerificationRequest[] @relation("VerificationRequestReviewedBy")
+  notifications              Notification[]
+  submittedScreenshots       ScreenshotSubmission[]         @relation("ScreenshotSubmittedBy")
+  reviewedScreenshots        ScreenshotSubmission[]         @relation("ScreenshotReviewedBy")
+  appLists                   AppList[]
+  reviewedReports            Report[]
 }
 
 model Session {
@@ -109,6 +111,16 @@ model DeveloperProfile {
   verifiedById          String?
   verifiedBy            User?                          @relation("DeveloperProfileVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   verifiedAt            DateTime?
+  // Set by a reviewer (or higher) acting on an abuse report or their own judgement,
+  // see suspendDeveloperProfile/unsuspendDeveloperProfile in developer-profile.ts.
+  // Suspending pulls every APPROVED PWA/Flatpak under the profile to PULLED (and
+  // unpublishes any live Flatpak from the signed repo) and blocks new submissions
+  // while set, but never deletes anything - PULLED stays re-approvable once lifted.
+  suspended             Boolean                        @default(false)
+  suspendedById         String?
+  suspendedBy           User?                          @relation("DeveloperProfileSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
+  suspendedAt           DateTime?
+  suspendReason         String?                        @db.Text
   members               DeveloperProfileMember[]
   invitations           DeveloperProfileInvitation[]
   pwaApps               PwaApp[]
@@ -180,6 +192,51 @@ model ScreenshotSubmission {
   @@index([status])
   @@index([submittedById])
   @@index([developerProfileId])
+}
+
+enum ReportTargetType {
+  PWA
+  FLATPAK
+  LIST
+  DEVELOPER_PROFILE
+}
+
+enum ReportReason {
+  MALWARE_SECURITY
+  IMPERSONATION
+  INAPPROPRIATE_CONTENT
+  BROKEN
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  DISMISSED
+  ACTIONED
+}
+
+// A public, unauthenticated abuse report against a PWA, Flatpak, List, or
+// developer profile - see src/routes/report/[targetType]/[targetRef] (the public
+// submission page) and src/lib/server/reports.ts (target resolution). targetId is
+// deliberately not a real foreign key: the target lives in one of four different
+// tables depending on targetType, and Prisma has no native polymorphic relation.
+// Same pattern AppListItem.appRef already uses elsewhere in this schema.
+model Report {
+  id            String           @id @default(cuid())
+  targetType    ReportTargetType
+  targetId      String
+  reason        ReportReason
+  details       String?          @db.Text
+  reporterEmail String?
+  status        ReportStatus     @default(PENDING)
+  reviewedById  String?
+  reviewedBy    User?            @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  reviewNote    String?          @db.Text
+  createdAt     DateTime         @default(now())
+
+  @@index([status])
+  @@index([targetType, targetId])
 }
 
 model DeveloperProfileMember {
