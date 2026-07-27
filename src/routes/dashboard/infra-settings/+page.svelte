@@ -204,6 +204,15 @@
 					<span class="text-sm font-medium">{m.infra_remote_path()}</span>
 					<Input name="remoteRepoPath" value={data.remoteRepoPath} required />
 				</label>
+				<label class="block space-y-1.5">
+					<span class="text-sm font-medium">{m.infra_build_work_dir()}</span>
+					<Input
+						name="buildWorkDir"
+						value={data.buildWorkDir}
+						placeholder={m.infra_build_work_dir_placeholder()}
+					/>
+					<span class="text-xs text-muted-foreground">{m.infra_build_work_dir_hint()}</span>
+				</label>
 				<Button type="submit" size="sm">{m.infra_remote_save()}</Button>
 			</form>
 		</div>

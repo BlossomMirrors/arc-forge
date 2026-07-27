@@ -30,7 +30,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		hasGpgPassphrase: !!settings?.gpgPassphraseEncrypted,
 		remoteHost: settings?.remoteHost ?? 'repo.blossomos.org',
 		remoteUser: settings?.remoteUser ?? 'forge',
-		remoteRepoPath: settings?.remoteRepoPath ?? '/srv/repos/flatpak'
+		remoteRepoPath: settings?.remoteRepoPath ?? '/srv/repos/flatpak',
+		buildWorkDir: settings?.buildWorkDir ?? ''
 	};
 };
 
@@ -104,14 +105,16 @@ export const actions: Actions = {
 		const remoteHost = ((data.get('remoteHost') as string) ?? '').trim();
 		const remoteUser = ((data.get('remoteUser') as string) ?? '').trim();
 		const remoteRepoPath = ((data.get('remoteRepoPath') as string) ?? '').trim();
+		// Optional: falls back to the remote host's default TMPDIR when unset.
+		const buildWorkDir = ((data.get('buildWorkDir') as string) ?? '').trim() || null;
 		if (!remoteHost || !remoteUser || !remoteRepoPath) {
 			return fail(400, { error: 'All fields are required' });
 		}
 
 		await db.infraSettings.upsert({
 			where: { id: 'singleton' },
-			update: { remoteHost, remoteUser, remoteRepoPath },
-			create: { id: 'singleton', remoteHost, remoteUser, remoteRepoPath }
+			update: { remoteHost, remoteUser, remoteRepoPath, buildWorkDir },
+			create: { id: 'singleton', remoteHost, remoteUser, remoteRepoPath, buildWorkDir }
 		});
 	},
 

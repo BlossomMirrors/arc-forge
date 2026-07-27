@@ -306,6 +306,11 @@ model InfraSettings {
   remoteHost             String   @default("repo.blossomos.org")
   remoteUser             String   @default("forge")
   remoteRepoPath         String   @default("/srv/repos/flatpak")
+  // Optional parent dir for the remote build scratch space (WORKDIR in
+  // flatpak-publish.ts). Unset means fall back to the remote host's default
+  // TMPDIR, which can be too small for a flatpak-builder build. See
+  // buildRemoteScript for how this is used.
+  buildWorkDir           String?
   updatedAt              DateTime @updatedAt
 }
 

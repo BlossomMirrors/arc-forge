@@ -39,6 +39,19 @@ export function generateSshKeypair(): { publicKey: string; privateKeyOpenSsh: st
 // build-update-repo compose the aggregate catalog from what's really there.
 const GIT_COMMIT_MARKER = 'FORGE_GIT_COMMIT=';
 
+// Shared by every remote script that needs build scratch space (buildRemoteScript,
+// buildExtractScript). Defaults to mktemp's own default TMPDIR, which on some hosts
+// sits on a partition too small for a flatpak-builder build or a multi-GB bundle
+// download. settings.buildWorkDir lets an admin point that scratch space at a
+// larger disk instead. mkdir -p plus set -e means a misconfigured/unwritable path
+// fails the script immediately with mkdir's own error, rather than surfacing later
+// as an opaque "No space left on device" mid-build.
+function buildWorkdirSetup(settings: InfraSettings): string {
+	if (!settings.buildWorkDir) return 'WORKDIR=$(mktemp -d)';
+	return `mkdir -p "${settings.buildWorkDir}"
+WORKDIR=$(mktemp -d -p "${settings.buildWorkDir}")`;
+}
+
 // Bundles are self-describing: build-import-bundle always imports under the
 // bundle's OWN embedded appid/branch, regardless of what this submission
 // declared. Git manifests declare their own app-id the same way. Importing
@@ -119,7 +132,7 @@ GPG_ID=$(gpg --list-secret-keys --keyid-format LONG | awk '/sec/ {print $2}' | c
 KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
 /usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"
 
-WORKDIR=$(mktemp -d)
+${buildWorkdirSetup(settings)}
 cd "$WORKDIR"
 
 STAGING_REPO="$WORKDIR/staging-repo"
@@ -275,14 +288,14 @@ const EXTRACT_ICON_END = 'FORGE_ICON_B64_END';
 // shared repo) purely to read back its own, real AppStream metainfo.xml and icon, so
 // Forge's web UI can be populated from what's actually inside the bundle instead of
 // free-text form fields a developer could type anything into.
-function buildExtractScript(bundleUrl: string): string {
+function buildExtractScript(bundleUrl: string, settings: InfraSettings): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
 trap '[ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 BUNDLE_URL="${bundleUrl}"
 
-WORKDIR=$(mktemp -d)
+${buildWorkdirSetup(settings)}
 cd "$WORKDIR"
 
 echo "FORGE_STEP: downloading bundle"
@@ -511,7 +524,7 @@ export type ExtractedAppstream = {
 
 export async function extractAppstreamMetadata(bundleUrl: string): Promise<ExtractedAppstream> {
 	const { ok, exitCode, log } = await runOnRemote(
-		() => buildExtractScript(bundleUrl),
+		(settings) => buildExtractScript(bundleUrl, settings),
 		'/tmp/forge-extract'
 	);
 	if (!ok || !log.includes('FORGE_EXTRACT_OK')) {
