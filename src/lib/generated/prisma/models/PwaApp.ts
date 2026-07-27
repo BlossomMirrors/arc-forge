@@ -38,6 +38,7 @@ export type PwaAppMinAggregateOutputType = {
 	css: string | null;
 	js: string | null;
 	useragent: string | null;
+	urlFilter: string | null;
 	widevine: boolean | null;
 	tray: boolean | null;
 	status: $Enums.PwaStatus | null;
@@ -65,6 +66,7 @@ export type PwaAppMaxAggregateOutputType = {
 	css: string | null;
 	js: string | null;
 	useragent: string | null;
+	urlFilter: string | null;
 	widevine: boolean | null;
 	tray: boolean | null;
 	status: $Enums.PwaStatus | null;
@@ -93,6 +95,7 @@ export type PwaAppCountAggregateOutputType = {
 	css: number;
 	js: number;
 	useragent: number;
+	urlFilter: number;
 	widevine: number;
 	tray: number;
 	status: number;
@@ -121,6 +124,7 @@ export type PwaAppMinAggregateInputType = {
 	css?: true;
 	js?: true;
 	useragent?: true;
+	urlFilter?: true;
 	widevine?: true;
 	tray?: true;
 	status?: true;
@@ -148,6 +152,7 @@ export type PwaAppMaxAggregateInputType = {
 	css?: true;
 	js?: true;
 	useragent?: true;
+	urlFilter?: true;
 	widevine?: true;
 	tray?: true;
 	status?: true;
@@ -176,6 +181,7 @@ export type PwaAppCountAggregateInputType = {
 	css?: true;
 	js?: true;
 	useragent?: true;
+	urlFilter?: true;
 	widevine?: true;
 	tray?: true;
 	status?: true;
@@ -278,6 +284,7 @@ export type PwaAppGroupByOutputType = {
 	css: string;
 	js: string;
 	useragent: string;
+	urlFilter: string;
 	widevine: boolean;
 	tray: boolean;
 	status: $Enums.PwaStatus;
@@ -324,6 +331,7 @@ export type PwaAppWhereInput = {
 	css?: Prisma.StringFilter<'PwaApp'> | string;
 	js?: Prisma.StringFilter<'PwaApp'> | string;
 	useragent?: Prisma.StringFilter<'PwaApp'> | string;
+	urlFilter?: Prisma.StringFilter<'PwaApp'> | string;
 	widevine?: Prisma.BoolFilter<'PwaApp'> | boolean;
 	tray?: Prisma.BoolFilter<'PwaApp'> | boolean;
 	status?: Prisma.EnumPwaStatusFilter<'PwaApp'> | $Enums.PwaStatus;
@@ -359,6 +367,7 @@ export type PwaAppOrderByWithRelationInput = {
 	css?: Prisma.SortOrder;
 	js?: Prisma.SortOrder;
 	useragent?: Prisma.SortOrder;
+	urlFilter?: Prisma.SortOrder;
 	widevine?: Prisma.SortOrder;
 	tray?: Prisma.SortOrder;
 	status?: Prisma.SortOrder;
@@ -395,6 +404,7 @@ export type PwaAppWhereUniqueInput = Prisma.AtLeast<
 		css?: Prisma.StringFilter<'PwaApp'> | string;
 		js?: Prisma.StringFilter<'PwaApp'> | string;
 		useragent?: Prisma.StringFilter<'PwaApp'> | string;
+		urlFilter?: Prisma.StringFilter<'PwaApp'> | string;
 		widevine?: Prisma.BoolFilter<'PwaApp'> | boolean;
 		tray?: Prisma.BoolFilter<'PwaApp'> | boolean;
 		status?: Prisma.EnumPwaStatusFilter<'PwaApp'> | $Enums.PwaStatus;
@@ -432,6 +442,7 @@ export type PwaAppOrderByWithAggregationInput = {
 	css?: Prisma.SortOrder;
 	js?: Prisma.SortOrder;
 	useragent?: Prisma.SortOrder;
+	urlFilter?: Prisma.SortOrder;
 	widevine?: Prisma.SortOrder;
 	tray?: Prisma.SortOrder;
 	status?: Prisma.SortOrder;
@@ -466,6 +477,7 @@ export type PwaAppScalarWhereWithAggregatesInput = {
 	css?: Prisma.StringWithAggregatesFilter<'PwaApp'> | string;
 	js?: Prisma.StringWithAggregatesFilter<'PwaApp'> | string;
 	useragent?: Prisma.StringWithAggregatesFilter<'PwaApp'> | string;
+	urlFilter?: Prisma.StringWithAggregatesFilter<'PwaApp'> | string;
 	widevine?: Prisma.BoolWithAggregatesFilter<'PwaApp'> | boolean;
 	tray?: Prisma.BoolWithAggregatesFilter<'PwaApp'> | boolean;
 	status?: Prisma.EnumPwaStatusWithAggregatesFilter<'PwaApp'> | $Enums.PwaStatus;
@@ -494,6 +506,7 @@ export type PwaAppCreateInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -523,6 +536,7 @@ export type PwaAppUncheckedCreateInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -552,6 +566,7 @@ export type PwaAppUpdateInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -581,6 +596,7 @@ export type PwaAppUncheckedUpdateInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -610,6 +626,7 @@ export type PwaAppCreateManyInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -638,6 +655,7 @@ export type PwaAppUpdateManyMutationInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -663,6 +681,7 @@ export type PwaAppUncheckedUpdateManyInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -706,6 +725,7 @@ export type PwaAppCountOrderByAggregateInput = {
 	css?: Prisma.SortOrder;
 	js?: Prisma.SortOrder;
 	useragent?: Prisma.SortOrder;
+	urlFilter?: Prisma.SortOrder;
 	widevine?: Prisma.SortOrder;
 	tray?: Prisma.SortOrder;
 	status?: Prisma.SortOrder;
@@ -733,6 +753,7 @@ export type PwaAppMaxOrderByAggregateInput = {
 	css?: Prisma.SortOrder;
 	js?: Prisma.SortOrder;
 	useragent?: Prisma.SortOrder;
+	urlFilter?: Prisma.SortOrder;
 	widevine?: Prisma.SortOrder;
 	tray?: Prisma.SortOrder;
 	status?: Prisma.SortOrder;
@@ -760,6 +781,7 @@ export type PwaAppMinOrderByAggregateInput = {
 	css?: Prisma.SortOrder;
 	js?: Prisma.SortOrder;
 	useragent?: Prisma.SortOrder;
+	urlFilter?: Prisma.SortOrder;
 	widevine?: Prisma.SortOrder;
 	tray?: Prisma.SortOrder;
 	status?: Prisma.SortOrder;
@@ -1085,6 +1107,7 @@ export type PwaAppCreateWithoutSubmittedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1113,6 +1136,7 @@ export type PwaAppUncheckedCreateWithoutSubmittedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1154,6 +1178,7 @@ export type PwaAppCreateWithoutReviewedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1182,6 +1207,7 @@ export type PwaAppUncheckedCreateWithoutReviewedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1254,6 +1280,7 @@ export type PwaAppScalarWhereInput = {
 	css?: Prisma.StringFilter<'PwaApp'> | string;
 	js?: Prisma.StringFilter<'PwaApp'> | string;
 	useragent?: Prisma.StringFilter<'PwaApp'> | string;
+	urlFilter?: Prisma.StringFilter<'PwaApp'> | string;
 	widevine?: Prisma.BoolFilter<'PwaApp'> | boolean;
 	tray?: Prisma.BoolFilter<'PwaApp'> | boolean;
 	status?: Prisma.EnumPwaStatusFilter<'PwaApp'> | $Enums.PwaStatus;
@@ -1310,6 +1337,7 @@ export type PwaAppCreateWithoutTranslationsInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1338,6 +1366,7 @@ export type PwaAppUncheckedCreateWithoutTranslationsInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1394,6 +1423,7 @@ export type PwaAppUpdateWithoutTranslationsInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1422,6 +1452,7 @@ export type PwaAppUncheckedUpdateWithoutTranslationsInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1450,6 +1481,7 @@ export type PwaAppCreateWithoutDeveloperProfileInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1478,6 +1510,7 @@ export type PwaAppUncheckedCreateWithoutDeveloperProfileInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1549,6 +1582,7 @@ export type PwaAppCreateManySubmittedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1576,6 +1610,7 @@ export type PwaAppCreateManyReviewedByInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1603,6 +1638,7 @@ export type PwaAppUpdateWithoutSubmittedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1631,6 +1667,7 @@ export type PwaAppUncheckedUpdateWithoutSubmittedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1659,6 +1696,7 @@ export type PwaAppUncheckedUpdateManyWithoutSubmittedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1686,6 +1724,7 @@ export type PwaAppUpdateWithoutReviewedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1714,6 +1753,7 @@ export type PwaAppUncheckedUpdateWithoutReviewedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1742,6 +1782,7 @@ export type PwaAppUncheckedUpdateManyWithoutReviewedByInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1769,6 +1810,7 @@ export type PwaAppCreateManyDeveloperProfileInput = {
 	css?: string;
 	js?: string;
 	useragent?: string;
+	urlFilter?: string;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: $Enums.PwaStatus;
@@ -1796,6 +1838,7 @@ export type PwaAppUpdateWithoutDeveloperProfileInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1824,6 +1867,7 @@ export type PwaAppUncheckedUpdateWithoutDeveloperProfileInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1852,6 +1896,7 @@ export type PwaAppUncheckedUpdateManyWithoutDeveloperProfileInput = {
 	css?: Prisma.StringFieldUpdateOperationsInput | string;
 	js?: Prisma.StringFieldUpdateOperationsInput | string;
 	useragent?: Prisma.StringFieldUpdateOperationsInput | string;
+	urlFilter?: Prisma.StringFieldUpdateOperationsInput | string;
 	widevine?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	tray?: Prisma.BoolFieldUpdateOperationsInput | boolean;
 	status?: Prisma.EnumPwaStatusFieldUpdateOperationsInput | $Enums.PwaStatus;
@@ -1917,6 +1962,7 @@ export type PwaAppSelect<
 		css?: boolean;
 		js?: boolean;
 		useragent?: boolean;
+		urlFilter?: boolean;
 		widevine?: boolean;
 		tray?: boolean;
 		status?: boolean;
@@ -1955,6 +2001,7 @@ export type PwaAppSelectCreateManyAndReturn<
 		css?: boolean;
 		js?: boolean;
 		useragent?: boolean;
+		urlFilter?: boolean;
 		widevine?: boolean;
 		tray?: boolean;
 		status?: boolean;
@@ -1991,6 +2038,7 @@ export type PwaAppSelectUpdateManyAndReturn<
 		css?: boolean;
 		js?: boolean;
 		useragent?: boolean;
+		urlFilter?: boolean;
 		widevine?: boolean;
 		tray?: boolean;
 		status?: boolean;
@@ -2024,6 +2072,7 @@ export type PwaAppSelectScalar = {
 	css?: boolean;
 	js?: boolean;
 	useragent?: boolean;
+	urlFilter?: boolean;
 	widevine?: boolean;
 	tray?: boolean;
 	status?: boolean;
@@ -2054,6 +2103,7 @@ export type PwaAppOmit<
 	| 'css'
 	| 'js'
 	| 'useragent'
+	| 'urlFilter'
 	| 'widevine'
 	| 'tray'
 	| 'status'
@@ -2117,6 +2167,7 @@ export type $PwaAppPayload<
 			css: string;
 			js: string;
 			useragent: string;
+			urlFilter: string;
 			widevine: boolean;
 			tray: boolean;
 			status: $Enums.PwaStatus;
@@ -2733,6 +2784,7 @@ export interface PwaAppFieldRefs {
 	readonly css: Prisma.FieldRef<'PwaApp', 'String'>;
 	readonly js: Prisma.FieldRef<'PwaApp', 'String'>;
 	readonly useragent: Prisma.FieldRef<'PwaApp', 'String'>;
+	readonly urlFilter: Prisma.FieldRef<'PwaApp', 'String'>;
 	readonly widevine: Prisma.FieldRef<'PwaApp', 'Boolean'>;
 	readonly tray: Prisma.FieldRef<'PwaApp', 'Boolean'>;
 	readonly status: Prisma.FieldRef<'PwaApp', 'PwaStatus'>;

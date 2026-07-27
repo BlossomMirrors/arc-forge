@@ -4,6 +4,7 @@ import { saveTranslations, uploadCodeField } from '$lib/server/pwa-form';
 import { isStaff } from '$lib/server/authz';
 import { listMyDeveloperProfiles, requireOwnDeveloperProfile } from '$lib/server/developer-profile';
 import { notifyReviewers } from '$lib/server/notifications';
+import { isValidRegex } from '$lib/server/pwa-form';
 import type { Actions, PageServerLoad } from './$types';
 
 async function parseForm(data: FormData) {
@@ -27,6 +28,7 @@ async function parseForm(data: FormData) {
 		css: await uploadCodeField(css, 'css'),
 		js: await uploadCodeField(js, 'js'),
 		useragent: (data.get('useragent') as string).trim(),
+		urlFilter: (data.get('urlFilter') as string).trim(),
 		widevine: data.get('widevine') === 'true',
 		tray: data.get('tray') === 'true'
 	};
@@ -45,6 +47,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const fields = await parseForm(data);
 		if (!fields.appid || !fields.name) return fail(400, { error: 'Missing required fields' });
+		if (!isValidRegex(fields.urlFilter)) return fail(400, { error: 'Invalid URL filter regex' });
 
 		// developerName/developerProfileId are never taken from the submitter's own claim:
 		// staff can type a developer name freely, everyone else is pinned to a developer

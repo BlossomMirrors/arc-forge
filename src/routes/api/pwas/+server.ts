@@ -20,6 +20,7 @@ function toPublic(app: ReturnType<typeof applyLang>) {
 		css: app.css,
 		js: app.js,
 		useragent: app.useragent,
+		url_filter: app.urlFilter,
 		widevine: app.widevine,
 		tray: app.tray
 	};

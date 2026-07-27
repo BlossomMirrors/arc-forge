@@ -221,6 +221,7 @@ model PwaApp {
   css                String            @default("") @db.Text
   js                 String            @default("") @db.Text
   useragent          String            @default("")
+  urlFilter          String            @default("")
   widevine           Boolean           @default(false)
   tray               Boolean           @default(false)
   status             PwaStatus         @default(PENDING)

@@ -13,6 +13,16 @@ export async function uploadCodeField(value: string, ext: 'css' | 'js'): Promise
 	return uploadText(value, ext);
 }
 
+export function isValidRegex(pattern: string): boolean {
+	if (!pattern) return true;
+	try {
+		new RegExp(pattern);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 export function parseTranslations(data: FormData) {
 	const seen = new Set<string>();
 	const translations: {

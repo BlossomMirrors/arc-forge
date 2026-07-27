@@ -22,6 +22,7 @@
 		css?: string;
 		js?: string;
 		useragent?: string;
+		urlFilter?: string;
 		widevine?: boolean;
 		tray?: boolean;
 	};
@@ -181,6 +182,12 @@
 	<label class="space-y-1.5">
 		<span class="text-sm font-medium">{m.form_user_agent()}</span>
 		<Input name="useragent" value={values.useragent ?? ''} placeholder="Mozilla/5.0..." />
+	</label>
+
+	<label class="space-y-1.5">
+		<span class="text-sm font-medium">{m.form_url_filter()}</span>
+		<Input name="urlFilter" value={values.urlFilter ?? ''} placeholder="^https://example\.com/" />
+		<p class="text-xs text-muted-foreground">{m.form_url_filter_hint()}</p>
 	</label>
 
 	<label class="space-y-1.5">

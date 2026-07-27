@@ -103,6 +103,8 @@
 	"form_url": "URL",
 	"form_theme_color": "Theme Color",
 	"form_user_agent": "User Agent",
+	"form_url_filter": "URL Filter (regex)",
+	"form_url_filter_hint": "Links matching this pattern stay inside the app window; everything else opens in the system browser. Leave blank to only allow the app's own origin.",
 	"form_custom_css": "Custom CSS",
 	"form_custom_js": "Custom JS",
 	"form_widevine": "Widevine DRM",

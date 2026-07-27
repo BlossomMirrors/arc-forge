@@ -2219,6 +2219,7 @@ export const PwaAppScalarFieldEnum = {
 	css: 'css',
 	js: 'js',
 	useragent: 'useragent',
+	urlFilter: 'urlFilter',
 	widevine: 'widevine',
 	tray: 'tray',
 	status: 'status',
