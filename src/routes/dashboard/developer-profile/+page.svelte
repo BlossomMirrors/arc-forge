@@ -147,7 +147,6 @@
 											</span>
 										{/if}
 									</div>
-									<p class="text-xs text-muted-foreground">{profile.slug}</p>
 								{/if}
 							</div>
 							<div class="flex items-center gap-2">
