@@ -36,7 +36,7 @@ export const AUTO_REJECT_MALWARE = 'Auto-rejected: malware detected';
 // free-text form fields, and, unless the submitter is staff, auto-rejects if the
 // bundle's own declared developer name doesn't match the developer profile it's
 // being submitted under. For a git repo there's no AppStream data to read until a
-// build actually produces one (see updateDisplayDataFromBuildLog in
+// build actually produces one (see updateDisplayDataFromSidecars in
 // flatpak-publish.ts), so this only validates the manifest is reachable and
 // declares an app id - display fields start as placeholders, and there's no
 // mismatch check to run yet. That's an acceptable gap here specifically because

@@ -37,7 +37,6 @@ export function generateSshKeypair(): { publicKey: string; privateKeyOpenSsh: st
 // longer referenced it) without actually fixing anything. Publishing is now just:
 // validate in staging, copy the untouched commit into the shared repo, and let
 // build-update-repo compose the aggregate catalog from what's really there.
-const GIT_COMMIT_MARKER = 'FORGE_GIT_COMMIT=';
 
 // Shared by every remote script that needs build scratch space (buildRemoteScript,
 // buildExtractScript). Defaults to mktemp's own default TMPDIR, which on some hosts
@@ -60,7 +59,21 @@ WORKDIR=$(mktemp -d -p "${settings.buildWorkDir}")`;
 // cleans that up, and every later aggregate appstream2 rebuild sweeps it back
 // in. Staging first (both source types build into $STAGING_REPO) means a
 // mismatch never touches the shared repo at all.
-function buildSourceSection(app: FlatpakApp): string {
+//
+// The git commit hash and metainfo/icon base64 are written to their own small
+// sidecar files instead of being echoed inline as markers in the build's
+// stdout/stderr - see pollBuildOnce's LOG_READ_BYTES comment for why: the
+// combined log for a real build (flatpak-builder output, then build-update-repo
+// --generate-static-deltas --verbose) can run well past the bounded tail the
+// poller reads back, silently losing anything embedded in it. A dedicated file
+// per value is read back in full regardless of how big the build's own log gets.
+interface BuildSidecarPaths {
+	commitPath: string;
+	metainfoPath: string;
+	iconPath: string;
+}
+
+function buildSourceSection(app: FlatpakApp, sidecar: BuildSidecarPaths): string {
 	if (app.sourceType === 'GIT') {
 		return `
 GIT_URL="${app.gitUrl}"
@@ -68,7 +81,7 @@ GIT_BRANCH="${app.gitBranch}"
 MANIFEST_PATH="${app.gitManifestPath}"
 
 git clone --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
-echo "${GIT_COMMIT_MARKER}$(git -C src rev-parse HEAD)"
+git -C src rev-parse HEAD > "${sidecar.commitPath}"
 
 # --disable-rofiles-fuse: FUSE may not be available/permitted on the remote
 # host, matching the same "don't assume privileged capabilities" lesson as
@@ -95,10 +108,7 @@ if [ -n "$GIT_BUILT_REF" ]; then
   # landing on the submitted app's own file over one of those.
   GIT_METAINFO_PATH=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
   if [ -n "$GIT_METAINFO_PATH" ]; then
-    echo "${EXTRACT_METAINFO_START}"
-    base64 -w0 "$GIT_METAINFO_PATH"
-    echo ""
-    echo "${EXTRACT_METAINFO_END}"
+    base64 -w0 "$GIT_METAINFO_PATH" > "${sidecar.metainfoPath}"
   fi
   # Sized PNGs first, then scalable/apps as a fallback: some manifests only
   # ship an svg there (no raster icon at all), and some mistakenly install a
@@ -110,10 +120,7 @@ if [ -n "$GIT_BUILT_REF" ]; then
     post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
     post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
   if [ -n "$GIT_ICON_PATH" ]; then
-    echo "${EXTRACT_ICON_START}"
-    base64 -w0 "$GIT_ICON_PATH"
-    echo ""
-    echo "${EXTRACT_ICON_END}"
+    base64 -w0 "$GIT_ICON_PATH" > "${sidecar.iconPath}"
   fi
 fi
 `;
@@ -136,7 +143,8 @@ flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" bundle.flatpak
 function buildRemoteScript(
 	app: FlatpakApp,
 	settings: InfraSettings,
-	passphraseFilePath: string
+	passphraseFilePath: string,
+	sidecar: BuildSidecarPaths
 ): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
@@ -157,7 +165,7 @@ cd "$WORKDIR"
 STAGING_REPO="$WORKDIR/staging-repo"
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
 
-${buildSourceSection(app)}
+${buildSourceSection(app, sidecar)}
 
 REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/$APPID/" | head -n1)
 if [ -z "$REF" ]; then
@@ -686,17 +694,13 @@ export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; 
 // Only relevant for GIT-sourced apps: a bundle submission already extracted its
 // display data once at upload time (see extractAppstreamMetadata), but a git
 // submission has nothing to show until a build actually produces AppStream data,
-// so it's re-read from the build log (see buildSourceSection's GIT branch) after
-// every successful (re)build instead.
-async function updateDisplayDataFromBuildLog(
+// so it's re-read from the sidecar files a successful (re)build wrote (see
+// buildSourceSection's GIT branch and BuildSidecarPaths) instead.
+async function updateDisplayDataFromSidecars(
 	appId: string,
-	log: string
+	metainfoB64: string,
+	iconB64: string
 ): Promise<Record<string, unknown>> {
-	const metainfoB64 = extractBetweenMarkers(
-		log,
-		EXTRACT_METAINFO_START,
-		EXTRACT_METAINFO_END
-	)?.replace(/\s+/g, '');
 	if (!metainfoB64) return {};
 
 	const metainfoXml = Buffer.from(metainfoB64, 'base64').toString('utf8');
@@ -710,10 +714,6 @@ async function updateDisplayDataFromBuildLog(
 		screenshots: parsed.screenshots.length ? parsed.screenshots : undefined
 	};
 
-	const iconB64 = extractBetweenMarkers(log, EXTRACT_ICON_START, EXTRACT_ICON_END)?.replace(
-		/\s+/g,
-		''
-	);
 	if (iconB64) {
 		const iconBuffer = Buffer.from(iconB64, 'base64');
 		const iconArrayBuffer = iconBuffer.buffer.slice(
@@ -736,7 +736,7 @@ const LOG_READ_BYTES = 5_000_000;
 const POLL_SPLIT_MARKER = '__FORGE_POLL_SPLIT__';
 const POLL_INTERVAL_MS = 7_000;
 
-interface RemoteBuildPaths {
+interface RemoteBuildPaths extends BuildSidecarPaths {
 	scriptPath: string;
 	logPath: string;
 	exitPath: string;
@@ -744,14 +744,29 @@ interface RemoteBuildPaths {
 	sessionName: string;
 }
 
+// Sidecar paths are derived from logPath with a fixed suffix scheme so
+// pollBuildOnce/abortAllProcessingBuilds can re-derive the exact same paths
+// later from just the remoteLogPath already persisted on the FlatpakBuild row,
+// no extra columns needed.
+function sidecarPathsFromLogPath(logPath: string): BuildSidecarPaths {
+	const base = logPath.slice(0, -'.log'.length);
+	return {
+		commitPath: `${base}.commit`,
+		metainfoPath: `${base}.metainfo.b64`,
+		iconPath: `${base}.icon.b64`
+	};
+}
+
 function remoteBuildPaths(appId: string): RemoteBuildPaths {
 	const base = `/tmp/forge-publish-${appId}-${Date.now()}`;
+	const logPath = `${base}.log`;
 	return {
 		scriptPath: `${base}.sh`,
-		logPath: `${base}.log`,
+		logPath,
 		exitPath: `${base}.exit`,
 		passphrasePath: `${base}.pass`,
-		sessionName: `forge-build-${appId}-${Date.now()}`
+		sessionName: `forge-build-${appId}-${Date.now()}`,
+		...sidecarPathsFromLogPath(logPath)
 	};
 }
 
@@ -781,7 +796,7 @@ async function launchRemoteBuild(
 	try {
 		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
 		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const script = buildRemoteScript(app, settings, paths.passphrasePath);
+		const script = buildRemoteScript(app, settings, paths.passphrasePath, paths);
 
 		conn = await connect(settings, privateKey);
 		await sftpWriteFile(conn, paths.scriptPath, script);
@@ -838,17 +853,21 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 	try {
 		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
 		conn = await connect(settings, privateKey);
+		const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
 		const { output } = await execCommand(
 			conn,
 			`EC=""; [ -f "${build.remoteExitPath}" ] && EC=$(cat "${build.remoteExitPath}"); ` +
 				`echo "$EC"; echo "${POLL_SPLIT_MARKER}"; ` +
-				`tail -c ${LOG_READ_BYTES} "${build.remoteLogPath}" 2>/dev/null || true`
+				`tail -c ${LOG_READ_BYTES} "${build.remoteLogPath}" 2>/dev/null || true; ` +
+				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.commitPath}" 2>/dev/null || true; ` +
+				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.metainfoPath}" 2>/dev/null || true; ` +
+				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.iconPath}" 2>/dev/null || true`
 		);
-		const splitIndex = output.indexOf(POLL_SPLIT_MARKER);
-		if (splitIndex === -1) return; // unexpected shape, retry next tick
+		const parts = output.split(POLL_SPLIT_MARKER);
+		if (parts.length < 5) return; // unexpected shape, retry next tick
 
-		const exitCodeRaw = output.slice(0, splitIndex).trim();
-		const log = output.slice(splitIndex + POLL_SPLIT_MARKER.length).replace(/^\r?\n/, '');
+		const exitCodeRaw = parts[0].trim();
+		const log = parts[1].replace(/^\r?\n/, '');
 
 		if (exitCodeRaw === '') {
 			// Still running - keep the live-view log fresh, best effort only.
@@ -863,10 +882,14 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		// The commit actually built can be later than app.gitLastCommit if more pushes
 		// landed between the watcher flagging this for review and the reviewer
 		// approving it - record what was really built, not just what was detected.
-		const gitCommitMatch =
-			ok && app.sourceType === 'GIT' ? log.match(/^FORGE_GIT_COMMIT=(.+)$/m) : null;
+		// Read from its own sidecar file rather than the (tail-bounded) log itself -
+		// see BuildSidecarPaths for why a large build's real commit marker, echoed
+		// right at the start of the script, can otherwise fall outside that tail.
+		const gitCommit = parts[2].trim();
 		const displayData =
-			ok && app.sourceType === 'GIT' ? await updateDisplayDataFromBuildLog(app.id, log) : {};
+			ok && app.sourceType === 'GIT'
+				? await updateDisplayDataFromSidecars(app.id, parts[3].trim(), parts[4].trim())
+				: {};
 
 		try {
 			await db.flatpakApp.update({
@@ -874,7 +897,7 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 				data: {
 					status: ok ? 'APPROVED' : 'FAILED',
 					buildFinishedAt: new Date(),
-					...(gitCommitMatch ? { gitLastCommit: gitCommitMatch[1].trim() } : {}),
+					...(ok && app.sourceType === 'GIT' && gitCommit ? { gitLastCommit: gitCommit } : {}),
 					...displayData
 				}
 			});
@@ -888,9 +911,10 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		}
 
 		activeBuildIds.delete(build.id);
-		await execCommand(conn, `rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"`).catch(
-			() => {}
-		);
+		await execCommand(
+			conn,
+			`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}"`
+		).catch(() => {});
 
 		if (app.submittedById) {
 			await notifyUser(
@@ -996,10 +1020,11 @@ export async function abortAllProcessingBuilds(): Promise<{
 			for (const app of apps) {
 				const build = app.builds[0];
 				if (!build) continue;
+				const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
 				const { output } = await execCommand(
 					conn,
 					`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
-						`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"; echo done`
+						`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}"; echo done`
 				);
 				lines.push(`${app.appid}: session kill attempted (${output.trim() || 'done'})`);
 			}
