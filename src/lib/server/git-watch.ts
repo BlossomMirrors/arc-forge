@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { db } from './db';
 import { notifyReviewers } from './notifications';
+import { STAFF_ROLE } from './authz';
+import { triggerPublish } from './flatpak-publish';
 
 const execFileAsync = promisify(execFile);
 
@@ -166,6 +168,16 @@ async function pollOnce(): Promise<void> {
 		)
 			continue;
 
+    const roles = (await db.user.findUnique({
+      where: { id: app.submittedById ?? undefined },
+      select: { roles: true }
+    }))?.roles ?? [];
+    const isStaff = roles.includes(STAFF_ROLE);
+
+    if (isStaff && app.submittedById) {
+      triggerPublish(app.appid, app.submittedById);
+    }
+
 		await db.flatpakApp.update({
 			where: { id: app.id },
 			data: {
@@ -175,7 +187,9 @@ async function pollOnce(): Promise<void> {
 				reviewedAt: null,
 				reviewNote: null
 			}
-		});
+    });
+
+
 		await notifyReviewers({
 			type: 'flatpak_pending',
 			title: `New commit on ${app.name}, awaiting review`,
