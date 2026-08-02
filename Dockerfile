@@ -37,4 +37,4 @@ RUN deno install
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "deno x prisma migrate deploy && deno run --allow-net build/index.js"]
+CMD ["sh", "-c", "deno x prisma migrate deploy && deno run --allow-net --allow-env --allow-read --allow-sys build/index.js"]
