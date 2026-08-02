@@ -59,7 +59,9 @@ export const actions: Actions = {
 			const profile = await requireOwnDeveloperProfile(locals.user.id, requestedProfileId);
 			if (!profile) return fail(403, { error: 'You are not a member of that developer profile' });
 			if (profile.suspended) {
-				return fail(403, { error: 'This developer profile is suspended and cannot submit new apps' });
+				return fail(403, {
+					error: 'This developer profile is suspended and cannot submit new apps'
+				});
 			}
 			fields.developerName = profile.name;
 			developerProfileId = profile.id;

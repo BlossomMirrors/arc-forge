@@ -16,7 +16,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) throw error(401);
 	const app = await db.flatpakApp.findUnique({ where: { id: params.id } });
 	if (!app) throw error(404, 'Flatpak not found');
-	if (!(await canEditListing(locals.user.id, isStaff(locals.user), app.submittedById, app.developerProfileId))) {
+	if (
+		!(await canEditListing(
+			locals.user.id,
+			isStaff(locals.user),
+			app.submittedById,
+			app.developerProfileId
+		))
+	) {
 		throw error(403, 'You can only edit your own submissions');
 	}
 
@@ -111,10 +118,14 @@ export const actions: Actions = {
 							requestedProfileId
 						);
 			if (!profile) {
-				return fail(403, { error: 'You do not have permission to file this under that developer profile' });
+				return fail(403, {
+					error: 'You do not have permission to file this under that developer profile'
+				});
 			}
 			if (profile.suspended) {
-				return fail(403, { error: 'This developer profile is suspended and cannot submit changes' });
+				return fail(403, {
+					error: 'This developer profile is suspended and cannot submit changes'
+				});
 			}
 			developerProfileId = profile.id;
 			claimedDeveloperName = profile.name;

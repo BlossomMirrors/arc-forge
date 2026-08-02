@@ -23,11 +23,10 @@
 <!-- Run `sudo bootc status` and get the current version. e.g. latest-44.20260801 -->
 
 **Install method used for testing:**
+
 - [ ] `rpm-ostree usroverlay`
 - [ ] `rpm-ostree unlock --hotfix` and restart
 - [ ] other list below
-
-
 
 ## Dependency Changes
 
@@ -41,17 +40,16 @@ List package name, version, and reason, e.g.:
 - libfoo >= 2.4.1 — required for new backend support
 -->
 
-
-
 ## Package / Build Details (if applicable)
 
 **Package name(s):**
 
 **Version bump:** old → new
 
-**Build system used:** 
+**Build system used:**
 
 **Does this change require a repo/database rebuild?**
+
 - [ ] Yes
 - [ ] No
 

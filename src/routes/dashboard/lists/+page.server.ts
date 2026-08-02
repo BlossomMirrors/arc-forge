@@ -22,10 +22,11 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 				});
 
 	const eligibleProfiles = staff
-		? await db.developerProfile.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
-		: developerProfiles
-				.filter((p) => p.role !== 'member')
-				.map((p) => ({ id: p.id, name: p.name }));
+		? await db.developerProfile.findMany({
+				select: { id: true, name: true },
+				orderBy: { name: 'asc' }
+			})
+		: developerProfiles.filter((p) => p.role !== 'member').map((p) => ({ id: p.id, name: p.name }));
 
 	return {
 		lists,
@@ -64,7 +65,14 @@ export const actions: Actions = {
 
 		const list = await db.appList.findUnique({ where: { id } });
 		if (!list) return fail(404);
-		if (!(await canDeleteListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+		if (
+			!(await canDeleteListing(
+				locals.user.id,
+				isStaff(locals.user),
+				list.createdById,
+				list.developerProfileId
+			))
+		) {
 			throw error(403, 'You can only delete your own lists');
 		}
 

@@ -32,11 +32,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			? data.reporterEmail.trim().slice(0, MAX_EMAIL_LENGTH)
 			: '';
 
-	const verified = await verifyTurnstileToken(
-		data.turnstileToken,
-		'report',
-		getClientAddress()
-	);
+	const verified = await verifyTurnstileToken(data.turnstileToken, 'report', getClientAddress());
 	if (!verified) return new Response('Verification failed', { status: 403 });
 
 	const target = await resolvePublicRef(targetType, targetRef);

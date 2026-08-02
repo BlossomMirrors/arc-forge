@@ -18,7 +18,7 @@ export type FlatpakSubmissionResult =
 			screenshots: string[];
 			homepageUrl: string;
 			contentRating: string;
-			status: 'PENDING' | 'REJECTED';
+			status: 'PENDING' | 'REJECTED' | 'APPROVED';
 			reviewNote: string | null;
 			gitLastCommit?: string;
 	  };
@@ -101,7 +101,7 @@ async function resolveGitSubmission(
 		screenshots: [],
 		homepageUrl: '',
 		contentRating: 'All ages',
-		status: 'PENDING',
+		status: params.isStaff ? 'APPROVED' : 'PENDING',
 		reviewNote: null,
 		gitLastCommit
 	};

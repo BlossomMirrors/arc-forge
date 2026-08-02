@@ -160,6 +160,11 @@ async function pollOnce(): Promise<void> {
 		if (!app.gitUrl || !app.gitBranch) continue;
 		const head = await checkRemoteHead(app.gitUrl, app.gitBranch);
 		if (!head || head === app.gitLastCommit) continue;
+		if (
+			app.gitLastCommit?.toLowerCase().includes('[ci skip]') ||
+			app.gitLastCommit?.toLowerCase().includes('[skip ci]')
+		)
+			continue;
 
 		await db.flatpakApp.update({
 			where: { id: app.id },

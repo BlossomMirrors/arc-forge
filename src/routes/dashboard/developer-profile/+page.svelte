@@ -215,9 +215,7 @@
 													) as HTMLInputElement
 												).value = reason;
 												(
-													document.getElementById(
-														`suspend-form-${profile.id}`
-													) as HTMLFormElement
+													document.getElementById(`suspend-form-${profile.id}`) as HTMLFormElement
 												).submit();
 											}}
 										>

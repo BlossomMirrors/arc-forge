@@ -60,7 +60,9 @@
 						<div class="min-w-0 flex-1 space-y-1">
 							<div class="flex items-baseline gap-2">
 								<p class="font-medium">{report.target?.name ?? m.review_reports_target_gone()}</p>
-								<span class="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
+								<span
+									class="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600"
+								>
 									{reasonLabel(report.reason)}
 								</span>
 							</div>
@@ -74,7 +76,9 @@
 							{/if}
 							{#if report.target}
 								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-								<a href={report.target.href} class="text-xs underline">{m.review_reports_view_target()}</a>
+								<a href={report.target.href} class="text-xs underline"
+									>{m.review_reports_view_target()}</a
+								>
 							{/if}
 						</div>
 					</div>
@@ -126,7 +130,9 @@
 					{@const badge = statusBadge(report.status)}
 					<li class="flex items-center justify-between px-4 py-2.5 text-sm">
 						<div>
-							<span class="font-medium">{report.target?.name ?? m.review_reports_target_gone()}</span>
+							<span class="font-medium"
+								>{report.target?.name ?? m.review_reports_target_gone()}</span
+							>
 							<span class="ml-2 text-xs text-muted-foreground">{reasonLabel(report.reason)}</span>
 							{#if report.reviewNote}
 								<p class="text-xs text-muted-foreground italic">"{report.reviewNote}"</p>

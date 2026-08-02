@@ -84,7 +84,9 @@ async function main() {
 			: 'Running in DRY RUN mode. No changes will be made. Pass --apply to commit.'
 	);
 
-	const existingProfiles = await db.developerProfile.findMany({ select: { name: true, slug: true } });
+	const existingProfiles = await db.developerProfile.findMany({
+		select: { name: true, slug: true }
+	});
 	const takenNames = new Set(existingProfiles.map((p) => p.name.toLowerCase()));
 	const takenSlugs = new Set(existingProfiles.map((p) => p.slug));
 
@@ -102,7 +104,9 @@ async function main() {
 		const profileId = crypto.randomUUID();
 		const now = new Date();
 
-		console.log(`  create "${name}" (${slug}) for user ${user.id}${staff ? ' [staff, verified]' : ''}`);
+		console.log(
+			`  create "${name}" (${slug}) for user ${user.id}${staff ? ' [staff, verified]' : ''}`
+		);
 
 		if (APPLY) {
 			await db.developerProfile.create({
@@ -146,7 +150,11 @@ async function main() {
 		db.flatpakApp.update({ where: { id }, data: { developerProfileId } })
 	);
 
-	console.log(APPLY ? '\nDone, changes committed.' : '\nDry run complete, nothing was written. Re-run with --apply to commit.');
+	console.log(
+		APPLY
+			? '\nDone, changes committed.'
+			: '\nDry run complete, nothing was written. Re-run with --apply to commit.'
+	);
 }
 
 main()

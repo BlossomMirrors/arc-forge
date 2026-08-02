@@ -20,10 +20,11 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 				});
 
 	const eligibleProfiles = staff
-		? await db.developerProfile.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
-		: developerProfiles
-				.filter((p) => p.role !== 'member')
-				.map((p) => ({ id: p.id, name: p.name }));
+		? await db.developerProfile.findMany({
+				select: { id: true, name: true },
+				orderBy: { name: 'asc' }
+			})
+		: developerProfiles.filter((p) => p.role !== 'member').map((p) => ({ id: p.id, name: p.name }));
 
 	return {
 		apps,
@@ -42,7 +43,14 @@ export const actions: Actions = {
 
 		const app = await db.flatpakApp.findUnique({ where: { id } });
 		if (!app) return fail(404);
-		if (!(await canDeleteListing(locals.user.id, isStaff(locals.user), app.submittedById, app.developerProfileId))) {
+		if (
+			!(await canDeleteListing(
+				locals.user.id,
+				isStaff(locals.user),
+				app.submittedById,
+				app.developerProfileId
+			))
+		) {
 			throw error(403, 'You can only delete your own submissions');
 		}
 		if (app.status === 'PROCESSING') {

@@ -1,24 +1,22 @@
-FROM oven/bun:latest AS builder
+FROM denoland/deno:latest AS builder
 
 WORKDIR /app
 
-COPY package.json bun.lock* vite.config.ts .svelte-kit/tsconfig.json ./
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential python3 && rm -rf /var/lib/apt/lists/*
 
-RUN bun install --frozen-lockfile
+COPY package.json deno.lock* deno.json* vite.config.ts .svelte-kit/tsconfig.json ./
+
+RUN deno install
 
 COPY . .
 
 ENV NODE_ENV=production
 ENV DATABASE_URL="postgresql://postgres:password@localhost:5432/forge"
-RUN bunx prisma generate
-RUN bun run build
+RUN deno x prisma generate
+RUN deno task build
 
-FROM oven/bun:latest AS runner
+FROM denoland/deno:latest AS runner
 
-
-# git is needed by git-watch.ts (ls-remote polling and manifest detection for
-# git-sourced Flatpak submissions), deliberately run from this container rather
-# than over SSH to the signing host, since it has nothing to do with secrets.
 RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -32,10 +30,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/bun.lock* ./
+COPY --from=builder /app/deno.lock* ./
+COPY --from=builder /app/deno.json* ./
 
-RUN bun install --production --frozen-lockfile
+RUN deno install
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "bunx prisma migrate deploy && bun build/index.js"]
+CMD ["sh", "-c", "deno x prisma migrate deploy && deno run --allow-net build/index.js"]

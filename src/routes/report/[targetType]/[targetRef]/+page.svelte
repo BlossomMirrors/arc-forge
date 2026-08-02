@@ -60,7 +60,8 @@
 				})
 			});
 			if (!res.ok) {
-				errorMessage = res.status === 403 ? m.report_error_verification() : m.report_error_generic();
+				errorMessage =
+					res.status === 403 ? m.report_error_verification() : m.report_error_generic();
 				if (widgetId) window.turnstile?.reset(widgetId);
 				turnstileToken = '';
 				return;

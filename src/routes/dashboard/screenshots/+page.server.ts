@@ -20,10 +20,11 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 				});
 
 	const eligibleProfiles = staff
-		? await db.developerProfile.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
-		: developerProfiles
-				.filter((p) => p.role !== 'member')
-				.map((p) => ({ id: p.id, name: p.name }));
+		? await db.developerProfile.findMany({
+				select: { id: true, name: true },
+				orderBy: { name: 'asc' }
+			})
+		: developerProfiles.filter((p) => p.role !== 'member').map((p) => ({ id: p.id, name: p.name }));
 
 	return {
 		submissions,
@@ -105,7 +106,10 @@ export const actions: Actions = {
 			developerProfileId
 		);
 		if (!profile) {
-			throw error(403, 'You do not have permission to move this screenshot to that developer profile');
+			throw error(
+				403,
+				'You do not have permission to move this screenshot to that developer profile'
+			);
 		}
 
 		await db.screenshotSubmission.update({ where: { id }, data: { developerProfileId } });

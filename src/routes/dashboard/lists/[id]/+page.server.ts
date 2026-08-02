@@ -12,7 +12,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		include: { items: { orderBy: { position: 'asc' } } }
 	});
 	if (!list) throw error(404, 'List not found');
-	if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+	if (
+		!(await canEditListing(
+			locals.user.id,
+			isStaff(locals.user),
+			list.createdById,
+			list.developerProfileId
+		))
+	) {
 		throw error(403, 'You can only edit your own lists');
 	}
 	return { list };
@@ -23,7 +30,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				list.createdById,
+				list.developerProfileId
+			))
+		) {
 			throw error(403);
 		}
 
@@ -52,7 +66,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				list.createdById,
+				list.developerProfileId
+			))
+		) {
 			throw error(403);
 		}
 
@@ -85,7 +106,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				list.createdById,
+				list.developerProfileId
+			))
+		) {
 			throw error(403);
 		}
 
@@ -100,7 +128,14 @@ export const actions: Actions = {
 		if (!locals.user) throw error(401);
 		const list = await db.appList.findUnique({ where: { id: params.id } });
 		if (!list) return fail(404);
-		if (!(await canEditListing(locals.user.id, isStaff(locals.user), list.createdById, list.developerProfileId))) {
+		if (
+			!(await canEditListing(
+				locals.user.id,
+				isStaff(locals.user),
+				list.createdById,
+				list.developerProfileId
+			))
+		) {
 			throw error(403);
 		}
 

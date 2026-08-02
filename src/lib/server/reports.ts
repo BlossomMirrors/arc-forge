@@ -46,7 +46,12 @@ export async function resolveReportTarget(
 		case 'PWA': {
 			const app = await db.pwaApp.findUnique({ where: { id: targetId } });
 			if (!app) return null;
-			return { name: app.name, iconUrl: app.iconUrl, status: app.status, href: `/dashboard/pwas/${app.id}` };
+			return {
+				name: app.name,
+				iconUrl: app.iconUrl,
+				status: app.status,
+				href: `/dashboard/pwas/${app.id}`
+			};
 		}
 		case 'FLATPAK': {
 			const app = await db.flatpakApp.findUnique({ where: { id: targetId } });

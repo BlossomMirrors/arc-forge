@@ -1,0 +1,8 @@
+{
+	"allowScripts": [
+		"npm:@prisma/engines@7.8.0",
+		"npm:cpu-features@0.0.10",
+		"npm:prisma@7.8.0",
+		"npm:ssh2@1.17.0"
+	]
+}
