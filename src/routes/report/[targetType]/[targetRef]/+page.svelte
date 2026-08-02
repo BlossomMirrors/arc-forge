@@ -5,6 +5,7 @@
 	import { FieldGroup, Field, FieldLabel } from '$lib/components/ui/field/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
@@ -19,6 +20,14 @@
 	let turnstileToken = $state('');
 	let turnstileContainer: HTMLDivElement | undefined = $state();
 	let widgetId: string | undefined;
+
+	const reasonLabels: Record<string, () => string> = {
+		malware_security: m.report_reason_malware,
+		impersonation: m.report_reason_impersonation,
+		inappropriate_content: m.report_reason_inappropriate,
+		broken: m.report_reason_broken,
+		other: m.report_reason_other
+	};
 
 	onMount(() => {
 		const script = document.createElement('script');
@@ -93,17 +102,21 @@
 					<FieldGroup>
 						<Field>
 							<FieldLabel for="reason">{m.report_reason_label()}</FieldLabel>
-							<select
-								id="reason"
-								bind:value={reason}
-								class="h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm"
-							>
-								<option value="malware_security">{m.report_reason_malware()}</option>
-								<option value="impersonation">{m.report_reason_impersonation()}</option>
-								<option value="inappropriate_content">{m.report_reason_inappropriate()}</option>
-								<option value="broken">{m.report_reason_broken()}</option>
-								<option value="other">{m.report_reason_other()}</option>
-							</select>
+							<Select.Root type="single" bind:value={reason}>
+								<Select.Trigger id="reason" class="w-full">
+									{reasonLabels[reason]?.()}
+								</Select.Trigger>
+								<Select.Content>
+									<Select.Item value="malware_security" label={m.report_reason_malware()} />
+									<Select.Item value="impersonation" label={m.report_reason_impersonation()} />
+									<Select.Item
+										value="inappropriate_content"
+										label={m.report_reason_inappropriate()}
+									/>
+									<Select.Item value="broken" label={m.report_reason_broken()} />
+									<Select.Item value="other" label={m.report_reason_other()} />
+								</Select.Content>
+							</Select.Root>
 						</Field>
 						<Field>
 							<FieldLabel for="details">{m.report_details_label()}</FieldLabel>

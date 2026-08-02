@@ -168,15 +168,18 @@ async function pollOnce(): Promise<void> {
 		)
 			continue;
 
-    const roles = (await db.user.findUnique({
-      where: { id: app.submittedById ?? undefined },
-      select: { roles: true }
-    }))?.roles ?? [];
-    const isStaff = roles.includes(STAFF_ROLE);
+		const roles =
+			(
+				await db.user.findUnique({
+					where: { id: app.submittedById ?? undefined },
+					select: { roles: true }
+				})
+			)?.roles ?? [];
+		const isStaff = roles.includes(STAFF_ROLE);
 
-    if (isStaff && app.submittedById) {
-      triggerPublish(app.appid, app.submittedById);
-    }
+		if (isStaff && app.submittedById) {
+			triggerPublish(app.appid, app.submittedById);
+		}
 
 		await db.flatpakApp.update({
 			where: { id: app.id },
@@ -187,8 +190,7 @@ async function pollOnce(): Promise<void> {
 				reviewedAt: null,
 				reviewNote: null
 			}
-    });
-
+		});
 
 		await notifyReviewers({
 			type: 'flatpak_pending',

@@ -3,6 +3,7 @@
 	import { Plus, Trash2 } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as m from '$lib/paraglide/messages';
 	import UploadButton from '$lib/components/upload-button.svelte';
 
@@ -48,6 +49,9 @@
 	let widevine = $state(untrack(() => values.widevine ?? false));
 	let tray = $state(untrack(() => values.tray ?? false));
 	let iconUrl = $state(untrack(() => values.iconUrl ?? ''));
+	let developerProfileId = $state(
+		untrack(() => values.developerProfileId ?? developerProfiles[0]?.id ?? '')
+	);
 
 	type TranslationRow = { lang: string; name: string; summary: string; description: string };
 
@@ -145,17 +149,21 @@
 		{:else}
 			<label class="space-y-1.5">
 				<span class="text-sm font-medium">{m.form_developer_profile()}</span>
-				<select
+				<Select.Root
+					type="single"
+					bind:value={developerProfileId}
 					name="developerProfileId"
 					required
-					class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
 				>
-					{#each developerProfiles as profile (profile.id)}
-						<option value={profile.id} selected={profile.id === values.developerProfileId}>
-							{profile.name}
-						</option>
-					{/each}
-				</select>
+					<Select.Trigger class="w-full">
+						{developerProfiles.find((p) => p.id === developerProfileId)?.name}
+					</Select.Trigger>
+					<Select.Content>
+						{#each developerProfiles as profile (profile.id)}
+							<Select.Item value={profile.id} label={profile.name} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
 			</label>
 		{/if}
 		<label class="space-y-1.5">

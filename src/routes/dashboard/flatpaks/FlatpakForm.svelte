@@ -5,6 +5,7 @@
 	import { Wand2, Loader2 } from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { authClient } from '$lib/auth-client';
 	import * as m from '$lib/paraglide/messages';
 	import BundleUploadButton from '$lib/components/bundle-upload-button.svelte';
@@ -107,6 +108,9 @@
 
 	let gitUrl = $state(untrack(() => values.gitUrl ?? ''));
 	let gitBranch = $state(untrack(() => values.gitBranch ?? 'main'));
+	let developerProfileId = $state(
+		untrack(() => values.developerProfileId ?? developerProfiles[0]?.id ?? '')
+	);
 	let gitManifestPath = $state(untrack(() => values.gitManifestPath ?? ''));
 	let detecting = $state(false);
 	let detectError = $state('');
@@ -221,17 +225,16 @@
 	{#if !isStaff}
 		<label class="space-y-1.5">
 			<span class="text-sm font-medium">{m.form_developer_profile()}</span>
-			<select
-				name="developerProfileId"
-				required
-				class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
-			>
-				{#each developerProfiles as profile (profile.id)}
-					<option value={profile.id} selected={profile.id === values.developerProfileId}>
-						{profile.name}
-					</option>
-				{/each}
-			</select>
+			<Select.Root type="single" bind:value={developerProfileId} name="developerProfileId" required>
+				<Select.Trigger class="w-full">
+					{developerProfiles.find((p) => p.id === developerProfileId)?.name}
+				</Select.Trigger>
+				<Select.Content>
+					{#each developerProfiles as profile (profile.id)}
+						<Select.Item value={profile.id} label={profile.name} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		</label>
 	{/if}
 
@@ -401,28 +404,30 @@
 				<div class="grid gap-3 sm:grid-cols-2">
 					<label class="block">
 						<span class="text-sm font-medium">{m.form_git_select_repo()}</span>
-						<select
-							value={selectedGithubRepo}
-							onchange={(e) => selectGithubRepo(e.currentTarget.value)}
-							class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
-						>
-							<option value="">{m.form_git_select_repo_placeholder()}</option>
-							{#each githubRepos as repo (repo.id)}
-								<option value={repo.fullName}>{repo.fullName}</option>
-							{/each}
-						</select>
+						<Select.Root type="single" value={selectedGithubRepo} onValueChange={selectGithubRepo}>
+							<Select.Trigger class="mt-1 w-full">
+								{selectedGithubRepo || m.form_git_select_repo_placeholder()}
+							</Select.Trigger>
+							<Select.Content>
+								{#each githubRepos as repo (repo.id)}
+									<Select.Item value={repo.fullName} label={repo.fullName} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					</label>
 					{#if selectedGithubRepo}
 						<label class="block">
 							<span class="text-sm font-medium">{m.form_git_select_branch()}</span>
-							<select
-								bind:value={gitBranch}
-								class="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-ring"
-							>
-								{#each githubBranches as branch (branch)}
-									<option value={branch}>{branch}</option>
-								{/each}
-							</select>
+							<Select.Root type="single" bind:value={gitBranch}>
+								<Select.Trigger class="mt-1 w-full">
+									{gitBranch}
+								</Select.Trigger>
+								<Select.Content>
+									{#each githubBranches as branch (branch)}
+										<Select.Item value={branch} label={branch} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
 						</label>
 					{/if}
 				</div>

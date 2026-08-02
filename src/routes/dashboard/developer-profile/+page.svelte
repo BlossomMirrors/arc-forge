@@ -16,6 +16,7 @@
 	} from '@lucide/svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import DocumentUploadButton from '$lib/components/document-upload-button.svelte';
 	import * as m from '$lib/paraglide/messages';
 
@@ -26,6 +27,16 @@
 
 	let renamingId: string | null = $state(null);
 	let renameValue = $state('');
+
+	let memberRoles: Record<string, string> = $state({});
+	let memberRoleForms: Record<string, HTMLFormElement> = $state({});
+	let inviteRoles: Record<string, string> = $state({});
+
+	function roleLabel(role: string) {
+		if (role === 'admin') return m.devprofile_role_admin();
+		if (role === 'owner') return m.devprofile_role_owner();
+		return m.devprofile_role_member();
+	}
 
 	function startRename(id: string, currentName: string) {
 		renamingId = id;
@@ -282,21 +293,30 @@
 													action="?/updateMemberRole"
 													use:enhance
 													class="contents"
+													bind:this={memberRoleForms[teamMember.id]}
 												>
 													<input type="hidden" name="developerProfileId" value={profile.id} />
 													<input type="hidden" name="memberId" value={teamMember.id} />
-													<select
+													<Select.Root
+														type="single"
 														name="role"
-														value={teamMember.role}
-														onchange={(e) => e.currentTarget.form?.requestSubmit()}
-														class="h-7 rounded-md border border-input bg-background px-1.5 text-xs"
+														value={memberRoles[teamMember.id] ?? teamMember.role}
+														onValueChange={(value) => {
+															memberRoles[teamMember.id] = value;
+															memberRoleForms[teamMember.id]?.requestSubmit();
+														}}
 													>
-														<option value="member">{m.devprofile_role_member()}</option>
-														<option value="admin">{m.devprofile_role_admin()}</option>
-														{#if isOwner}
-															<option value="owner">{m.devprofile_role_owner()}</option>
-														{/if}
-													</select>
+														<Select.Trigger class="h-7 text-xs" size="sm">
+															{roleLabel(memberRoles[teamMember.id] ?? teamMember.role)}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value="member" label={m.devprofile_role_member()} />
+															<Select.Item value="admin" label={m.devprofile_role_admin()} />
+															{#if isOwner}
+																<Select.Item value="owner" label={m.devprofile_role_owner()} />
+															{/if}
+														</Select.Content>
+													</Select.Root>
 												</form>
 												<form method="POST" action="?/removeMember" use:enhance>
 													<input type="hidden" name="developerProfileId" value={profile.id} />
@@ -333,16 +353,23 @@
 									class="flex-1"
 									required
 								/>
-								<select
+								<Select.Root
+									type="single"
 									name="role"
-									class="h-9 rounded-md border border-input bg-background px-2 text-sm"
+									value={inviteRoles[profile.id] ?? 'member'}
+									onValueChange={(value) => (inviteRoles[profile.id] = value)}
 								>
-									<option value="member">{m.devprofile_role_member()}</option>
-									<option value="admin">{m.devprofile_role_admin()}</option>
-									{#if isOwner}
-										<option value="owner">{m.devprofile_role_owner()}</option>
-									{/if}
-								</select>
+									<Select.Trigger>
+										{roleLabel(inviteRoles[profile.id] ?? 'member')}
+									</Select.Trigger>
+									<Select.Content>
+										<Select.Item value="member" label={m.devprofile_role_member()} />
+										<Select.Item value="admin" label={m.devprofile_role_admin()} />
+										{#if isOwner}
+											<Select.Item value="owner" label={m.devprofile_role_owner()} />
+										{/if}
+									</Select.Content>
+								</Select.Root>
 								<Button type="submit" size="sm">
 									<Plus class="size-4" />
 									{m.devprofile_invite()}

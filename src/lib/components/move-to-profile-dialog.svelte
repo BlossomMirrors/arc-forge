@@ -3,6 +3,7 @@
 	import { FolderInput, Loader2 } from '@lucide/svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as m from '$lib/paraglide/messages';
 
 	let {
@@ -24,6 +25,8 @@
 	let open = $state(false);
 	let submitting = $state(false);
 	let selected = $state('');
+
+	const selectedName = $derived(destinations.find((p) => p.id === selected)?.name);
 </script>
 
 {#if destinations.length > 0}
@@ -52,15 +55,16 @@
 			>
 				<input type="hidden" name="id" value={id} />
 
-				<select
-					bind:value={selected}
-					name="developerProfileId"
-					class="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-				>
-					{#each destinations as profile (profile.id)}
-						<option value={profile.id}>{profile.name}</option>
-					{/each}
-				</select>
+				<Select.Root type="single" bind:value={selected} name="developerProfileId">
+					<Select.Trigger class="w-full">
+						{selectedName}
+					</Select.Trigger>
+					<Select.Content>
+						{#each destinations as profile (profile.id)}
+							<Select.Item value={profile.id} label={profile.name} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
 
 				<Dialog.Footer>
 					<Dialog.Close type="button" class={buttonVariants({ variant: 'ghost' })}

@@ -9,7 +9,9 @@
 		Plus
 	} from '@lucide/svelte';
 	import StatCard from '$lib/components/stat-card.svelte';
-	import LineChart from '$lib/components/line-chart.svelte';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Chart from '$lib/components/ui/chart/index.js';
+	import { AreaChart, LineChart } from 'layerchart';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data } = $props();
@@ -18,6 +20,27 @@
 		data.mySubmissions.pwaTotal > 0 || data.mySubmissions.flatpakTotal > 0
 	);
 	const hasInstalls = $derived(data.myInstalls.some((d) => d.count > 0));
+
+	function formatDay(day: unknown) {
+		return new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			timeZone: 'UTC'
+		});
+	}
+
+	const myInstallsConfig = {
+		count: { label: m.dashboard_installs_heading(), color: 'var(--color-chart-1)' }
+	} satisfies Chart.ChartConfig;
+
+	const reviewThroughputConfig = {
+		approved: { label: m.review_approve(), color: 'var(--color-chart-1)' },
+		rejected: { label: m.review_reject(), color: 'var(--color-destructive)' }
+	} satisfies Chart.ChartConfig;
+
+	const siteInstallsConfig = {
+		count: { label: m.dashboard_total_installs(), color: 'var(--color-chart-1)' }
+	} satisfies Chart.ChartConfig;
 </script>
 
 <svelte:head>
@@ -74,20 +97,31 @@
 			</div>
 
 			{#if hasInstalls}
-				<div class="rounded-lg border border-border p-4">
-					<p class="mb-3 text-sm font-medium">{m.dashboard_installs_heading()}</p>
-					<LineChart
-						area
-						series={[
-							{
-								name: m.dashboard_installs_heading(),
-								color: 'var(--color-chart-1)',
-								values: data.myInstalls.map((d) => d.count)
-							}
-						]}
-						labels={data.myInstalls.map((d) => d.day)}
-					/>
-				</div>
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{m.dashboard_installs_heading()}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<Chart.Container config={myInstallsConfig} class="aspect-auto h-40 w-full">
+							<AreaChart
+								data={data.myInstalls}
+								x="day"
+								series={[
+									{
+										key: 'count',
+										label: myInstallsConfig.count.label,
+										color: myInstallsConfig.count.color
+									}
+								]}
+								props={{ xAxis: { format: formatDay, ticks: 5 } }}
+							>
+								{#snippet tooltip()}
+									<Chart.Tooltip labelFormatter={formatDay} />
+								{/snippet}
+							</AreaChart>
+						</Chart.Container>
+					</Card.Content>
+				</Card.Root>
 			{/if}
 		{/if}
 	</section>
@@ -127,25 +161,37 @@
 				/>
 			</div>
 
-			<div class="rounded-lg border border-border p-4">
-				<p class="mb-3 text-sm font-medium">{m.dashboard_review_throughput_heading()}</p>
-				<LineChart
-					showLegend
-					series={[
-						{
-							name: m.review_approve(),
-							color: 'var(--color-chart-1)',
-							values: data.reviewThroughput.map((d) => d.approved)
-						},
-						{
-							name: m.review_reject(),
-							color: 'var(--color-destructive)',
-							values: data.reviewThroughput.map((d) => d.rejected)
-						}
-					]}
-					labels={data.reviewThroughput.map((d) => d.day)}
-				/>
-			</div>
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>{m.dashboard_review_throughput_heading()}</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<Chart.Container config={reviewThroughputConfig} class="aspect-auto h-40 w-full">
+						<LineChart
+							data={data.reviewThroughput}
+							x="day"
+							legend
+							series={[
+								{
+									key: 'approved',
+									label: reviewThroughputConfig.approved.label,
+									color: reviewThroughputConfig.approved.color
+								},
+								{
+									key: 'rejected',
+									label: reviewThroughputConfig.rejected.label,
+									color: reviewThroughputConfig.rejected.color
+								}
+							]}
+							props={{ xAxis: { format: formatDay, ticks: 5 } }}
+						>
+							{#snippet tooltip()}
+								<Chart.Tooltip labelFormatter={formatDay} />
+							{/snippet}
+						</LineChart>
+					</Chart.Container>
+				</Card.Content>
+			</Card.Root>
 		</section>
 	{/if}
 
@@ -181,20 +227,31 @@
 				/>
 			</div>
 
-			<div class="rounded-lg border border-border p-4">
-				<p class="mb-3 text-sm font-medium">{m.dashboard_site_installs_heading()}</p>
-				<LineChart
-					area
-					series={[
-						{
-							name: m.dashboard_total_installs(),
-							color: 'var(--color-chart-1)',
-							values: data.siteInstalls.map((d) => d.count)
-						}
-					]}
-					labels={data.siteInstalls.map((d) => d.day)}
-				/>
-			</div>
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>{m.dashboard_site_installs_heading()}</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<Chart.Container config={siteInstallsConfig} class="aspect-auto h-40 w-full">
+						<AreaChart
+							data={data.siteInstalls}
+							x="day"
+							series={[
+								{
+									key: 'count',
+									label: siteInstallsConfig.count.label,
+									color: siteInstallsConfig.count.color
+								}
+							]}
+							props={{ xAxis: { format: formatDay, ticks: 5 } }}
+						>
+							{#snippet tooltip()}
+								<Chart.Tooltip labelFormatter={formatDay} />
+							{/snippet}
+						</AreaChart>
+					</Chart.Container>
+				</Card.Content>
+			</Card.Root>
 		</section>
 	{/if}
 </div>
