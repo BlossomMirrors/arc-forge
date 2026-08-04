@@ -133,13 +133,15 @@ const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 let watcherStarted = false;
 
 // Polls every live (APPROVED) git-sourced app for new commits on its tracked
-// branch. A new commit always flips the app back to PENDING and notifies
-// reviewers - staff included, since approving a Flatpak always triggers a real
-// build+publish against production and that always needs an explicit review
-// click (see review/+page.server.ts's approveFlatpak). PENDING/FAILED/REJECTED/
-// PULLED apps are left alone: PENDING is already queued for review, and the
-// others are states a human deliberately put the app into, not something a new
-// commit should silently override.
+// branch. A new commit from a non-staff submitter flips the app back to PENDING
+// and notifies reviewers, since approving a Flatpak triggers a real build+publish
+// against production and that normally needs an explicit review click (see
+// review/+page.server.ts's approveFlatpak). For a staff submitter the new commit
+// instead goes straight to PROCESSING and triggers the build immediately, same as
+// approveFlatpak does, skipping the manual click (staff members can always push
+// crap). PENDING/FAILED/REJECTED/PULLED apps are left alone: PENDING is already
+// queued for review, and the others are states a human deliberately put the app
+// into, not something a new commit should silently override.
 export function startGitWatcher(): void {
 	if (watcherStarted) return;
 	watcherStarted = true;
@@ -178,7 +180,20 @@ async function pollOnce(): Promise<void> {
 		const isStaff = roles.includes(STAFF_ROLE);
 
 		if (isStaff && app.submittedById) {
-			triggerPublish(app.appid, app.submittedById);
+			await db.flatpakApp.update({
+				where: { id: app.id },
+				data: {
+					status: 'PROCESSING',
+					gitLastCommit: head,
+					reviewedById: app.submittedById,
+					reviewedAt: new Date(),
+					reviewNote: null,
+					buildStartedAt: new Date(),
+					buildFinishedAt: null
+				}
+			});
+			triggerPublish(app.id, app.submittedById);
+			continue;
 		}
 
 		await db.flatpakApp.update({
