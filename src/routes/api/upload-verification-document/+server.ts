@@ -1,4 +1,4 @@
-import { uploadFile } from '$lib/server/bunny';
+import { uploadFile } from '$lib/server/r2';
 import { isStaff } from '$lib/server/authz';
 import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
 import type { RequestHandler } from './$types';

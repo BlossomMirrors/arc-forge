@@ -1,5 +1,5 @@
 import { db } from './db';
-import { uploadFile } from './bunny';
+import { uploadFile } from './r2';
 import { extractAppstreamMetadata, iconFileExtension } from './flatpak-publish';
 import { checkRemoteHead, readManifestAppId } from './git-watch';
 import { scanForMalware } from './malware-scan';

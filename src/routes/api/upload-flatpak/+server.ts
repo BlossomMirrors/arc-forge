@@ -1,12 +1,10 @@
-import { uploadFile } from '$lib/server/bunny';
+import { uploadFile } from '$lib/server/r2';
 import { env } from '$env/dynamic/private';
 import { isStaff } from '$lib/server/authz';
 import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
 import type { RequestHandler } from './$types';
 
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024 * 1024; // 2 GiB
-// Bundles are much larger than images; the default FTP timeout in bunny.ts is too short.
-const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 function maxBytes(): number {
 	const configured = Number(env.FLATPAK_MAX_BUNDLE_BYTES);
@@ -17,7 +15,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) return new Response('Unauthorized', { status: 401 });
 	// A submission can't be completed without a developer profile anyway (see
 	// flatpaks/new's action), so don't let a bundle upload happen at all before
-	// that - avoids wasting Bunny storage/bandwidth on uploads no one can submit.
+	// that - avoids wasting R2 storage/bandwidth on uploads no one can submit.
 	if (!isStaff(locals.user) && !(await hasAnyDeveloperProfile(locals.user.id))) {
 		return new Response('You need a developer profile before uploading a Flatpak bundle', {
 			status: 403
@@ -42,6 +40,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const filename = `${crypto.randomUUID()}.flatpak`;
-	const url = await uploadFile(await file.arrayBuffer(), filename, UPLOAD_TIMEOUT_MS);
+	const url = await uploadFile(await file.arrayBuffer(), filename);
 	return Response.json({ url, filename: file.name, size: file.size });
 };

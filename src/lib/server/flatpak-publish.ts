@@ -4,7 +4,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { db } from './db';
 import { decryptSecret } from './secrets';
 import { notifyUser } from './notifications';
-import { uploadFile } from './bunny';
+import { uploadFile } from './r2';
 import type { FlatpakApp, InfraSettings } from '$lib/generated/prisma/client';
 
 export function generateSshKeypair(): { publicKey: string; privateKeyOpenSsh: string } {

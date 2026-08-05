@@ -1,5 +1,5 @@
 import { db } from './db';
-import { CDN_BASE, uploadText } from './bunny';
+import { CDN_BASE, uploadText } from './r2';
 
 export async function fetchCodeField(value: string): Promise<string> {
 	if (!value || !value.startsWith(CDN_BASE)) return value;

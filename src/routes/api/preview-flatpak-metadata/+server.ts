@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types';
 // Create, so they can confirm what Forge actually read out of their bundle instead
 // of finding out only after submitting. Reuses the same extraction the real
 // submission runs (see resolveBundleSubmission), but never uploads the icon to
-// Bunny, a discarded preview shouldn't leave orphaned files in storage.
+// R2, a discarded preview shouldn't leave orphaned files in storage.
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) return new Response('Unauthorized', { status: 401 });
 	if (!isStaff(locals.user) && !(await hasAnyDeveloperProfile(locals.user.id))) {

@@ -22,8 +22,8 @@
 	let error = $state('');
 
 	// Reaching 100% only means the browser finished sending bytes - the server
-	// still has to write the file out to Bunny over FTP, which for a large bundle
-	// can take a while with no further progress events. Without this, the bar sits
+	// still has to write the file out to R2, which for a large bundle can take
+	// a while with no further progress events. Without this, the bar sits
 	// frozen at "100% - 200.0 MB / 200.0 MB" indefinitely and reads as hung.
 	let finishing = $derived(progress >= 100);
 
