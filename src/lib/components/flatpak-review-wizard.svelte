@@ -99,7 +99,7 @@
 
 	const gitCommands = $derived(
 		[
-			`git clone --branch "${app.gitBranch}" --depth 1 "${app.gitUrl}" review-${app.appid}`,
+			`git clone --recurse-submodules --branch "${app.gitBranch}" --depth 1 "${app.gitUrl}" review-${app.appid}`,
 			`cd review-${app.appid}`,
 			`flatpak-builder --user --install --force-clean build-dir "${app.gitManifestPath}"`,
 			`flatpak run ${app.appid}`

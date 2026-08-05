@@ -80,7 +80,7 @@ GIT_URL="${app.gitUrl}"
 GIT_BRANCH="${app.gitBranch}"
 MANIFEST_PATH="${app.gitManifestPath}"
 
-git clone --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
+git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
 git -C src rev-parse HEAD > "${sidecar.commitPath}"
 
 # --disable-rofiles-fuse: FUSE may not be available/permitted on the remote
