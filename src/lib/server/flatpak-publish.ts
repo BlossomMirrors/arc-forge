@@ -110,7 +110,7 @@ if [ -z "$GPG_ID" ]; then
 fi
 gpg --batch --import "${gpgKeyPath}"
 KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
-/usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"`;
+$(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"`;
 }
 
 // Bundles are self-describing: build-import-bundle always imports under the
