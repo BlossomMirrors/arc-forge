@@ -403,10 +403,23 @@ model InfraSettings {
   id                     String   @id @default("singleton")
   sshPublicKey           String?
   sshPrivateKeyEncrypted String?  @db.Text
+  // The actual GPG signing key material, uploaded by an admin rather than ever
+  // generated on (or assumed to already exist on) the remote host - see
+  // buildGpgImportSection in flatpak-publish.ts. Every publish/repair/unpublish
+  // run imports this fresh and unlocks it with gpgPassphraseEncrypted below, so
+  // the remote host's own keyring is disposable: losing it no longer means
+  // losing the signing key itself.
+  gpgPrivateKeyEncrypted String?  @db.Text
   gpgPassphraseEncrypted String?  @db.Text
   remoteHost             String   @default("repo.blossomos.org")
   remoteUser             String   @default("forge")
-  remoteRepoPath         String   @default("/srv/repos/flatpak")
+  // The OSTree repo itself lives in this Cloudflare R2 bucket/path, not on the
+  // remote host's local disk. Every publish/repair/unpublish script mounts it
+  // with rclone (reusing Forge's own R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY env
+  // credentials) for the duration of the run and unmounts it again before
+  // exiting. See buildR2MountSetup in flatpak-publish.ts.
+  r2BucketName           String   @default("blossom-repos")
+  r2RepoPath             String   @default("flatpak")
   // Optional parent dir for the remote build scratch space (WORKDIR in
   // flatpak-publish.ts). Unset means fall back to the remote host's default
   // TMPDIR, which can be too small for a flatpak-builder build. See

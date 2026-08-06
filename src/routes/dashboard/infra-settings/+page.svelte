@@ -177,6 +177,32 @@
 		</div>
 
 		<div class="space-y-3 rounded-lg border border-border p-4">
+			<h3 class="text-sm font-semibold">{m.infra_gpg_key_heading()}</h3>
+			<p class="text-sm text-muted-foreground">
+				{data.hasGpgPrivateKey ? m.infra_gpg_key_set() : m.infra_gpg_key_none()}
+			</p>
+			<form
+				method="POST"
+				action="?/setGpgPrivateKey"
+				use:enhance={({ cancel }) => {
+					if (data.hasGpgPrivateKey && !confirm(m.infra_gpg_key_replace_confirm())) {
+						cancel();
+					}
+				}}
+				class="space-y-2"
+			>
+				<textarea
+					name="privateKey"
+					rows={6}
+					placeholder={m.infra_gpg_key_placeholder()}
+					class="w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-sm placeholder:text-muted-foreground"
+					required
+				></textarea>
+				<Button type="submit" size="sm">{m.infra_gpg_key_save()}</Button>
+			</form>
+		</div>
+
+		<div class="space-y-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold">{m.infra_gpg_heading()}</h3>
 			<p class="text-sm text-muted-foreground">
 				{data.hasGpgPassphrase ? m.infra_gpg_set() : m.infra_gpg_none()}
@@ -205,8 +231,13 @@
 					<Input name="remoteUser" value={data.remoteUser} required />
 				</label>
 				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_remote_path()}</span>
-					<Input name="remoteRepoPath" value={data.remoteRepoPath} required />
+					<span class="text-sm font-medium">{m.infra_r2_bucket()}</span>
+					<Input name="r2BucketName" value={data.r2BucketName} required />
+				</label>
+				<label class="block space-y-1.5">
+					<span class="text-sm font-medium">{m.infra_r2_path()}</span>
+					<Input name="r2RepoPath" value={data.r2RepoPath} required />
+					<span class="text-xs text-muted-foreground">{m.infra_r2_path_hint()}</span>
 				</label>
 				<label class="block space-y-1.5">
 					<span class="text-sm font-medium">{m.infra_build_work_dir()}</span>

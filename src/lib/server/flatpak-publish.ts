@@ -1,6 +1,7 @@
 import { Client } from 'ssh2';
 import sshpk from 'sshpk';
 import { XMLParser } from 'fast-xml-parser';
+import { env } from '$env/dynamic/private';
 import { db } from './db';
 import { decryptSecret } from './secrets';
 import { notifyUser } from './notifications';
@@ -49,6 +50,67 @@ function buildWorkdirSetup(settings: InfraSettings): string {
 	if (!settings.buildWorkDir) return 'WORKDIR=$(mktemp -d)';
 	return `mkdir -p "${settings.buildWorkDir}"
 WORKDIR=$(mktemp -d -p "${settings.buildWorkDir}")`;
+}
+
+// The OSTree repo itself lives in R2, not on the remote host's local disk, so
+// every script that touches $REPO_PATH mounts the admin-configured bucket/path
+// with rclone first and unmounts it again on the way out (see r2UnmountClause,
+// wired into each script's trap). The mount is entirely ephemeral: config is
+// passed as env vars for this one rclone invocation, nothing is ever written to
+// an rclone.conf on the remote host, and R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY
+// are the same credentials Forge's own server already uses for uploads (see
+// r2.ts), just pointed at a different bucket. Must run after $WORKDIR exists,
+// the mountpoint and rclone's own vfs cache both live under it.
+// --vfs-cache-mode writes buffers a file locally until it's closed and then
+// uploads it whole, which is what gives ostree's rename-based object writes the
+// atomicity object storage can't provide on its own; reads of objects already
+// in the bucket still stream straight from R2.
+function buildR2MountSetup(settings: InfraSettings): string {
+	return `MOUNT_DIR="$WORKDIR/r2-repo"
+mkdir -p "$MOUNT_DIR"
+RCLONE_CONFIG_R2REPO_TYPE=s3 \\
+RCLONE_CONFIG_R2REPO_PROVIDER=Cloudflare \\
+RCLONE_CONFIG_R2REPO_ACCESS_KEY_ID="${env.R2_ACCESS_KEY_ID}" \\
+RCLONE_CONFIG_R2REPO_SECRET_ACCESS_KEY="${env.R2_SECRET_ACCESS_KEY}" \\
+RCLONE_CONFIG_R2REPO_ENDPOINT="https://${env.R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com" \\
+rclone mount "r2repo:${settings.r2BucketName}/${settings.r2RepoPath}" "$MOUNT_DIR" \\
+  --daemon --vfs-cache-mode writes --cache-dir="$WORKDIR/rclone-cache"
+
+for i in $(seq 1 30); do
+  mountpoint -q "$MOUNT_DIR" && break
+  sleep 1
+done
+mountpoint -q "$MOUNT_DIR" || { echo "R2 repo mount never became ready" >&2; exit 1; }
+
+REPO_PATH="$MOUNT_DIR"
+`;
+}
+
+// Appended to every trap that calls buildR2MountSetup, and must run before the
+// trap's "rm -rf $WORKDIR" (the mountpoint lives under it) - lazy unmount as a
+// fallback in case something still has a handle open when the script exits.
+function r2UnmountClause(): string {
+	return `[ -n "\${MOUNT_DIR:-}" ] && (fusermount -uz "$MOUNT_DIR" 2>/dev/null || umount "$MOUNT_DIR" 2>/dev/null || true)`;
+}
+
+// Imports the admin-uploaded signing key fresh on every run and resolves its
+// fingerprint straight from the key file itself (via --import-options
+// show-only, which doesn't touch the keyring), rather than by listing
+// whatever secret keys the remote keyring happens to already have. That
+// "just list secret keys and take the first one" approach is what silently
+// signed everything with the wrong key once the remote keyring ever held
+// more than one - see the incident this replaced. Requires $GPG_PASSPHRASE
+// to already be set (each caller reads its own passphrase differently, see
+// buildRemoteScript/buildRepairScript/buildUnpublishScript).
+function buildGpgImportSection(gpgKeyPath: string): string {
+	return `GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${gpgKeyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
+if [ -z "$GPG_ID" ]; then
+  echo "Could not read a fingerprint from the configured GPG signing key" >&2
+  exit 1
+fi
+gpg --batch --import "${gpgKeyPath}"
+KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
+/usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"`;
 }
 
 // Bundles are self-describing: build-import-bundle always imports under the
@@ -144,23 +206,23 @@ function buildRemoteScript(
 	app: FlatpakApp,
 	settings: InfraSettings,
 	passphraseFilePath: string,
+	gpgKeyFilePath: string,
 	sidecar: BuildSidecarPaths
 ): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${passphraseFilePath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${passphraseFilePath}" "${gpgKeyFilePath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 GPG_PASSPHRASE=$(cat "${passphraseFilePath}")
 
-REPO_PATH="${settings.remoteRepoPath}"
 APPID="${app.appid}"
 
-GPG_ID=$(gpg --list-secret-keys --keyid-format LONG | awk '/sec/ {print $2}' | cut -d/ -f2)
-KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
-/usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"
+${buildGpgImportSection(gpgKeyFilePath)}
 
 ${buildWorkdirSetup(settings)}
 cd "$WORKDIR"
+
+${buildR2MountSetup(settings)}
 
 STAGING_REPO="$WORKDIR/staging-repo"
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
@@ -269,18 +331,18 @@ function connect(settings: InfraSettings, privateKey: string): Promise<Client> {
 // Manual, explicitly-triggered repair for when the appstream2/x86_64 branch is
 // already broken/stale, not run automatically as part of routine publishing
 // (see buildRemoteScript's comment for why that caused real corruption once).
-function buildRepairScript(settings: InfraSettings): string {
+function buildRepairScript(settings: InfraSettings, gpgKeyPath: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0"' EXIT
+trap 'rm -f "$0" "${gpgKeyPath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 IFS= read -r GPG_PASSPHRASE
 
-REPO_PATH="${settings.remoteRepoPath}"
+${buildWorkdirSetup(settings)}
 
-GPG_ID=$(gpg --list-secret-keys --keyid-format LONG | awk '/sec/ {print $2}' | cut -d/ -f2)
-KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
-/usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"
+${buildGpgImportSection(gpgKeyPath)}
+
+${buildR2MountSetup(settings)}
 
 ostree refs --repo="$REPO_PATH" appstream2/x86_64 --delete || true
 
@@ -299,26 +361,33 @@ echo "FORGE_REPAIR_OK"
 // writes the given script over SFTP, runs it with the passphrase piped over stdin, and
 // always tears the connection down. Never throws, callers get {ok, log} either way.
 async function runOnRemote(
-	scriptBuilder: (settings: InfraSettings) => string,
+	scriptBuilder: (settings: InfraSettings, gpgKeyPath: string) => string,
 	remotePathPrefix: string
 ): Promise<{ ok: boolean; exitCode: number | null; log: string }> {
 	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
-	if (!settings?.sshPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
+	if (
+		!settings?.sshPrivateKeyEncrypted ||
+		!settings.gpgPrivateKeyEncrypted ||
+		!settings.gpgPassphraseEncrypted
+	) {
 		return {
 			ok: false,
 			exitCode: null,
-			log: 'Infra settings are not fully configured (missing SSH key or GPG passphrase).'
+			log: 'Infra settings are not fully configured (missing SSH key, GPG key, or GPG passphrase).'
 		};
 	}
 
 	let conn: Client | undefined;
 	try {
 		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
 		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const script = scriptBuilder(settings);
 		const remotePath = `${remotePathPrefix}-${Date.now()}.sh`;
+		const gpgKeyPath = `${remotePath}.gpgkey`;
+		const script = scriptBuilder(settings, gpgKeyPath);
 
 		conn = await connect(settings, privateKey);
+		await sftpWriteFile(conn, gpgKeyPath, gpgKey, 0o600);
 		await sftpWriteFile(conn, remotePath, script);
 		const { exitCode, log } = await execScript(conn, remotePath, gpgPassphrase);
 		return { ok: exitCode === 0, exitCode, log };
@@ -654,19 +723,24 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 // Removes a specific app's ref from the repo (if present) and republishes, so the
 // repo's summary/deltas/appstream catalog no longer advertise it. Used both by a
 // reviewer's explicit "pull" and by deleting a Flatpak that's currently live.
-function buildUnpublishScript(app: FlatpakApp, settings: InfraSettings): string {
+function buildUnpublishScript(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	gpgKeyPath: string
+): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0"' EXIT
+trap 'rm -f "$0" "${gpgKeyPath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 IFS= read -r GPG_PASSPHRASE
 
-REPO_PATH="${settings.remoteRepoPath}"
 APPID="${app.appid}"
 
-GPG_ID=$(gpg --list-secret-keys --keyid-format LONG | awk '/sec/ {print $2}' | cut -d/ -f2)
-KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
-/usr/libexec/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"
+${buildWorkdirSetup(settings)}
+
+${buildGpgImportSection(gpgKeyPath)}
+
+${buildR2MountSetup(settings)}
 
 REF=$(ostree refs --repo="$REPO_PATH" | grep "^app/$APPID/" | head -n1)
 if [ -n "$REF" ]; then
@@ -686,7 +760,7 @@ echo "FORGE_UNPUBLISH_OK"
 
 export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; log: string }> {
 	return runOnRemote(
-		(settings) => buildUnpublishScript(app, settings),
+		(settings, gpgKeyPath) => buildUnpublishScript(app, settings, gpgKeyPath),
 		`/tmp/forge-unpublish-${app.id}`
 	);
 }
@@ -741,6 +815,7 @@ interface RemoteBuildPaths extends BuildSidecarPaths {
 	logPath: string;
 	exitPath: string;
 	passphrasePath: string;
+	gpgKeyPath: string;
 	sessionName: string;
 }
 
@@ -765,6 +840,7 @@ function remoteBuildPaths(appId: string): RemoteBuildPaths {
 		logPath,
 		exitPath: `${base}.exit`,
 		passphrasePath: `${base}.pass`,
+		gpgKeyPath: `${base}.gpgkey`,
 		sessionName: `forge-build-${appId}-${Date.now()}`,
 		...sidecarPathsFromLogPath(logPath)
 	};
@@ -785,22 +861,28 @@ async function launchRemoteBuild(
 	settings: InfraSettings,
 	paths: RemoteBuildPaths
 ): Promise<{ ok: boolean; log: string }> {
-	if (!settings.sshPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
+	if (
+		!settings.sshPrivateKeyEncrypted ||
+		!settings.gpgPrivateKeyEncrypted ||
+		!settings.gpgPassphraseEncrypted
+	) {
 		return {
 			ok: false,
-			log: 'Infra settings are not fully configured (missing SSH key or GPG passphrase).'
+			log: 'Infra settings are not fully configured (missing SSH key, GPG key, or GPG passphrase).'
 		};
 	}
 
 	let conn: Client | undefined;
 	try {
 		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
 		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const script = buildRemoteScript(app, settings, paths.passphrasePath, paths);
+		const script = buildRemoteScript(app, settings, paths.passphrasePath, paths.gpgKeyPath, paths);
 
 		conn = await connect(settings, privateKey);
 		await sftpWriteFile(conn, paths.scriptPath, script);
 		await sftpWriteFile(conn, paths.passphrasePath, gpgPassphrase, 0o600);
+		await sftpWriteFile(conn, paths.gpgKeyPath, gpgKey, 0o600);
 
 		const launchCommand = `screen -dmS "${paths.sessionName}" bash -c 'bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"'`;
 		const { exitCode, output } = await execCommand(conn, launchCommand);

@@ -31,10 +31,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 		accessExpiresAt: expiresAt.toISOString(),
 		sshPublicKey: settings?.sshPublicKey ?? null,
 		hasSshKey: !!settings?.sshPrivateKeyEncrypted,
+		hasGpgPrivateKey: !!settings?.gpgPrivateKeyEncrypted,
 		hasGpgPassphrase: !!settings?.gpgPassphraseEncrypted,
 		remoteHost: settings?.remoteHost ?? 'repo.blossomos.org',
 		remoteUser: settings?.remoteUser ?? 'forge',
-		remoteRepoPath: settings?.remoteRepoPath ?? '/srv/repos/flatpak',
+		r2BucketName: settings?.r2BucketName ?? 'blossom-repos',
+		r2RepoPath: settings?.r2RepoPath ?? 'flatpak',
 		buildWorkDir: settings?.buildWorkDir ?? ''
 	};
 };
@@ -84,6 +86,31 @@ export const actions: Actions = {
 		});
 	},
 
+	// Uploads the actual signing key material rather than assuming it already
+	// exists on the remote host's own keyring - see the gpgPrivateKeyEncrypted
+	// comment in schema.prisma for why. Only a loose armor-header sanity check:
+	// real validation happens on the remote host at import time (see
+	// buildGpgImportSection in flatpak-publish.ts), which also derives and uses
+	// the key's actual fingerprint, so nothing here needs to parse OpenPGP.
+	setGpgPrivateKey: async ({ request, locals }) => {
+		requireAdmin(locals.user);
+		if (!locals.session) throw error(401);
+		await requireVerifiedInfraAccess(locals.session.id);
+
+		const data = await request.formData();
+		const privateKey = ((data.get('privateKey') as string) ?? '').trim();
+		if (!privateKey) return fail(400, { error: 'Private key is required' });
+		if (!privateKey.includes('BEGIN PGP PRIVATE KEY BLOCK')) {
+			return fail(400, { error: 'That does not look like an ASCII-armored PGP private key' });
+		}
+
+		await db.infraSettings.upsert({
+			where: { id: 'singleton' },
+			update: { gpgPrivateKeyEncrypted: encryptSecret(privateKey) },
+			create: { id: 'singleton', gpgPrivateKeyEncrypted: encryptSecret(privateKey) }
+		});
+	},
+
 	setGpgPassphrase: async ({ request, locals }) => {
 		requireAdmin(locals.user);
 		if (!locals.session) throw error(401);
@@ -108,17 +135,18 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const remoteHost = ((data.get('remoteHost') as string) ?? '').trim();
 		const remoteUser = ((data.get('remoteUser') as string) ?? '').trim();
-		const remoteRepoPath = ((data.get('remoteRepoPath') as string) ?? '').trim();
+		const r2BucketName = ((data.get('r2BucketName') as string) ?? '').trim();
+		const r2RepoPath = ((data.get('r2RepoPath') as string) ?? '').trim();
 		// Optional: falls back to the remote host's default TMPDIR when unset.
 		const buildWorkDir = ((data.get('buildWorkDir') as string) ?? '').trim() || null;
-		if (!remoteHost || !remoteUser || !remoteRepoPath) {
+		if (!remoteHost || !remoteUser || !r2BucketName || !r2RepoPath) {
 			return fail(400, { error: 'All fields are required' });
 		}
 
 		await db.infraSettings.upsert({
 			where: { id: 'singleton' },
-			update: { remoteHost, remoteUser, remoteRepoPath, buildWorkDir },
-			create: { id: 'singleton', remoteHost, remoteUser, remoteRepoPath, buildWorkDir }
+			update: { remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir },
+			create: { id: 'singleton', remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir }
 		});
 	},
 
