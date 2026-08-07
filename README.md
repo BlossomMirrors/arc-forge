@@ -106,6 +106,12 @@ The GPG signing key itself is uploaded in Infra Settings (paste the ASCII-armore
 2. `docker` (or a compatible CLI) installed and runnable by that account.
 3. The image at `docker/flatpak-builder/Dockerfile` built and made available here under whatever tag `buildDockerImage` is set to (defaults to `registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest`) - see that file's header comment for build/publish instructions. It bundles `flatpak`/`flatpak-builder`/`git`/`ostree` plus the flathub remote, so a submitted manifest's declared SDK/Platform runtime can be fetched inside the container at build time.
 
+The Dockerfile has no `USER` directive, so the container runs as root. Everything `flatpak-builder`/bwrap creates under the bind-mounted `$WORKDIR` therefore comes back root-owned on the build host, which can make bwrap fail mid-build with `Can't find source path .../build-dir/files: Permission denied` and leave the outer script's own cleanup `rm`/`trap` unable to remove its scratch dir under `/var/tmp/forge-builds/`. If that happens, reclaim it manually:
+
+```bash
+sudo chmod -R a+rwX /var/tmp/forge-builds/
+```
+
 This host never receives the GPG signing key, R2 credentials, or SSH access to the signing host - `flatpak-builder` runs arbitrary commands from whatever manifest a GIT submission points at, so keeping it fully separate from anything that can sign or publish is the point.
 
 There's no queue/worker process behind Flatpak publishing, it's a fire-and-forget background task in the same server process. If the app restarts mid-build, the row is left on `PROCESSING` and needs a manual retry from the Review page; this is a deliberate trade-off to avoid adding a full job queue for what's expected to be low-volume.
