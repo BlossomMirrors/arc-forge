@@ -260,16 +260,18 @@ cd "$WORKDIR"
 git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
 git -C src rev-parse HEAD > "${sidecar.commitPath}"
 
-# --cap-add=SYS_ADMIN: flatpak-builder sandboxes each build step with
-# bubblewrap internally, which needs this capability to create its own
-# mount/user namespaces when already running inside a namespaced Docker
-# container - without it every build step fails at the bwrap level before
-# flatpak-builder ever runs a single command from the manifest. Not
-# --privileged: this narrower capability is enough. Identity bind mounts
-# ($WORKDIR and /tmp map to the same path inside the container) so
-# buildContainerScript can share these exact paths with no translation.
+# --privileged: flatpak-builder sandboxes each build step with bubblewrap
+# internally, which needs to create its own mount/user namespaces when
+# already running inside a namespaced Docker container - --cap-add=SYS_ADMIN
+# alone was not enough, bwrap still failed to access the bind-mounted
+# $WORKDIR (SELinux denying the container's context on the host path, not a
+# missing capability). --privileged runs the container SELinux-unconfined,
+# which clears that without having to relabel every mount with :z/:Z.
+# Identity bind mounts ($WORKDIR and /tmp map to the same path inside the
+# container) so buildContainerScript can share these exact paths with no
+# translation.
 docker run --rm \\
-  --cap-add=SYS_ADMIN \\
+  --privileged \\
   -v "$WORKDIR:$WORKDIR" \\
   -v /tmp:/tmp \\
   -w "$WORKDIR" \\
