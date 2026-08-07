@@ -295,36 +295,33 @@ echo "FORGE_BUILD_OK"
 `;
 }
 
-// passphraseFilePath: unlike buildRepairScript/buildUnpublishScript (still piped
-// over exec's stdin, see execScript), this script runs detached inside a `screen`
-// session with no interactive stdin to receive anything - the passphrase has to
-// arrive as a file instead. Deleted via the trap the moment it's read, same
-// self-deleting treatment the script already gives itself.
-//
-// localBundlePath (see buildBundleImportSection) is also cleaned up by the
-// trap when present - it's a file Forge SFTP'd in ahead of time, outside
-// $WORKDIR, same as the passphrase/GPG key files.
-function buildRemoteScript(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	passphraseFilePath: string,
-	gpgKeyFilePath: string,
-	localBundlePath?: string
-): string {
+// Runs *inside* the Docker container launched by buildRemoteScript below,
+// against WORKDIR/REPO_PATH/APPID/GPG_KEY_PATH/GPG_PASSPHRASE_PATH env vars
+// the outer script passes in - same identity-bind-mount convention as
+// buildContainerScript (the build host's own inner script): $WORKDIR (and
+// $REPO_PATH, the outer script's R2 FUSE mountpoint, which lives under
+// $WORKDIR) are the exact same absolute path on both sides. Moved in here
+// (2026-08-07, alongside the build host's own containerization) after a real,
+// reproduced `renameat: Operation not permitted` from `flatpak
+// build-import-bundle` writing into a plain local staging repo directly on
+// the signing host's own filesystem - running the same commands inside a
+// container instead sidesteps whatever the host filesystem's own rename
+// semantics were doing there. GPG import + preset-passphrase happen in here
+// too now rather than on the host, since gpg-agent needs to be reachable for
+// both that step and the later --gpg-sign, and this container's lifetime
+// spans both - see docker/flatpak-signer's baked-in allow-preset-passphrase
+// (was previously a manual one-time host prerequisite, now obsolete: every
+// run gets a fresh disposable keyring/agent from the image, nothing to
+// configure or reload on the host anymore).
+function buildPublishContainerScript(app: FlatpakApp, localBundlePath?: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
-
-GPG_PASSPHRASE=$(cat "${passphraseFilePath}")
-
-APPID="${app.appid}"
-
-${buildGpgImportSection(gpgKeyFilePath)}
-
-${buildWorkdirSetup(settings)}
 cd "$WORKDIR"
 
-${buildR2MountSetup(settings)}
+GPG_PASSPHRASE=$(cat "$GPG_PASSPHRASE_PATH")
+APPID="${app.appid}"
+
+${buildGpgImportSection('$GPG_KEY_PATH')}
 
 STAGING_REPO="$WORKDIR/staging-repo"
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
@@ -349,6 +346,60 @@ flatpak build-update-repo \\
   --generate-static-deltas \\
   --verbose \\
   "$REPO_PATH"
+`;
+}
+
+// passphraseFilePath: unlike buildRepairScript/buildUnpublishScript (still piped
+// over exec's stdin, see execScript), this script runs detached inside a `screen`
+// session with no interactive stdin to receive anything - the passphrase has to
+// arrive as a file instead. Deleted via the trap the moment it's read, same
+// self-deleting treatment the script already gives itself.
+//
+// localBundlePath (see buildBundleImportSection) is also cleaned up by the
+// trap when present - it's a file Forge SFTP'd in ahead of time, outside
+// $WORKDIR, same as the passphrase/GPG key files.
+//
+// The R2/rclone FUSE mount stays host-side deliberately (rclone mount needs
+// real FUSE, and this already works fine - the bug this containerization
+// fixes is specifically the local staging-repo rename, not R2 mounting) and
+// is bind-mounted into the container the same way $WORKDIR is, since
+// $MOUNT_DIR lives under $WORKDIR. `sudo docker run --privileged`: same
+// reasoning as buildDockerBuildScript on the build host - this account's
+// `docker` is rootless Podman, which remaps container root onto an
+// unprivileged subordinate UID no matter what capabilities/--privileged are
+// added, so it can never access a bind-mounted directory it doesn't own.
+// Rootful Podman via sudo makes container root real host root instead,
+// avoiding that whole class of problem. Same image as the build host
+// (settings.buildDockerImage) - one Dockerfile serves both purposes.
+function buildRemoteScript(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	passphraseFilePath: string,
+	gpgKeyFilePath: string,
+	containerScriptPath: string,
+	localBundlePath?: string
+): string {
+	return `#!/usr/bin/env bash
+set -euo pipefail
+trap 'rm -f "$0" "${containerScriptPath}" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+
+${buildWorkdirSetup(settings)}
+cd "$WORKDIR"
+
+${buildR2MountSetup(settings)}
+
+sudo docker run --rm \\
+  --privileged \\
+  -v "$WORKDIR:$WORKDIR" \\
+  -v /tmp:/tmp \\
+  -w "$WORKDIR" \\
+  -e WORKDIR="$WORKDIR" \\
+  -e REPO_PATH="$REPO_PATH" \\
+  -e APPID="${app.appid}" \\
+  -e GPG_KEY_PATH="${gpgKeyFilePath}" \\
+  -e GPG_PASSPHRASE_PATH="${passphraseFilePath}" \\
+  "${settings.buildDockerImage}" \\
+  bash "${containerScriptPath}"
 
 echo "FORGE_PUBLISH_OK"
 `;
@@ -1037,7 +1088,11 @@ async function launchDockerBuild(
 // PUBLISH phase: launches the sign+import+publish script on the signing
 // host. localBundlePath, when set, must already exist on that host (Forge
 // SFTPs it there itself before calling this - see pollBuildOnce's BUILD ->
-// PUBLISH handoff) - this function only writes the script/passphrase/GPG key.
+// PUBLISH handoff) - this function only writes the script/passphrase/GPG
+// key/container script. paths.containerScriptPath is the same field the
+// BUILD phase already uses for its own inner script (see RemoteBuildPaths) -
+// each phase mints a fresh one via remoteBuildPaths, so reusing the field
+// name here never collides with the build host's.
 async function launchSigningPublish(
 	app: FlatpakApp,
 	settings: InfraSettings,
@@ -1047,7 +1102,14 @@ async function launchSigningPublish(
 	paths: RemoteBuildPaths,
 	localBundlePath?: string
 ): Promise<{ ok: boolean; log: string }> {
-	const script = buildRemoteScript(app, settings, paths.passphrasePath, paths.gpgKeyPath, localBundlePath);
+	const script = buildRemoteScript(
+		app,
+		settings,
+		paths.passphrasePath,
+		paths.gpgKeyPath,
+		paths.containerScriptPath,
+		localBundlePath
+	);
 	return launchDetachedScript(
 		signingHostTarget(settings),
 		privateKey,
@@ -1058,7 +1120,12 @@ async function launchSigningPublish(
 		paths.exitPath,
 		[
 			{ path: paths.passphrasePath, contents: gpgPassphrase, mode: 0o600 },
-			{ path: paths.gpgKeyPath, contents: gpgKey, mode: 0o600 }
+			{ path: paths.gpgKeyPath, contents: gpgKey, mode: 0o600 },
+			{
+				path: paths.containerScriptPath,
+				contents: buildPublishContainerScript(app, localBundlePath),
+				mode: 0o700
+			}
 		]
 	);
 }
