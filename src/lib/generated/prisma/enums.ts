@@ -94,3 +94,11 @@ export const FlatpakBuildResult = {
 } as const
 
 export type FlatpakBuildResult = (typeof FlatpakBuildResult)[keyof typeof FlatpakBuildResult]
+
+
+export const FlatpakBuildStage = {
+  BUILD: 'BUILD',
+  PUBLISH: 'PUBLISH'
+} as const
+
+export type FlatpakBuildStage = (typeof FlatpakBuildStage)[keyof typeof FlatpakBuildStage]

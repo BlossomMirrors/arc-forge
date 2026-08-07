@@ -37,7 +37,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 		remoteUser: settings?.remoteUser ?? 'forge',
 		r2BucketName: settings?.r2BucketName ?? 'blossom-repos',
 		r2RepoPath: settings?.r2RepoPath ?? 'flatpak',
-		buildWorkDir: settings?.buildWorkDir ?? ''
+		buildWorkDir: settings?.buildWorkDir ?? '',
+		buildHost: settings?.buildHost ?? '',
+		buildUser: settings?.buildUser ?? 'forge',
+		buildDockerImage: settings?.buildDockerImage ?? 'ghcr.io/blossomos/forge-flatpak-builder:fedora44'
 	};
 };
 
@@ -147,6 +150,31 @@ export const actions: Actions = {
 			where: { id: 'singleton' },
 			update: { remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir },
 			create: { id: 'singleton', remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir }
+		});
+	},
+
+	// Separate from updateRemote above on purpose: this is a genuinely
+	// different host (the isolated Docker build host for GIT submissions, see
+	// flatpak-publish.ts), never the signing host, so it gets its own action
+	// and its own required-fields check rather than being folded into the
+	// same form.
+	updateBuildHost: async ({ request, locals }) => {
+		requireAdmin(locals.user);
+		if (!locals.session) throw error(401);
+		await requireVerifiedInfraAccess(locals.session.id);
+
+		const data = await request.formData();
+		const buildHost = ((data.get('buildHost') as string) ?? '').trim();
+		const buildUser = ((data.get('buildUser') as string) ?? '').trim();
+		const buildDockerImage = ((data.get('buildDockerImage') as string) ?? '').trim();
+		if (!buildHost || !buildUser || !buildDockerImage) {
+			return fail(400, { error: 'All fields are required' });
+		}
+
+		await db.infraSettings.upsert({
+			where: { id: 'singleton' },
+			update: { buildHost, buildUser, buildDockerImage },
+			create: { id: 'singleton', buildHost, buildUser, buildDockerImage }
 		});
 	},
 

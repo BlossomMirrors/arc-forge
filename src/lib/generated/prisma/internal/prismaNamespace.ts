@@ -2410,6 +2410,7 @@ export const FlatpakBuildScalarFieldEnum = {
   status: 'status',
   log: 'log',
   gitCommit: 'gitCommit',
+  stage: 'stage',
   screenSessionName: 'screenSessionName',
   remoteLogPath: 'remoteLogPath',
   remoteExitPath: 'remoteExitPath',
@@ -2432,6 +2433,9 @@ export const InfraSettingsScalarFieldEnum = {
   r2BucketName: 'r2BucketName',
   r2RepoPath: 'r2RepoPath',
   buildWorkDir: 'buildWorkDir',
+  buildHost: 'buildHost',
+  buildUser: 'buildUser',
+  buildDockerImage: 'buildDockerImage',
   updatedAt: 'updatedAt'
 } as const
 
@@ -2763,6 +2767,20 @@ export type EnumFlatpakBuildResultFieldRefInput<$PrismaModel> = FieldRefInputTyp
  * Reference to a field of type 'FlatpakBuildResult[]'
  */
 export type ListEnumFlatpakBuildResultFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FlatpakBuildResult[]'>
+    
+
+
+/**
+ * Reference to a field of type 'FlatpakBuildStage'
+ */
+export type EnumFlatpakBuildStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FlatpakBuildStage'>
+    
+
+
+/**
+ * Reference to a field of type 'FlatpakBuildStage[]'
+ */
+export type ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FlatpakBuildStage[]'>
     
 
 

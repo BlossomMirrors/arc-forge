@@ -30,6 +30,7 @@ export type FlatpakBuildMinAggregateOutputType = {
   status: $Enums.FlatpakBuildResult | null
   log: string | null
   gitCommit: string | null
+  stage: $Enums.FlatpakBuildStage | null
   screenSessionName: string | null
   remoteLogPath: string | null
   remoteExitPath: string | null
@@ -44,6 +45,7 @@ export type FlatpakBuildMaxAggregateOutputType = {
   status: $Enums.FlatpakBuildResult | null
   log: string | null
   gitCommit: string | null
+  stage: $Enums.FlatpakBuildStage | null
   screenSessionName: string | null
   remoteLogPath: string | null
   remoteExitPath: string | null
@@ -58,6 +60,7 @@ export type FlatpakBuildCountAggregateOutputType = {
   status: number
   log: number
   gitCommit: number
+  stage: number
   screenSessionName: number
   remoteLogPath: number
   remoteExitPath: number
@@ -74,6 +77,7 @@ export type FlatpakBuildMinAggregateInputType = {
   status?: true
   log?: true
   gitCommit?: true
+  stage?: true
   screenSessionName?: true
   remoteLogPath?: true
   remoteExitPath?: true
@@ -88,6 +92,7 @@ export type FlatpakBuildMaxAggregateInputType = {
   status?: true
   log?: true
   gitCommit?: true
+  stage?: true
   screenSessionName?: true
   remoteLogPath?: true
   remoteExitPath?: true
@@ -102,6 +107,7 @@ export type FlatpakBuildCountAggregateInputType = {
   status?: true
   log?: true
   gitCommit?: true
+  stage?: true
   screenSessionName?: true
   remoteLogPath?: true
   remoteExitPath?: true
@@ -189,6 +195,7 @@ export type FlatpakBuildGroupByOutputType = {
   status: $Enums.FlatpakBuildResult
   log: string
   gitCommit: string | null
+  stage: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -224,6 +231,7 @@ export type FlatpakBuildWhereInput = {
   status?: Prisma.EnumFlatpakBuildResultFilter<"FlatpakBuild"> | $Enums.FlatpakBuildResult
   log?: Prisma.StringFilter<"FlatpakBuild"> | string
   gitCommit?: Prisma.StringNullableFilter<"FlatpakBuild"> | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFilter<"FlatpakBuild"> | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteLogPath?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteExitPath?: Prisma.StringFilter<"FlatpakBuild"> | string
@@ -240,6 +248,7 @@ export type FlatpakBuildOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   log?: Prisma.SortOrder
   gitCommit?: Prisma.SortOrderInput | Prisma.SortOrder
+  stage?: Prisma.SortOrder
   screenSessionName?: Prisma.SortOrder
   remoteLogPath?: Prisma.SortOrder
   remoteExitPath?: Prisma.SortOrder
@@ -259,6 +268,7 @@ export type FlatpakBuildWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumFlatpakBuildResultFilter<"FlatpakBuild"> | $Enums.FlatpakBuildResult
   log?: Prisma.StringFilter<"FlatpakBuild"> | string
   gitCommit?: Prisma.StringNullableFilter<"FlatpakBuild"> | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFilter<"FlatpakBuild"> | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteLogPath?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteExitPath?: Prisma.StringFilter<"FlatpakBuild"> | string
@@ -275,6 +285,7 @@ export type FlatpakBuildOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   log?: Prisma.SortOrder
   gitCommit?: Prisma.SortOrderInput | Prisma.SortOrder
+  stage?: Prisma.SortOrder
   screenSessionName?: Prisma.SortOrder
   remoteLogPath?: Prisma.SortOrder
   remoteExitPath?: Prisma.SortOrder
@@ -295,6 +306,7 @@ export type FlatpakBuildScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumFlatpakBuildResultWithAggregatesFilter<"FlatpakBuild"> | $Enums.FlatpakBuildResult
   log?: Prisma.StringWithAggregatesFilter<"FlatpakBuild"> | string
   gitCommit?: Prisma.StringNullableWithAggregatesFilter<"FlatpakBuild"> | string | null
+  stage?: Prisma.EnumFlatpakBuildStageWithAggregatesFilter<"FlatpakBuild"> | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringWithAggregatesFilter<"FlatpakBuild"> | string
   remoteLogPath?: Prisma.StringWithAggregatesFilter<"FlatpakBuild"> | string
   remoteExitPath?: Prisma.StringWithAggregatesFilter<"FlatpakBuild"> | string
@@ -308,6 +320,7 @@ export type FlatpakBuildCreateInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -323,6 +336,7 @@ export type FlatpakBuildUncheckedCreateInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -336,6 +350,7 @@ export type FlatpakBuildUpdateInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -351,6 +366,7 @@ export type FlatpakBuildUncheckedUpdateInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -365,6 +381,7 @@ export type FlatpakBuildCreateManyInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -378,6 +395,7 @@ export type FlatpakBuildUpdateManyMutationInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -391,6 +409,7 @@ export type FlatpakBuildUncheckedUpdateManyInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -415,6 +434,7 @@ export type FlatpakBuildCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   log?: Prisma.SortOrder
   gitCommit?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   screenSessionName?: Prisma.SortOrder
   remoteLogPath?: Prisma.SortOrder
   remoteExitPath?: Prisma.SortOrder
@@ -429,6 +449,7 @@ export type FlatpakBuildMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   log?: Prisma.SortOrder
   gitCommit?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   screenSessionName?: Prisma.SortOrder
   remoteLogPath?: Prisma.SortOrder
   remoteExitPath?: Prisma.SortOrder
@@ -443,6 +464,7 @@ export type FlatpakBuildMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   log?: Prisma.SortOrder
   gitCommit?: Prisma.SortOrder
+  stage?: Prisma.SortOrder
   screenSessionName?: Prisma.SortOrder
   remoteLogPath?: Prisma.SortOrder
   remoteExitPath?: Prisma.SortOrder
@@ -539,11 +561,16 @@ export type EnumFlatpakBuildResultFieldUpdateOperationsInput = {
   set?: $Enums.FlatpakBuildResult
 }
 
+export type EnumFlatpakBuildStageFieldUpdateOperationsInput = {
+  set?: $Enums.FlatpakBuildStage
+}
+
 export type FlatpakBuildCreateWithoutTriggeredByInput = {
   id?: string
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -558,6 +585,7 @@ export type FlatpakBuildUncheckedCreateWithoutTriggeredByInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -600,6 +628,7 @@ export type FlatpakBuildScalarWhereInput = {
   status?: Prisma.EnumFlatpakBuildResultFilter<"FlatpakBuild"> | $Enums.FlatpakBuildResult
   log?: Prisma.StringFilter<"FlatpakBuild"> | string
   gitCommit?: Prisma.StringNullableFilter<"FlatpakBuild"> | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFilter<"FlatpakBuild"> | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteLogPath?: Prisma.StringFilter<"FlatpakBuild"> | string
   remoteExitPath?: Prisma.StringFilter<"FlatpakBuild"> | string
@@ -613,6 +642,7 @@ export type FlatpakBuildCreateWithoutFlatpakAppInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -626,6 +656,7 @@ export type FlatpakBuildUncheckedCreateWithoutFlatpakAppInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -666,6 +697,7 @@ export type FlatpakBuildCreateManyTriggeredByInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -678,6 +710,7 @@ export type FlatpakBuildUpdateWithoutTriggeredByInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -692,6 +725,7 @@ export type FlatpakBuildUncheckedUpdateWithoutTriggeredByInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -705,6 +739,7 @@ export type FlatpakBuildUncheckedUpdateManyWithoutTriggeredByInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -717,6 +752,7 @@ export type FlatpakBuildCreateManyFlatpakAppInput = {
   status?: $Enums.FlatpakBuildResult
   log: string
   gitCommit?: string | null
+  stage?: $Enums.FlatpakBuildStage
   screenSessionName: string
   remoteLogPath: string
   remoteExitPath: string
@@ -730,6 +766,7 @@ export type FlatpakBuildUpdateWithoutFlatpakAppInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -743,6 +780,7 @@ export type FlatpakBuildUncheckedUpdateWithoutFlatpakAppInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -756,6 +794,7 @@ export type FlatpakBuildUncheckedUpdateManyWithoutFlatpakAppInput = {
   status?: Prisma.EnumFlatpakBuildResultFieldUpdateOperationsInput | $Enums.FlatpakBuildResult
   log?: Prisma.StringFieldUpdateOperationsInput | string
   gitCommit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumFlatpakBuildStageFieldUpdateOperationsInput | $Enums.FlatpakBuildStage
   screenSessionName?: Prisma.StringFieldUpdateOperationsInput | string
   remoteLogPath?: Prisma.StringFieldUpdateOperationsInput | string
   remoteExitPath?: Prisma.StringFieldUpdateOperationsInput | string
@@ -772,6 +811,7 @@ export type FlatpakBuildSelect<ExtArgs extends runtime.Types.Extensions.Internal
   status?: boolean
   log?: boolean
   gitCommit?: boolean
+  stage?: boolean
   screenSessionName?: boolean
   remoteLogPath?: boolean
   remoteExitPath?: boolean
@@ -788,6 +828,7 @@ export type FlatpakBuildSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   status?: boolean
   log?: boolean
   gitCommit?: boolean
+  stage?: boolean
   screenSessionName?: boolean
   remoteLogPath?: boolean
   remoteExitPath?: boolean
@@ -804,6 +845,7 @@ export type FlatpakBuildSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   status?: boolean
   log?: boolean
   gitCommit?: boolean
+  stage?: boolean
   screenSessionName?: boolean
   remoteLogPath?: boolean
   remoteExitPath?: boolean
@@ -820,6 +862,7 @@ export type FlatpakBuildSelectScalar = {
   status?: boolean
   log?: boolean
   gitCommit?: boolean
+  stage?: boolean
   screenSessionName?: boolean
   remoteLogPath?: boolean
   remoteExitPath?: boolean
@@ -828,7 +871,7 @@ export type FlatpakBuildSelectScalar = {
   finishedAt?: boolean
 }
 
-export type FlatpakBuildOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "flatpakAppId" | "status" | "log" | "gitCommit" | "screenSessionName" | "remoteLogPath" | "remoteExitPath" | "triggeredById" | "startedAt" | "finishedAt", ExtArgs["result"]["flatpakBuild"]>
+export type FlatpakBuildOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "flatpakAppId" | "status" | "log" | "gitCommit" | "stage" | "screenSessionName" | "remoteLogPath" | "remoteExitPath" | "triggeredById" | "startedAt" | "finishedAt", ExtArgs["result"]["flatpakBuild"]>
 export type FlatpakBuildInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   flatpakApp?: boolean | Prisma.FlatpakAppDefaultArgs<ExtArgs>
   triggeredBy?: boolean | Prisma.FlatpakBuild$triggeredByArgs<ExtArgs>
@@ -854,6 +897,7 @@ export type $FlatpakBuildPayload<ExtArgs extends runtime.Types.Extensions.Intern
     status: $Enums.FlatpakBuildResult
     log: string
     gitCommit: string | null
+    stage: $Enums.FlatpakBuildStage
     screenSessionName: string
     remoteLogPath: string
     remoteExitPath: string
@@ -1290,6 +1334,7 @@ export interface FlatpakBuildFieldRefs {
   readonly status: Prisma.FieldRef<"FlatpakBuild", 'FlatpakBuildResult'>
   readonly log: Prisma.FieldRef<"FlatpakBuild", 'String'>
   readonly gitCommit: Prisma.FieldRef<"FlatpakBuild", 'String'>
+  readonly stage: Prisma.FieldRef<"FlatpakBuild", 'FlatpakBuildStage'>
   readonly screenSessionName: Prisma.FieldRef<"FlatpakBuild", 'String'>
   readonly remoteLogPath: Prisma.FieldRef<"FlatpakBuild", 'String'>
   readonly remoteExitPath: Prisma.FieldRef<"FlatpakBuild", 'String'>

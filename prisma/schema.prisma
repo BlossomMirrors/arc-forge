@@ -324,6 +324,17 @@ enum FlatpakBuildResult {
   FAILED
 }
 
+// Which host a FlatpakBuild row's screenSessionName/remoteLogPath/remoteExitPath
+// currently refer to. GIT-sourced builds start at BUILD (the Docker build host,
+// no secrets involved) and get flipped in place to PUBLISH (the signing host)
+// once flatpak-builder produces a bundle - see pollBuildOnce in
+// flatpak-publish.ts. BUNDLE-sourced builds skip BUILD entirely, defaulting
+// straight to PUBLISH.
+enum FlatpakBuildStage {
+  BUILD
+  PUBLISH
+}
+
 model FlatpakApp {
   id                 String            @id @default(cuid())
   appid              String            @unique
@@ -381,11 +392,18 @@ model FlatpakBuild {
   flatpakApp        FlatpakApp         @relation(fields: [flatpakAppId], references: [id], onDelete: Cascade)
   status            FlatpakBuildResult @default(PROCESSING)
   log               String             @db.Text
+  // Set as soon as it's known (BUILD-phase handoff for GIT, unused for BUNDLE)
+  // rather than only at final finalize, since a GIT build's PUBLISH-phase
+  // script no longer has a git checkout of its own to read this back from.
   gitCommit         String?
+  // Which host screenSessionName/remoteLogPath/remoteExitPath below currently
+  // point at - see the FlatpakBuildStage enum doc above.
+  stage             FlatpakBuildStage  @default(PUBLISH)
   // Remote screen session name plus the log/exit-marker file paths it writes to -
   // the poller in flatpak-publish.ts uses these to find and tail an in-progress
   // build over a fresh SSH connection each tick, independent of the connection
-  // that launched it.
+  // that launched it. Reused in place for the PUBLISH phase after a BUILD
+  // phase completes (see pollBuildOnce), rather than a second row.
   screenSessionName String
   remoteLogPath     String
   remoteExitPath    String
@@ -425,6 +443,19 @@ model InfraSettings {
   // TMPDIR, which can be too small for a flatpak-builder build. See
   // buildRemoteScript for how this is used.
   buildWorkDir           String?
+  // Dedicated host for GIT-sourced Flatpak builds (see buildDockerBuildScript
+  // in flatpak-publish.ts) - deliberately separate from remoteHost/remoteUser
+  // above, since flatpak-builder runs arbitrary commands from a submitted
+  // manifest and this host never receives the GPG signing key or R2/repo
+  // credentials. Nullable: GIT builds fail with a clear config-missing error
+  // until an admin sets this, everything else (BUNDLE publish, repair,
+  // unpublish, appstream extraction) is unaffected by it being unset.
+  buildHost              String?
+  buildUser              String   @default("forge")
+  // Admin-overridable so a retag or private registry doesn't need a code
+  // change. Must have flatpak/flatpak-builder/git/ostree plus the flathub
+  // remote pre-added - see docker/flatpak-builder/Dockerfile.
+  buildDockerImage       String   @default("ghcr.io/blossomos/forge-flatpak-builder:fedora44")
   updatedAt              DateTime @updatedAt
 }
 

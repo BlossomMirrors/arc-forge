@@ -35,6 +35,9 @@ export type InfraSettingsMinAggregateOutputType = {
   r2BucketName: string | null
   r2RepoPath: string | null
   buildWorkDir: string | null
+  buildHost: string | null
+  buildUser: string | null
+  buildDockerImage: string | null
   updatedAt: Date | null
 }
 
@@ -49,6 +52,9 @@ export type InfraSettingsMaxAggregateOutputType = {
   r2BucketName: string | null
   r2RepoPath: string | null
   buildWorkDir: string | null
+  buildHost: string | null
+  buildUser: string | null
+  buildDockerImage: string | null
   updatedAt: Date | null
 }
 
@@ -63,6 +69,9 @@ export type InfraSettingsCountAggregateOutputType = {
   r2BucketName: number
   r2RepoPath: number
   buildWorkDir: number
+  buildHost: number
+  buildUser: number
+  buildDockerImage: number
   updatedAt: number
   _all: number
 }
@@ -79,6 +88,9 @@ export type InfraSettingsMinAggregateInputType = {
   r2BucketName?: true
   r2RepoPath?: true
   buildWorkDir?: true
+  buildHost?: true
+  buildUser?: true
+  buildDockerImage?: true
   updatedAt?: true
 }
 
@@ -93,6 +105,9 @@ export type InfraSettingsMaxAggregateInputType = {
   r2BucketName?: true
   r2RepoPath?: true
   buildWorkDir?: true
+  buildHost?: true
+  buildUser?: true
+  buildDockerImage?: true
   updatedAt?: true
 }
 
@@ -107,6 +122,9 @@ export type InfraSettingsCountAggregateInputType = {
   r2BucketName?: true
   r2RepoPath?: true
   buildWorkDir?: true
+  buildHost?: true
+  buildUser?: true
+  buildDockerImage?: true
   updatedAt?: true
   _all?: true
 }
@@ -194,6 +212,9 @@ export type InfraSettingsGroupByOutputType = {
   r2BucketName: string
   r2RepoPath: string
   buildWorkDir: string | null
+  buildHost: string | null
+  buildUser: string
+  buildDockerImage: string
   updatedAt: Date
   _count: InfraSettingsCountAggregateOutputType | null
   _min: InfraSettingsMinAggregateOutputType | null
@@ -229,6 +250,9 @@ export type InfraSettingsWhereInput = {
   r2BucketName?: Prisma.StringFilter<"InfraSettings"> | string
   r2RepoPath?: Prisma.StringFilter<"InfraSettings"> | string
   buildWorkDir?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
+  buildHost?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
+  buildUser?: Prisma.StringFilter<"InfraSettings"> | string
+  buildDockerImage?: Prisma.StringFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"InfraSettings"> | Date | string
 }
 
@@ -243,6 +267,9 @@ export type InfraSettingsOrderByWithRelationInput = {
   r2BucketName?: Prisma.SortOrder
   r2RepoPath?: Prisma.SortOrder
   buildWorkDir?: Prisma.SortOrderInput | Prisma.SortOrder
+  buildHost?: Prisma.SortOrderInput | Prisma.SortOrder
+  buildUser?: Prisma.SortOrder
+  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -260,6 +287,9 @@ export type InfraSettingsWhereUniqueInput = Prisma.AtLeast<{
   r2BucketName?: Prisma.StringFilter<"InfraSettings"> | string
   r2RepoPath?: Prisma.StringFilter<"InfraSettings"> | string
   buildWorkDir?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
+  buildHost?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
+  buildUser?: Prisma.StringFilter<"InfraSettings"> | string
+  buildDockerImage?: Prisma.StringFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"InfraSettings"> | Date | string
 }, "id">
 
@@ -274,6 +304,9 @@ export type InfraSettingsOrderByWithAggregationInput = {
   r2BucketName?: Prisma.SortOrder
   r2RepoPath?: Prisma.SortOrder
   buildWorkDir?: Prisma.SortOrderInput | Prisma.SortOrder
+  buildHost?: Prisma.SortOrderInput | Prisma.SortOrder
+  buildUser?: Prisma.SortOrder
+  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InfraSettingsCountOrderByAggregateInput
   _max?: Prisma.InfraSettingsMaxOrderByAggregateInput
@@ -294,6 +327,9 @@ export type InfraSettingsScalarWhereWithAggregatesInput = {
   r2BucketName?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
   r2RepoPath?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
   buildWorkDir?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
+  buildHost?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
+  buildUser?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
+  buildDockerImage?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"InfraSettings"> | Date | string
 }
 
@@ -308,6 +344,9 @@ export type InfraSettingsCreateInput = {
   r2BucketName?: string
   r2RepoPath?: string
   buildWorkDir?: string | null
+  buildHost?: string | null
+  buildUser?: string
+  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
@@ -322,6 +361,9 @@ export type InfraSettingsUncheckedCreateInput = {
   r2BucketName?: string
   r2RepoPath?: string
   buildWorkDir?: string | null
+  buildHost?: string | null
+  buildUser?: string
+  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
@@ -336,6 +378,9 @@ export type InfraSettingsUpdateInput = {
   r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
   r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
   buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
+  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -350,6 +395,9 @@ export type InfraSettingsUncheckedUpdateInput = {
   r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
   r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
   buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
+  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -364,6 +412,9 @@ export type InfraSettingsCreateManyInput = {
   r2BucketName?: string
   r2RepoPath?: string
   buildWorkDir?: string | null
+  buildHost?: string | null
+  buildUser?: string
+  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
@@ -378,6 +429,9 @@ export type InfraSettingsUpdateManyMutationInput = {
   r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
   r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
   buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
+  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -392,6 +446,9 @@ export type InfraSettingsUncheckedUpdateManyInput = {
   r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
   r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
   buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
+  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -406,6 +463,9 @@ export type InfraSettingsCountOrderByAggregateInput = {
   r2BucketName?: Prisma.SortOrder
   r2RepoPath?: Prisma.SortOrder
   buildWorkDir?: Prisma.SortOrder
+  buildHost?: Prisma.SortOrder
+  buildUser?: Prisma.SortOrder
+  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -420,6 +480,9 @@ export type InfraSettingsMaxOrderByAggregateInput = {
   r2BucketName?: Prisma.SortOrder
   r2RepoPath?: Prisma.SortOrder
   buildWorkDir?: Prisma.SortOrder
+  buildHost?: Prisma.SortOrder
+  buildUser?: Prisma.SortOrder
+  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -434,6 +497,9 @@ export type InfraSettingsMinOrderByAggregateInput = {
   r2BucketName?: Prisma.SortOrder
   r2RepoPath?: Prisma.SortOrder
   buildWorkDir?: Prisma.SortOrder
+  buildHost?: Prisma.SortOrder
+  buildUser?: Prisma.SortOrder
+  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -450,6 +516,9 @@ export type InfraSettingsSelect<ExtArgs extends runtime.Types.Extensions.Interna
   r2BucketName?: boolean
   r2RepoPath?: boolean
   buildWorkDir?: boolean
+  buildHost?: boolean
+  buildUser?: boolean
+  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
@@ -464,6 +533,9 @@ export type InfraSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   r2BucketName?: boolean
   r2RepoPath?: boolean
   buildWorkDir?: boolean
+  buildHost?: boolean
+  buildUser?: boolean
+  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
@@ -478,6 +550,9 @@ export type InfraSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   r2BucketName?: boolean
   r2RepoPath?: boolean
   buildWorkDir?: boolean
+  buildHost?: boolean
+  buildUser?: boolean
+  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
@@ -492,10 +567,13 @@ export type InfraSettingsSelectScalar = {
   r2BucketName?: boolean
   r2RepoPath?: boolean
   buildWorkDir?: boolean
+  buildHost?: boolean
+  buildUser?: boolean
+  buildDockerImage?: boolean
   updatedAt?: boolean
 }
 
-export type InfraSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sshPublicKey" | "sshPrivateKeyEncrypted" | "gpgPrivateKeyEncrypted" | "gpgPassphraseEncrypted" | "remoteHost" | "remoteUser" | "r2BucketName" | "r2RepoPath" | "buildWorkDir" | "updatedAt", ExtArgs["result"]["infraSettings"]>
+export type InfraSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sshPublicKey" | "sshPrivateKeyEncrypted" | "gpgPrivateKeyEncrypted" | "gpgPassphraseEncrypted" | "remoteHost" | "remoteUser" | "r2BucketName" | "r2RepoPath" | "buildWorkDir" | "buildHost" | "buildUser" | "buildDockerImage" | "updatedAt", ExtArgs["result"]["infraSettings"]>
 
 export type $InfraSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "InfraSettings"
@@ -511,6 +589,9 @@ export type $InfraSettingsPayload<ExtArgs extends runtime.Types.Extensions.Inter
     r2BucketName: string
     r2RepoPath: string
     buildWorkDir: string | null
+    buildHost: string | null
+    buildUser: string
+    buildDockerImage: string
     updatedAt: Date
   }, ExtArgs["result"]["infraSettings"]>
   composites: {}
@@ -945,6 +1026,9 @@ export interface InfraSettingsFieldRefs {
   readonly r2BucketName: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly r2RepoPath: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly buildWorkDir: Prisma.FieldRef<"InfraSettings", 'String'>
+  readonly buildHost: Prisma.FieldRef<"InfraSettings", 'String'>
+  readonly buildUser: Prisma.FieldRef<"InfraSettings", 'String'>
+  readonly buildDockerImage: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly updatedAt: Prisma.FieldRef<"InfraSettings", 'DateTime'>
 }
     

@@ -115,76 +115,39 @@ $(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase --preset "$KEYGRIP" <<< 
 
 // Bundles are self-describing: build-import-bundle always imports under the
 // bundle's OWN embedded appid/branch, regardless of what this submission
-// declared. Git manifests declare their own app-id the same way. Importing
-// straight into $REPO_PATH and only checking the ref afterward would leave a
-// real, signed commit sitting in the shared repo on a mismatch, nothing ever
-// cleans that up, and every later aggregate appstream2 rebuild sweeps it back
-// in. Staging first (both source types build into $STAGING_REPO) means a
-// mismatch never touches the shared repo at all.
+// declared. Importing straight into $REPO_PATH and only checking the ref
+// afterward would leave a real, signed commit sitting in the shared repo on
+// a mismatch, nothing ever cleans that up, and every later aggregate
+// appstream2 rebuild sweeps it back in. Staging first means a mismatch never
+// touches the shared repo at all.
 //
-// The git commit hash and metainfo/icon base64 are written to their own small
-// sidecar files instead of being echoed inline as markers in the build's
-// stdout/stderr - see pollBuildOnce's LOG_READ_BYTES comment for why: the
-// combined log for a real build (flatpak-builder output, then build-update-repo
-// --generate-static-deltas --verbose) can run well past the bounded tail the
-// poller reads back, silently losing anything embedded in it. A dedicated file
-// per value is read back in full regardless of how big the build's own log gets.
+// GIT-sourced submissions no longer run flatpak-builder here at all - that
+// now happens in isolation on a separate Docker build host (see
+// buildContainerScript/buildDockerBuildScript below), which produces an
+// unsigned bundle and hands it to this same import path via localBundlePath,
+// same as a developer's own direct BUNDLE upload just without the curl. The
+// commit hash and metainfo/icon base64 for GIT submissions are extracted
+// during that build-host step instead (into their own small sidecar files,
+// same reasoning as ever - see pollBuildOnce's LOG_READ_BYTES comment for why
+// these can't just be echoed into the combined log).
 interface BuildSidecarPaths {
 	commitPath: string;
 	metainfoPath: string;
 	iconPath: string;
+	bundlePath: string;
 }
 
-function buildSourceSection(app: FlatpakApp, sidecar: BuildSidecarPaths): string {
-	if (app.sourceType === 'GIT') {
+// localBundlePath is set only when Forge has already SFTP'd a built bundle to
+// this fixed path before launching the script (the GIT case, after the
+// Docker build host finishes) - same fixed-path-outside-$WORKDIR convention
+// already used for gpgKeyFilePath/passphraseFilePath below. Otherwise (a
+// developer's direct BUNDLE upload) this curls app.bundleUrl as before.
+function buildBundleImportSection(app: FlatpakApp, localBundlePath?: string): string {
+	if (localBundlePath) {
 		return `
-GIT_URL="${app.gitUrl}"
-GIT_BRANCH="${app.gitBranch}"
-MANIFEST_PATH="${app.gitManifestPath}"
+BUNDLE_PATH="${localBundlePath}"
 
-git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
-git -C src rev-parse HEAD > "${sidecar.commitPath}"
-
-# --disable-rofiles-fuse: FUSE may not be available/permitted on the remote
-# host, matching the same "don't assume privileged capabilities" lesson as
-# ostree checkout's -U flag elsewhere in this file. --state-dir explicitly
-# inside $WORKDIR avoids flatpak-builder's cache dir landing on a different
-# filesystem than the build/target dirs, which it refuses to do.
-flatpak-builder --gpg-sign="$GPG_ID" --repo="$STAGING_REPO" \\
-  --state-dir="$WORKDIR/.flatpak-builder" --force-clean --disable-rofiles-fuse \\
-  "$WORKDIR/build-dir" "src/$MANIFEST_PATH"
-
-# Unlike a bundle submission (extracted once at upload time, see
-# extractAppstreamMetadata), a git submission has no AppStream data to show in
-# Forge's own UI until a build actually produces it. Read it back out of what
-# was just built, same marker technique as buildExtractScript, so runPublish
-# can update the app's display fields after every successful (re)build.
-GIT_BUILT_REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/$APPID/" | head -n1)
-if [ -n "$GIT_BUILT_REF" ]; then
-  ostree checkout -U --repo="$STAGING_REPO" "$GIT_BUILT_REF" post-build-checkout
-  # Named exactly $APPID, never a bare '*.xml'/'*.png' glob: a git build's tree
-  # isn't just the submitted app, it's also whatever base app/SDK
-  # extension/module the manifest pulled in (e.g. org.winehq.Wine as a base,
-  # or a bundled qemu module), and those ship their own metainfo/icon files
-  # in the exact same directories. An unscoped glob has no guarantee of
-  # landing on the submitted app's own file over one of those.
-  GIT_METAINFO_PATH=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
-  if [ -n "$GIT_METAINFO_PATH" ]; then
-    base64 -w0 "$GIT_METAINFO_PATH" > "${sidecar.metainfoPath}"
-  fi
-  # Sized PNGs first, then scalable/apps as a fallback: some manifests only
-  # ship an svg there (no raster icon at all), and some mistakenly install a
-  # raster png into scalable/apps instead of a proper sized directory.
-  GIT_ICON_PATH=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
-    post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
-    post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
-    post-build-checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
-    post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
-    post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
-  if [ -n "$GIT_ICON_PATH" ]; then
-    base64 -w0 "$GIT_ICON_PATH" > "${sidecar.iconPath}"
-  fi
-fi
+flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" "$BUNDLE_PATH"
 `;
 	}
 
@@ -197,21 +160,151 @@ flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" bundle.flatpak
 `;
 }
 
+// Runs *inside* the Docker container launched by buildDockerBuildScript
+// below, against WORKDIR/APPID/MANIFEST_PATH/METAINFO_PATH/ICON_PATH/
+// BUNDLE_PATH env vars the outer script passes in. The container is started
+// with identity bind mounts (host path == container path for both $WORKDIR
+// and /tmp), so every path here is exactly the same absolute path on both
+// sides - no host/container path translation needed anywhere. Never touches
+// GPG or the shared repo: this only ever produces an UNSIGNED bundle, which
+// buildBundleImportSection above imports and signs on the signing host
+// afterward. This is deliberately almost identical to the old GIT branch of
+// the old single-host GIT build path (see git history), just relocated into the container
+// and ending in `flatpak build-bundle` instead of `pull-local` into a shared
+// repo - preserve the appid-scoped extraction exactly, it's already been
+// fixed through several real production bugs (see flatpak_publish_pipeline
+// notes: an unscoped glob previously picked up a bundled QEMU module's own
+// qemu.png, or a base Wine app's own name/icon, instead of the submitted
+// app's).
+function buildContainerScript(): string {
+	return `#!/usr/bin/env bash
+set -euo pipefail
+cd "$WORKDIR"
+
+# --disable-rofiles-fuse: FUSE may not be available/permitted in the
+# container, matching the same "don't assume privileged capabilities" lesson
+# as ostree checkout's -U flag elsewhere in this file. --state-dir explicitly
+# under $WORKDIR avoids flatpak-builder's cache dir landing on a different
+# filesystem than the build/target dirs, which it refuses to do.
+flatpak-builder --repo=build-repo --state-dir=.flatpak-builder \\
+  --force-clean --disable-rofiles-fuse --install-deps-from=flathub \\
+  build-dir "src/$MANIFEST_PATH"
+
+REF=$(ostree refs --repo=build-repo | grep "^app/$APPID/" | head -n1 || true)
+if [ -z "$REF" ]; then
+  # Themes/extensions publish as a runtime rather than an app.
+  REF=$(ostree refs --repo=build-repo | grep "^runtime/$APPID/" | head -n1 || true)
+fi
+if [ -z "$REF" ]; then
+  echo "Could not find a matching app or runtime ref for $APPID after building (appid/branch mismatch, or the build didn't produce a ref)" >&2
+  exit 1
+fi
+BRANCH_NAME=$(echo "$REF" | cut -d/ -f4)
+
+BUNDLE_EXTRA_ARGS=()
+case "$REF" in
+  runtime/*) BUNDLE_EXTRA_ARGS+=(--runtime) ;;
+esac
+flatpak build-bundle "\${BUNDLE_EXTRA_ARGS[@]}" build-repo "$BUNDLE_PATH" "$APPID" "$BRANCH_NAME"
+
+ostree checkout -U --repo=build-repo "$REF" post-build-checkout
+# Named exactly $APPID, never a bare '*.xml'/'*.png' glob: a git build's tree
+# isn't just the submitted app, it's also whatever base app/SDK
+# extension/module the manifest pulled in (e.g. org.winehq.Wine as a base, or
+# a bundled qemu module), and those ship their own metainfo/icon files in the
+# exact same directories.
+METAINFO_SRC=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
+if [ -n "$METAINFO_SRC" ]; then
+  base64 -w0 "$METAINFO_SRC" > "$METAINFO_PATH"
+fi
+# Sized PNGs first, then scalable/apps as a fallback: some manifests only
+# ship an svg there (no raster icon at all), and some mistakenly install a
+# raster png into scalable/apps instead of a proper sized directory.
+ICON_SRC=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
+  post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
+  post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
+  post-build-checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
+  post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
+  post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
+if [ -n "$ICON_SRC" ]; then
+  base64 -w0 "$ICON_SRC" > "$ICON_PATH"
+fi
+`;
+}
+
+// The outer script that actually runs on the build host (never inside the
+// container) via the same detached `screen -dmS` mechanism the signing
+// host's script already uses - see launchDetachedScript. A real Docker build
+// can run just as long as flatpak-builder always could, so it gets the same
+// survives-a-restart treatment. Never imports the GPG key or mounts the R2
+// repo: this host only ever produces an unsigned bundle, nothing here needs
+// signing-host credentials.
+function buildDockerBuildScript(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	sidecar: BuildSidecarPaths,
+	containerScriptPath: string
+): string {
+	return `#!/usr/bin/env bash
+set -euo pipefail
+trap 'rm -f "$0" "${containerScriptPath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+
+APPID="${app.appid}"
+GIT_URL="${app.gitUrl}"
+GIT_BRANCH="${app.gitBranch}"
+MANIFEST_PATH="${app.gitManifestPath}"
+
+${buildWorkdirSetup(settings)}
+cd "$WORKDIR"
+
+git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
+git -C src rev-parse HEAD > "${sidecar.commitPath}"
+
+# --cap-add=SYS_ADMIN: flatpak-builder sandboxes each build step with
+# bubblewrap internally, which needs this capability to create its own
+# mount/user namespaces when already running inside a namespaced Docker
+# container - without it every build step fails at the bwrap level before
+# flatpak-builder ever runs a single command from the manifest. Not
+# --privileged: this narrower capability is enough. Identity bind mounts
+# ($WORKDIR and /tmp map to the same path inside the container) so
+# buildContainerScript can share these exact paths with no translation.
+docker run --rm \\
+  --cap-add=SYS_ADMIN \\
+  -v "$WORKDIR:$WORKDIR" \\
+  -v /tmp:/tmp \\
+  -w "$WORKDIR" \\
+  -e WORKDIR="$WORKDIR" \\
+  -e APPID="$APPID" \\
+  -e MANIFEST_PATH="$MANIFEST_PATH" \\
+  -e METAINFO_PATH="${sidecar.metainfoPath}" \\
+  -e ICON_PATH="${sidecar.iconPath}" \\
+  -e BUNDLE_PATH="${sidecar.bundlePath}" \\
+  "${settings.buildDockerImage}" \\
+  bash "${containerScriptPath}"
+
+echo "FORGE_BUILD_OK"
+`;
+}
+
 // passphraseFilePath: unlike buildRepairScript/buildUnpublishScript (still piped
 // over exec's stdin, see execScript), this script runs detached inside a `screen`
 // session with no interactive stdin to receive anything - the passphrase has to
 // arrive as a file instead. Deleted via the trap the moment it's read, same
 // self-deleting treatment the script already gives itself.
+//
+// localBundlePath (see buildBundleImportSection) is also cleaned up by the
+// trap when present - it's a file Forge SFTP'd in ahead of time, outside
+// $WORKDIR, same as the passphrase/GPG key files.
 function buildRemoteScript(
 	app: FlatpakApp,
 	settings: InfraSettings,
 	passphraseFilePath: string,
 	gpgKeyFilePath: string,
-	sidecar: BuildSidecarPaths
+	localBundlePath?: string
 ): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${passphraseFilePath}" "${gpgKeyFilePath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 GPG_PASSPHRASE=$(cat "${passphraseFilePath}")
 
@@ -227,7 +320,7 @@ ${buildR2MountSetup(settings)}
 STAGING_REPO="$WORKDIR/staging-repo"
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
 
-${buildSourceSection(app, sidecar)}
+${buildBundleImportSection(app, localBundlePath)}
 
 REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/$APPID/" | head -n1)
 if [ -z "$REF" ]; then
@@ -315,14 +408,26 @@ function execScript(
 	});
 }
 
-function connect(settings: InfraSettings, privateKey: string): Promise<Client> {
+// Parameterized by which host/user to reach rather than always reading
+// settings.remoteHost/remoteUser, so this same helper serves both the
+// signing host and the separate Docker build host (see ConnectTarget).
+interface ConnectTarget {
+	host: string;
+	user: string;
+}
+
+function signingHostTarget(settings: InfraSettings): ConnectTarget {
+	return { host: settings.remoteHost, user: settings.remoteUser };
+}
+
+function connect(target: ConnectTarget, privateKey: string): Promise<Client> {
 	return new Promise((resolve, reject) => {
 		const conn = new Client();
 		conn.on('ready', () => resolve(conn));
 		conn.on('error', reject);
 		conn.connect({
-			host: settings.remoteHost,
-			username: settings.remoteUser,
+			host: target.host,
+			username: target.user,
 			privateKey
 		});
 	});
@@ -386,7 +491,7 @@ async function runOnRemote(
 		const gpgKeyPath = `${remotePath}.gpgkey`;
 		const script = scriptBuilder(settings, gpgKeyPath);
 
-		conn = await connect(settings, privateKey);
+		conn = await connect(signingHostTarget(settings), privateKey);
 		await sftpWriteFile(conn, gpgKeyPath, gpgKey, 0o600);
 		await sftpWriteFile(conn, remotePath, script);
 		const { exitCode, log } = await execScript(conn, remotePath, gpgPassphrase);
@@ -768,8 +873,9 @@ export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; 
 // Only relevant for GIT-sourced apps: a bundle submission already extracted its
 // display data once at upload time (see extractAppstreamMetadata), but a git
 // submission has nothing to show until a build actually produces AppStream data,
-// so it's re-read from the sidecar files a successful (re)build wrote (see
-// buildSourceSection's GIT branch and BuildSidecarPaths) instead.
+// so it's re-read from the sidecar files a successful BUILD-phase run wrote
+// (see buildContainerScript and BuildSidecarPaths) instead, at the BUILD ->
+// PUBLISH handoff in pollBuildOnce.
 async function updateDisplayDataFromSidecars(
 	metainfoB64: string,
 	iconB64: string
@@ -812,6 +918,7 @@ const POLL_INTERVAL_MS = 7_000;
 
 interface RemoteBuildPaths extends BuildSidecarPaths {
 	scriptPath: string;
+	containerScriptPath: string;
 	logPath: string;
 	exitPath: string;
 	passphrasePath: string;
@@ -828,15 +935,20 @@ function sidecarPathsFromLogPath(logPath: string): BuildSidecarPaths {
 	return {
 		commitPath: `${base}.commit`,
 		metainfoPath: `${base}.metainfo.b64`,
-		iconPath: `${base}.icon.b64`
+		iconPath: `${base}.icon.b64`,
+		bundlePath: `${base}.flatpak`
 	};
 }
 
+// Called once per phase (BUILD and, for GIT apps, again for the PUBLISH
+// handoff) - each call mints a fresh timestamp-suffixed base, so reusing it
+// for a second phase on a different host never collides with the first.
 function remoteBuildPaths(appId: string): RemoteBuildPaths {
 	const base = `/tmp/forge-publish-${appId}-${Date.now()}`;
 	const logPath = `${base}.log`;
 	return {
 		scriptPath: `${base}.sh`,
+		containerScriptPath: `${base}.container.sh`,
 		logPath,
 		exitPath: `${base}.exit`,
 		passphrasePath: `${base}.pass`,
@@ -846,45 +958,37 @@ function remoteBuildPaths(appId: string): RemoteBuildPaths {
 	};
 }
 
-// Writes the build script + a short-lived passphrase file, then launches the
-// script detached inside a `screen` session and returns as soon as that launch
-// itself completes (near-instant, `-dm` never attaches). The build keeps
-// running on the remote host independent of this SSH connection, this Node
-// process, or Forge restarting - see pollBuildOnce for how its outcome is
-// picked back up. Requires `screen` on the remote host (same "assume it's
-// already there" posture as flatpak-builder/gpg/git elsewhere in this file).
-// Note: a remote host with systemd-logind's KillUserProcesses=yes will kill a
-// detached screen session on SSH logout same as any other process - if builds
-// still die on disconnect, `loginctl enable-linger <remoteUser>` is the fix.
-async function launchRemoteBuild(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	paths: RemoteBuildPaths
+// Shared by both the build-host and signing-host launches: writes the given
+// already-built script (plus any extra small files it needs, e.g. a GPG
+// passphrase or the in-container script) and launches it detached inside a
+// `screen` session, returning as soon as that launch itself completes
+// (near-instant, `-dm` never attaches). The script keeps running on its host
+// independent of this SSH connection, this Node process, or Forge restarting
+// - see pollBuildOnce for how its outcome is picked back up. Requires
+// `screen` on the host (same "assume it's already there" posture as
+// flatpak-builder/docker/gpg/git elsewhere in this file). Note: a host with
+// systemd-logind's KillUserProcesses=yes will kill a detached screen session
+// on SSH logout same as any other process - if builds still die on
+// disconnect, `loginctl enable-linger <user>` is the fix.
+async function launchDetachedScript(
+	target: ConnectTarget,
+	privateKey: string,
+	scriptPath: string,
+	script: string,
+	sessionName: string,
+	logPath: string,
+	exitPath: string,
+	extraFiles: { path: string; contents: string; mode?: number }[] = []
 ): Promise<{ ok: boolean; log: string }> {
-	if (
-		!settings.sshPrivateKeyEncrypted ||
-		!settings.gpgPrivateKeyEncrypted ||
-		!settings.gpgPassphraseEncrypted
-	) {
-		return {
-			ok: false,
-			log: 'Infra settings are not fully configured (missing SSH key, GPG key, or GPG passphrase).'
-		};
-	}
-
 	let conn: Client | undefined;
 	try {
-		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
-		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const script = buildRemoteScript(app, settings, paths.passphrasePath, paths.gpgKeyPath, paths);
+		conn = await connect(target, privateKey);
+		await sftpWriteFile(conn, scriptPath, script);
+		for (const f of extraFiles) {
+			await sftpWriteFile(conn, f.path, f.contents, f.mode ?? 0o600);
+		}
 
-		conn = await connect(settings, privateKey);
-		await sftpWriteFile(conn, paths.scriptPath, script);
-		await sftpWriteFile(conn, paths.passphrasePath, gpgPassphrase, 0o600);
-		await sftpWriteFile(conn, paths.gpgKeyPath, gpgKey, 0o600);
-
-		const launchCommand = `screen -dmS "${paths.sessionName}" bash -c 'bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"'`;
+		const launchCommand = `screen -dmS "${sessionName}" bash -c 'bash "${scriptPath}" > "${logPath}" 2>&1; echo $? > "${exitPath}"'`;
 		const { exitCode, output } = await execCommand(conn, launchCommand);
 		if (exitCode !== 0) {
 			return {
@@ -898,6 +1002,56 @@ async function launchRemoteBuild(
 	} finally {
 		conn?.end();
 	}
+}
+
+// BUILD phase: launches the Docker build on settings.buildHost. Caller
+// (launchPublish) has already checked settings.buildHost is configured.
+async function launchDockerBuild(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	privateKey: string,
+	paths: RemoteBuildPaths
+): Promise<{ ok: boolean; log: string }> {
+	const script = buildDockerBuildScript(app, settings, paths, paths.containerScriptPath);
+	return launchDetachedScript(
+		{ host: settings.buildHost!, user: settings.buildUser },
+		privateKey,
+		paths.scriptPath,
+		script,
+		paths.sessionName,
+		paths.logPath,
+		paths.exitPath,
+		[{ path: paths.containerScriptPath, contents: buildContainerScript(), mode: 0o700 }]
+	);
+}
+
+// PUBLISH phase: launches the sign+import+publish script on the signing
+// host. localBundlePath, when set, must already exist on that host (Forge
+// SFTPs it there itself before calling this - see pollBuildOnce's BUILD ->
+// PUBLISH handoff) - this function only writes the script/passphrase/GPG key.
+async function launchSigningPublish(
+	app: FlatpakApp,
+	settings: InfraSettings,
+	privateKey: string,
+	gpgKey: string,
+	gpgPassphrase: string,
+	paths: RemoteBuildPaths,
+	localBundlePath?: string
+): Promise<{ ok: boolean; log: string }> {
+	const script = buildRemoteScript(app, settings, paths.passphrasePath, paths.gpgKeyPath, localBundlePath);
+	return launchDetachedScript(
+		signingHostTarget(settings),
+		privateKey,
+		paths.scriptPath,
+		script,
+		paths.sessionName,
+		paths.logPath,
+		paths.exitPath,
+		[
+			{ path: paths.passphrasePath, contents: gpgPassphrase, mode: 0o600 },
+			{ path: paths.gpgKeyPath, contents: gpgKey, mode: 0o600 }
+		]
+	);
 }
 
 // Builds currently being tracked by the poller below - populated by triggerPublish
@@ -918,6 +1072,33 @@ const activeBuildIds = new Set<string>();
 // backoff/retry helper needed: a blip under one interval self-heals silently,
 // a longer outage self-heals whenever Postgres comes back, and a Forge restart
 // mid-outage is covered by reconcileStuckBuilds re-discovering the same build.
+// Streams a file from one already-open connection straight into another's
+// SFTP session, without buffering the whole thing in this process's memory -
+// used for the BUILD -> PUBLISH bundle handoff below, where a real app's
+// built bundle can be arbitrarily large (same "don't assume it's small"
+// lesson as LOG_READ_BYTES above, just for binary data this time).
+function sftpTransfer(
+	fromConn: Client,
+	fromPath: string,
+	toConn: Client,
+	toPath: string
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		fromConn.sftp((fromErr, fromSftp) => {
+			if (fromErr) return reject(fromErr);
+			toConn.sftp((toErr, toSftp) => {
+				if (toErr) return reject(toErr);
+				const readStream = fromSftp.createReadStream(fromPath);
+				const writeStream = toSftp.createWriteStream(toPath, { mode: 0o600 });
+				readStream.on('error', reject);
+				writeStream.on('error', reject);
+				writeStream.on('close', () => resolve());
+				readStream.pipe(writeStream);
+			});
+		});
+	});
+}
+
 async function pollBuildOnce(buildId: string): Promise<void> {
 	const build = await db.flatpakBuild.findUnique({
 		where: { id: buildId },
@@ -931,22 +1112,33 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
 	if (!settings?.sshPrivateKeyEncrypted) return; // transient config gap, retry next tick
 
+	const onBuildHost = build.stage === 'BUILD';
+	if (onBuildHost && !settings.buildHost) return; // build host got unconfigured mid-flight, retry next tick
+	const target: ConnectTarget = onBuildHost
+		? { host: settings.buildHost!, user: settings.buildUser }
+		: signingHostTarget(settings);
+
 	let conn: Client | undefined;
 	try {
 		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-		conn = await connect(settings, privateKey);
+		conn = await connect(target, privateKey);
 		const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
+		// The BUILD phase also has commit/metainfo/icon sidecars to read back;
+		// the PUBLISH phase's script no longer produces any of those (see
+		// buildRemoteScript), just a log/exit marker.
 		const { output } = await execCommand(
 			conn,
 			`EC=""; [ -f "${build.remoteExitPath}" ] && EC=$(cat "${build.remoteExitPath}"); ` +
 				`echo "$EC"; echo "${POLL_SPLIT_MARKER}"; ` +
 				`tail -c ${LOG_READ_BYTES} "${build.remoteLogPath}" 2>/dev/null || true; ` +
-				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.commitPath}" 2>/dev/null || true; ` +
-				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.metainfoPath}" 2>/dev/null || true; ` +
-				`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.iconPath}" 2>/dev/null || true`
+				(onBuildHost
+					? `echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.commitPath}" 2>/dev/null || true; ` +
+						`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.metainfoPath}" 2>/dev/null || true; ` +
+						`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.iconPath}" 2>/dev/null || true`
+					: '')
 		);
 		const parts = output.split(POLL_SPLIT_MARKER);
-		if (parts.length < 5) return; // unexpected shape, retry next tick
+		if (parts.length < (onBuildHost ? 5 : 2)) return; // unexpected shape, retry next tick
 
 		const exitCodeRaw = parts[0].trim();
 		const log = parts[1].replace(/^\r?\n/, '');
@@ -961,26 +1153,114 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 
 		const ok = exitCodeRaw === '0';
 		const app = build.flatpakApp;
-		// The commit actually built can be later than app.gitLastCommit if more pushes
-		// landed between the watcher flagging this for review and the reviewer
-		// approving it - record what was really built, not just what was detected.
-		// Read from its own sidecar file rather than the (tail-bounded) log itself -
-		// see BuildSidecarPaths for why a large build's real commit marker, echoed
-		// right at the start of the script, can otherwise fall outside that tail.
-		const gitCommit = parts[2].trim();
-		const displayData =
-			ok && app.sourceType === 'GIT'
-				? await updateDisplayDataFromSidecars(parts[3].trim(), parts[4].trim())
-				: {};
 
+		if (onBuildHost) {
+			if (!ok) {
+				await execCommand(
+					conn,
+					`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"`
+				).catch(() => {});
+				activeBuildIds.delete(build.id);
+				await finalizeLaunchFailure(build.id, app, log);
+				return;
+			}
+
+			if (!settings.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
+				await finalizeLaunchFailure(
+					build.id,
+					app,
+					`${log}\n\n[Build succeeded, but the signing host's GPG key/passphrase is not configured - see Infra Settings.]`
+				);
+				return;
+			}
+
+			// The commit actually built can be later than app.gitLastCommit if more
+			// pushes landed between the watcher flagging this for review and the
+			// reviewer approving it - record what was really built, not just what
+			// was detected. Read from its own sidecar file, not the (tail-bounded)
+			// log - see BuildSidecarPaths for why a large build's own commit
+			// marker can otherwise fall outside that tail.
+			const gitCommit = parts[2].trim();
+			const displayData = await updateDisplayDataFromSidecars(parts[3].trim(), parts[4].trim());
+
+			const nextPaths = remoteBuildPaths(app.id);
+			try {
+				let signingConn: Client | undefined;
+				try {
+					signingConn = await connect(signingHostTarget(settings), privateKey);
+					await sftpTransfer(conn, sidecar.bundlePath, signingConn, nextPaths.bundlePath);
+				} finally {
+					signingConn?.end();
+				}
+			} catch (e) {
+				await finalizeLaunchFailure(
+					build.id,
+					app,
+					`${log}\n\n[Failed to transfer the built bundle to the signing host: ${e instanceof Error ? e.message : String(e)}]`
+				);
+				return;
+			}
+
+			await execCommand(
+				conn,
+				`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"`
+			).catch(() => {});
+
+			const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
+			const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
+			const { ok: launchOk, log: launchLog } = await launchSigningPublish(
+				app,
+				settings,
+				privateKey,
+				gpgKey,
+				gpgPassphrase,
+				nextPaths,
+				nextPaths.bundlePath
+			);
+			if (!launchOk) {
+				await finalizeLaunchFailure(build.id, app, `${log}\n\n${launchLog}`);
+				return;
+			}
+
+			try {
+				await db.flatpakBuild.update({
+					where: { id: build.id },
+					data: {
+						stage: 'PUBLISH',
+						gitCommit: gitCommit || undefined,
+						screenSessionName: nextPaths.sessionName,
+						remoteLogPath: nextPaths.logPath,
+						remoteExitPath: nextPaths.exitPath,
+						log: `${log}\n\n[Build finished, handed off to the signing host to sign and publish...]`
+					}
+				});
+				if (Object.keys(displayData).length) {
+					await db.flatpakApp.update({ where: { id: app.id }, data: displayData });
+				}
+			} catch (e) {
+				// Rare transient-DB-write case, same shape as the finalize catch
+				// below - the build keeps running on the signing host regardless,
+				// the next tick will retry recording this handoff. Not perfectly
+				// idempotent (a second attempt would re-launch a second PUBLISH
+				// script), but this is the same accepted rarity as the comment
+				// on this function's finalize step already documents.
+				console.error(`Failed to record BUILD -> PUBLISH handoff for build ${build.id}, will retry next tick:`, e);
+				return;
+			}
+
+			return; // stays in activeBuildIds; next tick polls the PUBLISH phase
+		}
+
+		// PUBLISH phase finalize. For a GIT app this row already got its display
+		// data and gitCommit applied at the BUILD -> PUBLISH handoff above; a
+		// BUNDLE app never had any to begin with (see extractAppstreamMetadata).
 		try {
 			await db.flatpakApp.update({
 				where: { id: app.id },
 				data: {
 					status: ok ? 'APPROVED' : 'FAILED',
 					buildFinishedAt: new Date(),
-					...(ok && app.sourceType === 'GIT' && gitCommit ? { gitLastCommit: gitCommit } : {}),
-					...displayData
+					...(ok && build.gitCommit ? { gitLastCommit: build.gitCommit } : {})
 				}
 			});
 			await db.flatpakBuild.update({
@@ -993,10 +1273,7 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		}
 
 		activeBuildIds.delete(build.id);
-		await execCommand(
-			conn,
-			`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}"`
-		).catch(() => {});
+		await execCommand(conn, `rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"`).catch(() => {});
 
 		if (app.submittedById) {
 			await notifyUser(
@@ -1095,27 +1372,51 @@ export async function abortAllProcessingBuilds(): Promise<{
 	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
 
 	if (settings?.sshPrivateKeyEncrypted) {
-		let conn: Client | undefined;
+		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+		// A stuck build can be sitting on either host depending on its current
+		// stage (see FlatpakBuildStage) - lazily open at most one connection to
+		// each, reused across every app that needs that host.
+		let signingConn: Client | undefined;
+		let buildConn: Client | undefined;
 		try {
-			const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-			conn = await connect(settings, privateKey);
 			for (const app of apps) {
 				const build = app.builds[0];
 				if (!build) continue;
 				const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
-				const { output } = await execCommand(
-					conn,
-					`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
-						`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}"; echo done`
-				);
-				lines.push(`${app.appid}: session kill attempted (${output.trim() || 'done'})`);
+				try {
+					if (build.stage === 'BUILD') {
+						if (!settings.buildHost) {
+							lines.push(`${app.appid}: build host not configured, could not abort remotely`);
+							continue;
+						}
+						buildConn ??= await connect(
+							{ host: settings.buildHost, user: settings.buildUser },
+							privateKey
+						);
+						const { output } = await execCommand(
+							buildConn,
+							`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
+								`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"; echo done`
+						);
+						lines.push(`${app.appid}: session kill attempted on build host (${output.trim() || 'done'})`);
+					} else {
+						signingConn ??= await connect(signingHostTarget(settings), privateKey);
+						const { output } = await execCommand(
+							signingConn,
+							`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
+								`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"; echo done`
+						);
+						lines.push(`${app.appid}: session kill attempted (${output.trim() || 'done'})`);
+					}
+				} catch (e) {
+					lines.push(
+						`${app.appid}: could not reach its host to abort (${e instanceof Error ? e.message : String(e)})`
+					);
+				}
 			}
-		} catch (e) {
-			lines.push(
-				`Could not reach the remote host to abort running sessions: ${e instanceof Error ? e.message : String(e)}`
-			);
 		} finally {
-			conn?.end();
+			signingConn?.end();
+			buildConn?.end();
 		}
 	} else {
 		lines.push('Infra SSH key not configured - skipped aborting remote sessions.');
@@ -1163,8 +1464,9 @@ export async function abortAllProcessingBuilds(): Promise<{
 const triggeringApps = new Set<string>();
 
 // Creates the FlatpakBuild history row, prunes anything past the 10 most recent
-// for this app, then launches the build detached (see launchRemoteBuild) and
-// hands it off to the shared poller. Doesn't await the build itself completing -
+// for this app, then launches the build detached (see launchDockerBuild /
+// launchSigningPublish) and hands it off to the shared poller. Doesn't await
+// the build itself completing -
 // the caller (the review approve/retry action) returns immediately, same as
 // before, but the build's outcome is now tracked durably instead of living only
 // in this async call's own stack.
@@ -1179,11 +1481,15 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 	if (!app) return;
 
 	const paths = remoteBuildPaths(app.id);
+	// GIT submissions start on the Docker build host (no secrets involved);
+	// BUNDLE submissions skip straight to the signing host, same as before.
+	const stage: 'BUILD' | 'PUBLISH' = app.sourceType === 'GIT' ? 'BUILD' : 'PUBLISH';
 	const build = await db.flatpakBuild.create({
 		data: {
 			flatpakAppId: app.id,
 			status: 'PROCESSING',
 			log: '',
+			stage,
 			screenSessionName: paths.sessionName,
 			remoteLogPath: paths.logPath,
 			remoteExitPath: paths.exitPath,
@@ -1206,11 +1512,46 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 		await finalizeLaunchFailure(build.id, app, 'Infra settings are not configured.');
 		return;
 	}
-
-	const { ok, log } = await launchRemoteBuild(app, settings, paths);
-	if (!ok) {
-		await finalizeLaunchFailure(build.id, app, log);
+	if (!settings.sshPrivateKeyEncrypted) {
+		await finalizeLaunchFailure(
+			build.id,
+			app,
+			'Infra settings are not fully configured (missing SSH key).'
+		);
 		return;
+	}
+	const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
+
+	if (stage === 'BUILD') {
+		if (!settings.buildHost) {
+			await finalizeLaunchFailure(
+				build.id,
+				app,
+				'No Docker build host is configured (Infra Settings - Build Host) - GIT-sourced Flatpaks cannot be built.'
+			);
+			return;
+		}
+		const { ok, log } = await launchDockerBuild(app, settings, privateKey, paths);
+		if (!ok) {
+			await finalizeLaunchFailure(build.id, app, log);
+			return;
+		}
+	} else {
+		if (!settings.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
+			await finalizeLaunchFailure(
+				build.id,
+				app,
+				'Infra settings are not fully configured (missing GPG key or GPG passphrase).'
+			);
+			return;
+		}
+		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
+		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
+		const { ok, log } = await launchSigningPublish(app, settings, privateKey, gpgKey, gpgPassphrase, paths);
+		if (!ok) {
+			await finalizeLaunchFailure(build.id, app, log);
+			return;
+		}
 	}
 
 	activeBuildIds.add(build.id);

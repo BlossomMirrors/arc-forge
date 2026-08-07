@@ -253,6 +253,27 @@
 		</div>
 
 		<div class="space-y-3 rounded-lg border border-border p-4">
+			<h3 class="text-sm font-semibold">{m.infra_build_host_heading()}</h3>
+			<p class="text-sm text-muted-foreground">{m.infra_build_host_hint()}</p>
+			<form method="POST" action="?/updateBuildHost" use:enhance class="space-y-3">
+				<label class="block space-y-1.5">
+					<span class="text-sm font-medium">{m.infra_build_host_host()}</span>
+					<Input name="buildHost" value={data.buildHost} required />
+				</label>
+				<label class="block space-y-1.5">
+					<span class="text-sm font-medium">{m.infra_build_host_user()}</span>
+					<Input name="buildUser" value={data.buildUser} required />
+				</label>
+				<label class="block space-y-1.5">
+					<span class="text-sm font-medium">{m.infra_build_host_image()}</span>
+					<Input name="buildDockerImage" value={data.buildDockerImage} required />
+					<span class="text-xs text-muted-foreground">{m.infra_build_host_image_hint()}</span>
+				</label>
+				<Button type="submit" size="sm">{m.infra_build_host_save()}</Button>
+			</form>
+		</div>
+
+		<div class="space-y-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold">{m.infra_repair_heading()}</h3>
 			<p class="text-sm text-muted-foreground">{m.infra_repair_hint()}</p>
 			<form

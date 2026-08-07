@@ -335,6 +335,7 @@ export const FlatpakBuildScalarFieldEnum = {
   status: 'status',
   log: 'log',
   gitCommit: 'gitCommit',
+  stage: 'stage',
   screenSessionName: 'screenSessionName',
   remoteLogPath: 'remoteLogPath',
   remoteExitPath: 'remoteExitPath',
@@ -357,6 +358,9 @@ export const InfraSettingsScalarFieldEnum = {
   r2BucketName: 'r2BucketName',
   r2RepoPath: 'r2RepoPath',
   buildWorkDir: 'buildWorkDir',
+  buildHost: 'buildHost',
+  buildUser: 'buildUser',
+  buildDockerImage: 'buildDockerImage',
   updatedAt: 'updatedAt'
 } as const
 

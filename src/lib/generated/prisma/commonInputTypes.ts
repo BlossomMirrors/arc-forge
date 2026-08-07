@@ -396,6 +396,13 @@ export type EnumFlatpakBuildResultFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel> | $Enums.FlatpakBuildResult
 }
 
+export type EnumFlatpakBuildStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.FlatpakBuildStage | Prisma.EnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  in?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel> | $Enums.FlatpakBuildStage
+}
+
 export type EnumFlatpakBuildResultWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.FlatpakBuildResult | Prisma.EnumFlatpakBuildResultFieldRefInput<$PrismaModel>
   in?: $Enums.FlatpakBuildResult[] | Prisma.ListEnumFlatpakBuildResultFieldRefInput<$PrismaModel>
@@ -404,6 +411,16 @@ export type EnumFlatpakBuildResultWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel>
   _max?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel>
+}
+
+export type EnumFlatpakBuildStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FlatpakBuildStage | Prisma.EnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  in?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFlatpakBuildStageWithAggregatesFilter<$PrismaModel> | $Enums.FlatpakBuildStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -774,6 +791,13 @@ export type NestedEnumFlatpakBuildResultFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel> | $Enums.FlatpakBuildResult
 }
 
+export type NestedEnumFlatpakBuildStageFilter<$PrismaModel = never> = {
+  equals?: $Enums.FlatpakBuildStage | Prisma.EnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  in?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel> | $Enums.FlatpakBuildStage
+}
+
 export type NestedEnumFlatpakBuildResultWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.FlatpakBuildResult | Prisma.EnumFlatpakBuildResultFieldRefInput<$PrismaModel>
   in?: $Enums.FlatpakBuildResult[] | Prisma.ListEnumFlatpakBuildResultFieldRefInput<$PrismaModel>
@@ -782,6 +806,16 @@ export type NestedEnumFlatpakBuildResultWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel>
   _max?: Prisma.NestedEnumFlatpakBuildResultFilter<$PrismaModel>
+}
+
+export type NestedEnumFlatpakBuildStageWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FlatpakBuildStage | Prisma.EnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  in?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FlatpakBuildStage[] | Prisma.ListEnumFlatpakBuildStageFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFlatpakBuildStageWithAggregatesFilter<$PrismaModel> | $Enums.FlatpakBuildStage
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFlatpakBuildStageFilter<$PrismaModel>
 }
 
 
