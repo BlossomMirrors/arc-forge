@@ -357,14 +357,23 @@ echo "FORGE_BUILD_OK"
 // own paths or the container engine's own storage root is NFS (which this
 // specific error is a well-documented symptom of - NFS doesn't support the
 // atomic rename OSTree uses to commit objects), nothing about how a
-// container is invoked was ever going to matter. (3) actual fix: force
+// container is invoked was ever going to matter. (3) tried forcing
 // $STAGING_REPO and /work onto tmpfs specifically, an in-RAM filesystem with
 // real POSIX rename semantics, sidestepping whatever the container engine's
-// default storage backend is doing entirely rather than hoping it isn't NFS.
-// Tmpfs size deliberately left uncapped (defaults to a fraction of host RAM)
-// rather than guessing a limit - an unusually large bundle (see the
-// bundled-QEMU example elsewhere in this file) could need capping this
-// explicitly with --tmpfs /staging-repo:size=... if it ever OOMs.
+// default storage backend is doing entirely rather than hoping it isn't NFS
+// - REPRODUCED THE SAME ERROR on the next real run (2026-08-07), so this was
+// NOT the actual fix, despite being a good theory; see the TEMP DIAGNOSTIC
+// block in buildPublishContainerScript below for the current, evidence-based
+// leading theory (seccomp's default-EPERM behavior on renameat2, checked
+// directly via /proc/self/status rather than trusting --privileged) and
+// what the next real run's log needs to confirm before writing attempt (4).
+// Left the tmpfs mounts in place regardless - they're still strictly better
+// than the alternative even if they didn't fix this on their own, and cost
+// nothing to keep. Tmpfs size deliberately left uncapped (defaults to a
+// fraction of host RAM) rather than guessing a limit - an unusually large
+// bundle (see the bundled-QEMU example elsewhere in this file) could need
+// capping this explicitly with --tmpfs /staging-repo:size=... if it ever
+// OOMs.
 //
 // GPG import + preset-passphrase happen in here too now rather than on the
 // host, since gpg-agent needs to be reachable for both that step and the
@@ -384,7 +393,39 @@ APPID="${app.appid}"
 ${buildGpgImportSection('$GPG_KEY_PATH')}
 
 STAGING_REPO="/staging-repo"
+
+# TEMP DIAGNOSTIC (2026-08-07): the tmpfs move above (see this function's doc
+# comment) reproduced the exact same "renameat: Operation not permitted" on
+# the very next real run, so the tmpfs theory is suspect. The image's own
+# Dockerfile (FROM fedora:44, no USER directive) confirmed this container
+# actually runs as UID 0, ruling out the sticky-tmpfs/non-root theory this
+# block originally logged for. Current leading theory instead: EPERM (not
+# EACCES, not ENOSYS) on a syscall inside a container is the textbook
+# signature of Docker/Podman's default seccomp profile, which returns EPERM
+# for anything outside its allowlist - and OSTree's commit path uses
+# renameat2() (RENAME_NOREPLACE) for atomic object writes, a syscall some
+# seccomp profile versions have had allowlist gaps for. --privileged is
+# documented to disable seccomp filtering entirely, but that's exactly the
+# assumption being checked here rather than trusted - /proc/self/status's
+# Seccomp field is 0 when filtering is truly off and nonzero (2 = filter
+# mode) when it isn't, regardless of what --privileged was supposed to do.
+# The plain-rename smoke test below isolates a blocked-syscall/LSM cause
+# (would fail same as ostree) from something ostree-specific (would pass).
+# Remove this whole block once the next real log confirms/refutes it.
+echo "FORGE_DIAG seccomp=$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null) selinux=$(getenforce 2>/dev/null || echo n/a) uid=$(id -u)" >&2
+mount | grep -E ' /work | /staging-repo ' >&2 || echo "FORGE_DIAG: /staging-repo not yet mounted (created below)" >&2
+
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
+echo "FORGE_DIAG /staging-repo: $(stat -c '%U:%G %a' "$STAGING_REPO" 2>&1) fstype=$(stat -f -c '%T' "$STAGING_REPO" 2>&1)" >&2
+mount | grep -E ' /staging-repo ' >&2 || true
+
+touch "$STAGING_REPO/.forge-diag-test" 2>&1 | sed 's/^/FORGE_DIAG touch: /' >&2 || true
+if mv "$STAGING_REPO/.forge-diag-test" "$STAGING_REPO/.forge-diag-test2" 2>&1; then
+  echo "FORGE_DIAG plain rename on staging-repo: OK" >&2
+else
+  echo "FORGE_DIAG plain rename on staging-repo: FAILED" >&2
+fi
+rm -f "$STAGING_REPO/.forge-diag-test" "$STAGING_REPO/.forge-diag-test2"
 
 ${buildBundleImportSection(app, localBundlePath)}
 
