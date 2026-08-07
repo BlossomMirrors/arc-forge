@@ -93,6 +93,46 @@ function r2UnmountClause(): string {
 	return `[ -n "\${MOUNT_DIR:-}" ] && (fusermount -uz "$MOUNT_DIR" 2>/dev/null || umount "$MOUNT_DIR" 2>/dev/null || true)`;
 }
 
+// Used by buildRemoteScript (PUBLISH phase) ONLY, in place of
+// buildR2MountSetup above - repair/unpublish still use the plain host-side
+// rclone mount, unmigrated for now. Instead of Forge running `rclone mount`
+// itself, this asks the rclone Docker/Podman volume plugin (`rclone serve
+// docker`, registered as a persistent systemd service on this host, socket
+// path listed in /etc/containers/containers.conf's [engine.volume_plugins] -
+// manual one-time host prerequisite, see README, UNVERIFIED against a real
+// Podman install) to create and manage the FUSE mount itself, entirely inside
+// its own daemon/namespace, then hands the container a plain named volume
+// (`-v "$R2_VOLUME:/repo"` in buildRemoteScript) instead of a bind-mounted
+// host path. A fresh, uniquely-named volume per run, destroyed in the trap
+// the moment this script exits - same "credentials only exist for the
+// duration of one run" posture buildR2MountSetup always had, the plugin's own
+// on-disk volume bookkeeping (docker-plugin.state) never holds
+// R2_ACCESS_KEY_ID/SECRET for longer than a single publish. Must run with
+// `sudo docker` (same rootful Podman as everywhere else in this file, and the
+// plugin socket must be registered in ROOT's own containers.conf, not
+// buildUser's/remoteUser's per-user one, or `sudo docker volume create` won't
+// see it).
+function buildR2VolumeSetup(settings: InfraSettings): string {
+	return `R2_VOLUME="forge-r2-$(date +%s)-$$"
+sudo docker volume create --driver rclone \\
+  -o type=s3 \\
+  -o path="${settings.r2BucketName}/${settings.r2RepoPath}" \\
+  -o s3-provider=Cloudflare \\
+  -o s3-access-key-id="${env.R2_ACCESS_KEY_ID}" \\
+  -o s3-secret-access-key="${env.R2_SECRET_ACCESS_KEY}" \\
+  -o s3-endpoint="https://${env.R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com" \\
+  -o vfs-cache-mode=writes \\
+  "$R2_VOLUME"
+`;
+}
+
+// Mirrors r2UnmountClause above but for buildR2VolumeSetup's plugin-backed
+// volume - removing it also tears down the rclone plugin's own FUSE mount for
+// it, nothing left running once this exits.
+function r2VolumeRemoveClause(): string {
+	return `[ -n "\${R2_VOLUME:-}" ] && sudo docker volume rm -f "$R2_VOLUME" 2>/dev/null || true`;
+}
+
 // Imports the admin-uploaded signing key fresh on every run and resolves its
 // fingerprint straight from the key file itself (via --import-options
 // show-only, which doesn't touch the keyring), rather than by listing
@@ -324,7 +364,7 @@ echo "FORGE_BUILD_OK"
 function buildPublishContainerScript(app: FlatpakApp, localBundlePath?: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-cd "$WORKDIR"
+mkdir -p /work && cd /work
 
 GPG_PASSPHRASE=$(cat "$GPG_PASSPHRASE_PATH")
 APPID="${app.appid}"
@@ -364,21 +404,27 @@ flatpak build-update-repo \\
 // self-deleting treatment the script already gives itself.
 //
 // localBundlePath (see buildBundleImportSection) is also cleaned up by the
-// trap when present - it's a file Forge SFTP'd in ahead of time, outside
-// $WORKDIR, same as the passphrase/GPG key files.
+// trap when present - it's a file Forge SFTP'd in ahead of time to a fixed
+// path under /tmp, same as the passphrase/GPG key files.
 //
-// The R2/rclone FUSE mount stays host-side deliberately (rclone mount needs
-// real FUSE, and this already works fine - the bug this containerization
-// fixes is specifically the local staging-repo rename, not R2 mounting) and
-// is bind-mounted into the container the same way $WORKDIR is, since
-// $MOUNT_DIR lives under $WORKDIR. `sudo docker run --privileged`: same
-// reasoning as buildDockerBuildScript on the build host - this account's
-// `docker` is rootless Podman, which remaps container root onto an
-// unprivileged subordinate UID no matter what capabilities/--privileged are
-// added, so it can never access a bind-mounted directory it doesn't own.
-// Rootful Podman via sudo makes container root real host root instead,
-// avoiding that whole class of problem. Same image as the build host
-// (settings.buildDockerImage) - one Dockerfile serves both purposes.
+// R2 is no longer bind-mounted from a host-side `rclone mount` at all - see
+// buildR2VolumeSetup above for why (a bind mount doesn't isolate anything
+// from whatever the host filesystem itself is doing, same lesson the
+// $STAGING_REPO fix above already taught the hard way). Instead the rclone
+// Docker/Podman volume plugin creates+owns the FUSE mount entirely inside its
+// own daemon, and the container just gets a plain named volume
+// (`-v "$R2_VOLUME:/repo"`) - no host path, no bind mount, no identity-mount
+// path-matching to keep in sync between outer/inner scripts. This also means
+// this script has no more use for $WORKDIR at all (nothing it does touches
+// the host filesystem anymore), so unlike buildDockerBuildScript on the build
+// host, there's no workdir setup or bind mount of one here.
+// `sudo docker run --privileged`: same reasoning as buildDockerBuildScript on
+// the build host - this account's `docker` is rootless Podman, which remaps
+// container root onto an unprivileged subordinate UID no matter what
+// capabilities/--privileged are added, so it can never access resources it
+// doesn't own. Rootful Podman via sudo makes container root real host root
+// instead, avoiding that whole class of problem. Same image as the build
+// host (settings.buildDockerImage) - one Dockerfile serves both purposes.
 function buildRemoteScript(
 	app: FlatpakApp,
 	settings: InfraSettings,
@@ -389,20 +435,15 @@ function buildRemoteScript(
 ): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${containerScriptPath}" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${containerScriptPath}" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2VolumeRemoveClause()}' EXIT
 
-${buildWorkdirSetup(settings)}
-cd "$WORKDIR"
-
-${buildR2MountSetup(settings)}
+${buildR2VolumeSetup(settings)}
 
 sudo docker run --rm \\
   --privileged \\
-  -v "$WORKDIR:$WORKDIR" \\
+  -v "$R2_VOLUME:/repo" \\
   -v /tmp:/tmp \\
-  -w "$WORKDIR" \\
-  -e WORKDIR="$WORKDIR" \\
-  -e REPO_PATH="$REPO_PATH" \\
+  -e REPO_PATH=/repo \\
   -e APPID="${app.appid}" \\
   -e GPG_KEY_PATH="${gpgKeyFilePath}" \\
   -e GPG_PASSPHRASE_PATH="${passphraseFilePath}" \\
