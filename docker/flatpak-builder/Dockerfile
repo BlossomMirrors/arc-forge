@@ -9,8 +9,8 @@
 # flatpak-publish.ts - Forge assumes infra like this already exists rather
 # than provisioning it):
 #   - build this image and make it available to the build host, e.g.
-#       docker build -t ghcr.io/blossomos/forge-flatpak-builder:fedora44 .
-#       docker push ghcr.io/blossomos/forge-flatpak-builder:fedora44
+#       docker build -t registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest .
+#       docker push registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest
 #     or `docker save`/`docker load` it directly onto the host for a
 #     registry-less setup.
 #   - `docker` itself (or a compatible CLI) must already be installed and

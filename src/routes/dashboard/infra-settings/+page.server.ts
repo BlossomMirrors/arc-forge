@@ -40,7 +40,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		buildWorkDir: settings?.buildWorkDir ?? '',
 		buildHost: settings?.buildHost ?? '',
 		buildUser: settings?.buildUser ?? 'forge',
-		buildDockerImage: settings?.buildDockerImage ?? 'ghcr.io/blossomos/forge-flatpak-builder:fedora44'
+		buildDockerImage:
+			settings?.buildDockerImage ?? 'registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest'
 	};
 };
 

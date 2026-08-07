@@ -455,7 +455,7 @@ model InfraSettings {
   // Admin-overridable so a retag or private registry doesn't need a code
   // change. Must have flatpak/flatpak-builder/git/ostree plus the flathub
   // remote pre-added - see docker/flatpak-builder/Dockerfile.
-  buildDockerImage       String   @default("ghcr.io/blossomos/forge-flatpak-builder:fedora44")
+  buildDockerImage       String   @default("registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest")
   updatedAt              DateTime @updatedAt
 }
 

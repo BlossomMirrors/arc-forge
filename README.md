@@ -104,7 +104,7 @@ The GPG signing key itself is uploaded in Infra Settings (paste the ASCII-armore
 
 1. Same SSH key as above, authorized in this host's `authorized_keys` too, for the account configured as `buildUser` (default `forge`).
 2. `docker` (or a compatible CLI) installed and runnable by that account.
-3. The image at `docker/flatpak-builder/Dockerfile` built and made available here under whatever tag `buildDockerImage` is set to (defaults to `ghcr.io/blossomos/forge-flatpak-builder:fedora44`) - see that file's header comment for build/publish instructions. It bundles `flatpak`/`flatpak-builder`/`git`/`ostree` plus the flathub remote, so a submitted manifest's declared SDK/Platform runtime can be fetched inside the container at build time.
+3. The image at `docker/flatpak-builder/Dockerfile` built and made available here under whatever tag `buildDockerImage` is set to (defaults to `registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest`) - see that file's header comment for build/publish instructions. It bundles `flatpak`/`flatpak-builder`/`git`/`ostree` plus the flathub remote, so a submitted manifest's declared SDK/Platform runtime can be fetched inside the container at build time.
 
 This host never receives the GPG signing key, R2 credentials, or SSH access to the signing host - `flatpak-builder` runs arbitrary commands from whatever manifest a GIT submission points at, so keeping it fully separate from anything that can sign or publish is the point.
 
