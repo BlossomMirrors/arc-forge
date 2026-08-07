@@ -337,23 +337,35 @@ echo "FORGE_BUILD_OK"
 
 // Runs *inside* the Docker container launched by buildRemoteScript below,
 // against WORKDIR/REPO_PATH/APPID/GPG_KEY_PATH/GPG_PASSPHRASE_PATH env vars
-// the outer script passes in. $REPO_PATH (the outer script's R2 FUSE
-// mountpoint) is bind-mounted in under the exact same path as the host side,
-// same identity-bind-mount convention as buildContainerScript (the build
-// host's own inner script) - it has to be, rclone mounted it there and
-// there's no other way in. $STAGING_REPO deliberately is NOT: it's pure
-// throwaway scratch (recreated every run, gone the moment this container
-// exits with --rm), and putting it under the bind-mounted $WORKDIR - as a
-// first attempt at this containerization did - defeats the entire point of
-// containerizing it. A bind mount doesn't change the underlying filesystem,
-// it just exposes the same host path from a different process's namespace,
-// so `flatpak build-import-bundle`'s writes into it were still landing on
-// whatever the signing host's own filesystem was doing, container or not -
-// confirmed by reproducing the exact same `renameat: Operation not
-// permitted` from `flatpak build-import-bundle` after that first attempt,
-// unchanged despite the container now running privileged/rootful. Keeping
-// $STAGING_REPO purely inside the container's own filesystem (never bind
-// mounted, never touching the host path at all) is what actually isolates it.
+// the outer script passes in. $REPO_PATH (the outer script's R2 volume) is
+// mounted in under /repo - see buildR2VolumeSetup.
+//
+// $STAGING_REPO and /work (the bundle-download scratch dir for the
+// direct-BUNDLE curl case) are both --tmpfs mounts (see buildRemoteScript's
+// docker run) - this took three attempts to land on (2026-08-07), all
+// against the same reproduced `error: Importing <hash>.commit: renameat:
+// Operation not permitted` from `flatpak build-import-bundle`: (1) running
+// this on a bind-mounted $WORKDIR under a privileged/rootful container - no
+// change, since a bind mount doesn't alter the underlying filesystem, it was
+// still whatever the signing host's own storage was doing; (2) moving
+// $STAGING_REPO to a plain container-native path (no bind mount at all,
+// pure container filesystem) - STILL no change, which was the real tell:
+// every combination of privilege and mount strategy we tried produced the
+// byte-identical error, meaning this was never a container/privilege/mount
+// issue at all - containers still make the actual renameat() syscall through
+// the *host kernel*, so if the underlying storage backing either the host's
+// own paths or the container engine's own storage root is NFS (which this
+// specific error is a well-documented symptom of - NFS doesn't support the
+// atomic rename OSTree uses to commit objects), nothing about how a
+// container is invoked was ever going to matter. (3) actual fix: force
+// $STAGING_REPO and /work onto tmpfs specifically, an in-RAM filesystem with
+// real POSIX rename semantics, sidestepping whatever the container engine's
+// default storage backend is doing entirely rather than hoping it isn't NFS.
+// Tmpfs size deliberately left uncapped (defaults to a fraction of host RAM)
+// rather than guessing a limit - an unusually large bundle (see the
+// bundled-QEMU example elsewhere in this file) could need capping this
+// explicitly with --tmpfs /staging-repo:size=... if it ever OOMs.
+//
 // GPG import + preset-passphrase happen in here too now rather than on the
 // host, since gpg-agent needs to be reachable for both that step and the
 // later --gpg-sign, and this container's lifetime spans both - see the
@@ -364,7 +376,7 @@ echo "FORGE_BUILD_OK"
 function buildPublishContainerScript(app: FlatpakApp, localBundlePath?: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-mkdir -p /work && cd /work
+cd /work
 
 GPG_PASSPHRASE=$(cat "$GPG_PASSPHRASE_PATH")
 APPID="${app.appid}"
@@ -441,6 +453,8 @@ ${buildR2VolumeSetup(settings)}
 
 sudo docker run --rm \\
   --privileged \\
+  --tmpfs /staging-repo \\
+  --tmpfs /work \\
   -v "$R2_VOLUME:/repo" \\
   -v /tmp:/tmp \\
   -e REPO_PATH=/repo \\
