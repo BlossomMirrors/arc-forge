@@ -297,22 +297,30 @@ echo "FORGE_BUILD_OK"
 
 // Runs *inside* the Docker container launched by buildRemoteScript below,
 // against WORKDIR/REPO_PATH/APPID/GPG_KEY_PATH/GPG_PASSPHRASE_PATH env vars
-// the outer script passes in - same identity-bind-mount convention as
-// buildContainerScript (the build host's own inner script): $WORKDIR (and
-// $REPO_PATH, the outer script's R2 FUSE mountpoint, which lives under
-// $WORKDIR) are the exact same absolute path on both sides. Moved in here
-// (2026-08-07, alongside the build host's own containerization) after a real,
-// reproduced `renameat: Operation not permitted` from `flatpak
-// build-import-bundle` writing into a plain local staging repo directly on
-// the signing host's own filesystem - running the same commands inside a
-// container instead sidesteps whatever the host filesystem's own rename
-// semantics were doing there. GPG import + preset-passphrase happen in here
-// too now rather than on the host, since gpg-agent needs to be reachable for
-// both that step and the later --gpg-sign, and this container's lifetime
-// spans both - see docker/flatpak-signer's baked-in allow-preset-passphrase
-// (was previously a manual one-time host prerequisite, now obsolete: every
-// run gets a fresh disposable keyring/agent from the image, nothing to
-// configure or reload on the host anymore).
+// the outer script passes in. $REPO_PATH (the outer script's R2 FUSE
+// mountpoint) is bind-mounted in under the exact same path as the host side,
+// same identity-bind-mount convention as buildContainerScript (the build
+// host's own inner script) - it has to be, rclone mounted it there and
+// there's no other way in. $STAGING_REPO deliberately is NOT: it's pure
+// throwaway scratch (recreated every run, gone the moment this container
+// exits with --rm), and putting it under the bind-mounted $WORKDIR - as a
+// first attempt at this containerization did - defeats the entire point of
+// containerizing it. A bind mount doesn't change the underlying filesystem,
+// it just exposes the same host path from a different process's namespace,
+// so `flatpak build-import-bundle`'s writes into it were still landing on
+// whatever the signing host's own filesystem was doing, container or not -
+// confirmed by reproducing the exact same `renameat: Operation not
+// permitted` from `flatpak build-import-bundle` after that first attempt,
+// unchanged despite the container now running privileged/rootful. Keeping
+// $STAGING_REPO purely inside the container's own filesystem (never bind
+// mounted, never touching the host path at all) is what actually isolates it.
+// GPG import + preset-passphrase happen in here too now rather than on the
+// host, since gpg-agent needs to be reachable for both that step and the
+// later --gpg-sign, and this container's lifetime spans both - see the
+// shared image's baked-in allow-preset-passphrase (was previously a manual
+// one-time host prerequisite, now obsolete: every run gets a fresh
+// disposable keyring/agent from the image, nothing to configure or reload on
+// the host anymore).
 function buildPublishContainerScript(app: FlatpakApp, localBundlePath?: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
@@ -323,7 +331,7 @@ APPID="${app.appid}"
 
 ${buildGpgImportSection('$GPG_KEY_PATH')}
 
-STAGING_REPO="$WORKDIR/staging-repo"
+STAGING_REPO="/staging-repo"
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
 
 ${buildBundleImportSection(app, localBundlePath)}
