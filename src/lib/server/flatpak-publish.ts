@@ -260,17 +260,24 @@ cd "$WORKDIR"
 git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
 git -C src rev-parse HEAD > "${sidecar.commitPath}"
 
-# --privileged: flatpak-builder sandboxes each build step with bubblewrap
-# internally, which needs to create its own mount/user namespaces when
-# already running inside a namespaced Docker container - --cap-add=SYS_ADMIN
-# alone was not enough, bwrap still failed to access the bind-mounted
-# $WORKDIR (SELinux denying the container's context on the host path, not a
-# missing capability). --privileged runs the container SELinux-unconfined,
-# which clears that without having to relabel every mount with :z/:Z.
-# Identity bind mounts ($WORKDIR and /tmp map to the same path inside the
-# container) so buildContainerScript can share these exact paths with no
-# translation.
-docker run --rm \\
+# sudo + rootful podman, not the plain rootless \`docker\` (Podman's docker-shim)
+# buildUser normally has: rootless Podman remaps container root onto an
+# unprivileged subordinate UID from /etc/subuid no matter what
+# capabilities/--privileged are added, so it can never actually access the
+# bind-mounted $WORKDIR (owned by buildUser's own real UID, created by the
+# mktemp above) - this is what produced \`Can't find source path
+# .../build-dir/files: Permission denied\` from bwrap. Rootful podman's
+# container root IS real host root, same as the pipeline's original
+# pre-Docker-isolation design, so --privileged actually means something and
+# none of the rootless UID-mapping problems apply. Requires buildUser to have
+# passwordless sudo for podman (see README), and the image to be pulled/built
+# into root's OWN podman storage (/var/lib/containers) separately from
+# whatever's in buildUser's rootless storage (~/.local/share/containers) -
+# the two are entirely separate stores, this never touches buildUser's own
+# rootless images/containers. Identity bind mounts ($WORKDIR and /tmp map to
+# the same path inside the container) so buildContainerScript can share these
+# exact paths with no translation.
+sudo docker run --rm \\
   --privileged \\
   -v "$WORKDIR:$WORKDIR" \\
   -v /tmp:/tmp \\
