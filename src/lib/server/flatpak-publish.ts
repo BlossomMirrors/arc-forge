@@ -409,23 +409,41 @@ STAGING_REPO="/staging-repo"
 # assumption being checked here rather than trusted - /proc/self/status's
 # Seccomp field is 0 when filtering is truly off and nonzero (2 = filter
 # mode) when it isn't, regardless of what --privileged was supposed to do.
-# The plain-rename smoke test below isolates a blocked-syscall/LSM cause
-# (would fail same as ostree) from something ostree-specific (would pass).
-# Remove this whole block once the next real log confirms/refutes it.
-echo "FORGE_DIAG seccomp=$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null) selinux=$(getenforce 2>/dev/null || echo n/a) uid=$(id -u)" >&2
+#
+# RESULT (2026-08-07, this same day): seccomp=0, uid=0, tmpfs confirmed
+# mounted and matches stat/mount output, and a plain touch+mv directly on
+# $STAGING_REPO's top level SUCCEEDED - yet the real `ostree`-driven rename
+# a few lines later, on the very same mount, same process, still hit the
+# identical EPERM. That rules out seccomp, sticky bit, non-root, and "is
+# this really tmpfs" all at once. Two things the plain smoke test above does
+# NOT replicate about ostree's actual write, tested below instead: (a)
+# ostree fchmod()s a loose object to read-only (0444) before renaming it
+# into place (immutable-content convention), (b) the rename crosses from a
+# flat temp location into a freshly-created objects/xx/ fanout subdirectory,
+# not a same-directory rename. Also: SELinux enforcement happens at the
+# HOST kernel, shared with every container regardless of namespacing -
+# `getenforce` isn't even installed in this minimal image, so its absence
+# here proves nothing about whether the HOST is enforcing and silently
+# denying this. That's only checkable host-side, right after reproducing:
+# `sudo ausearch -m avc -ts recent -i | tail -50` (or, if audit isn't
+# running, `sudo journalctl -k --since '5 min ago' | grep -i denied`) on
+# the signing host itself, plus `getenforce` there (not in-container).
+echo "FORGE_DIAG seccomp=$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null) uid=$(id -u)" >&2
 mount | grep -E ' /work | /staging-repo ' >&2 || echo "FORGE_DIAG: /staging-repo not yet mounted (created below)" >&2
 
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
 echo "FORGE_DIAG /staging-repo: $(stat -c '%U:%G %a' "$STAGING_REPO" 2>&1) fstype=$(stat -f -c '%T' "$STAGING_REPO" 2>&1)" >&2
-mount | grep -E ' /staging-repo ' >&2 || true
 
-touch "$STAGING_REPO/.forge-diag-test" 2>&1 | sed 's/^/FORGE_DIAG touch: /' >&2 || true
-if mv "$STAGING_REPO/.forge-diag-test" "$STAGING_REPO/.forge-diag-test2" 2>&1; then
-  echo "FORGE_DIAG plain rename on staging-repo: OK" >&2
-else
-  echo "FORGE_DIAG plain rename on staging-repo: FAILED" >&2
-fi
-rm -f "$STAGING_REPO/.forge-diag-test" "$STAGING_REPO/.forge-diag-test2"
+touch "$STAGING_REPO/.forge-diag-plain" && mv "$STAGING_REPO/.forge-diag-plain" "$STAGING_REPO/.forge-diag-plain2" \
+  && echo "FORGE_DIAG plain same-dir rename: OK" >&2 || echo "FORGE_DIAG plain same-dir rename: FAILED" >&2
+rm -f "$STAGING_REPO/.forge-diag-plain2"
+
+mkdir -p "$STAGING_REPO/objects/00"
+touch "$STAGING_REPO/.forge-diag-ostreelike" && chmod 0444 "$STAGING_REPO/.forge-diag-ostreelike" \
+  && mv "$STAGING_REPO/.forge-diag-ostreelike" "$STAGING_REPO/objects/00/.forge-diag-ostreelike" \
+  && echo "FORGE_DIAG chmod-0444 + cross-dir rename (mimics ostree's own pattern): OK" >&2 \
+  || echo "FORGE_DIAG chmod-0444 + cross-dir rename (mimics ostree's own pattern): FAILED" >&2
+rm -rf "$STAGING_REPO/objects/00/.forge-diag-ostreelike" "$STAGING_REPO/.forge-diag-ostreelike"
 
 ${buildBundleImportSection(app, localBundlePath)}
 
