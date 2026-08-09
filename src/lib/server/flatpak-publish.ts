@@ -342,38 +342,37 @@ echo "FORGE_BUILD_OK"
 //
 // $STAGING_REPO and /work (the bundle-download scratch dir for the
 // direct-BUNDLE curl case) are both --tmpfs mounts (see buildRemoteScript's
-// docker run) - this took three attempts to land on (2026-08-07), all
-// against the same reproduced `error: Importing <hash>.commit: renameat:
-// Operation not permitted` from `flatpak build-import-bundle`: (1) running
-// this on a bind-mounted $WORKDIR under a privileged/rootful container - no
-// change, since a bind mount doesn't alter the underlying filesystem, it was
-// still whatever the signing host's own storage was doing; (2) moving
-// $STAGING_REPO to a plain container-native path (no bind mount at all,
-// pure container filesystem) - STILL no change, which was the real tell:
-// every combination of privilege and mount strategy we tried produced the
-// byte-identical error, meaning this was never a container/privilege/mount
-// issue at all - containers still make the actual renameat() syscall through
-// the *host kernel*, so if the underlying storage backing either the host's
-// own paths or the container engine's own storage root is NFS (which this
-// specific error is a well-documented symptom of - NFS doesn't support the
-// atomic rename OSTree uses to commit objects), nothing about how a
-// container is invoked was ever going to matter. (3) tried forcing
-// $STAGING_REPO and /work onto tmpfs specifically, an in-RAM filesystem with
-// real POSIX rename semantics, sidestepping whatever the container engine's
-// default storage backend is doing entirely rather than hoping it isn't NFS
-// - REPRODUCED THE SAME ERROR on the next real run (2026-08-07), so this was
-// NOT the actual fix, despite being a good theory; see the TEMP DIAGNOSTIC
-// block in buildPublishContainerScript below for the current, evidence-based
-// leading theory (seccomp's default-EPERM behavior on renameat2, checked
-// directly via /proc/self/status rather than trusting --privileged) and
-// what the next real run's log needs to confirm before writing attempt (4).
-// Left the tmpfs mounts in place regardless - they're still strictly better
-// than the alternative even if they didn't fix this on their own, and cost
-// nothing to keep. Tmpfs size deliberately left uncapped (defaults to a
-// fraction of host RAM) rather than guessing a limit - an unusually large
-// bundle (see the bundled-QEMU example elsewhere in this file) could need
-// capping this explicitly with --tmpfs /staging-repo:size=... if it ever
-// OOMs.
+// docker run). Getting this right took several real attempts (2026-08-07),
+// all against the same reproduced `error: Importing <hash>.commit: renameat:
+// Operation not permitted` from `flatpak build-import-bundle`:
+// (1) a bind-mounted $WORKDIR under a privileged/rootful container - no
+//     change, a bind mount doesn't alter the underlying filesystem, it was
+//     still whatever the signing host's own storage was doing;
+// (2) $STAGING_REPO moved to a plain container-native path, no bind mount at
+//     all - STILL no change, ruling out container/privilege/mount strategy
+//     as the cause entirely (every combination tried produced the
+//     byte-identical error - containers still make the real renameat()
+//     syscall through the *host kernel*);
+// (3) forced onto tmpfs specifically (this attempt), on the NFS theory
+//     (a well-documented cause of exactly this error) - diagnostics run
+//     directly against a real failure confirmed uid=0, seccomp fully
+//     disabled (/proc/self/status Seccomp: 0), the mount genuinely is tmpfs,
+//     AND that a plain rename() on that same tmpfs succeeds - yet OSTree's
+//     own bare, flag-less renameat() (see commit_path_final in ostree's
+//     ostree-repo-commit.c - no renameat2/RENAME_NOREPLACE involved at all)
+//     still fails identically. That rules out NFS, seccomp, non-root, and
+//     "is this really tmpfs" all at once, while leaving the tmpfs mounts in
+//     place anyway since they're strictly better regardless;
+// (4) current leading theory, being tested now: a confirmed open Podman bug
+//     (containers/podman#24142) where a host AppArmor profile keeps
+//     mediating operations inside a container even when --privileged or an
+//     explicit apparmor=unconfined is passed - see the
+//     --security-opt apparmor=unconfined comment on buildRemoteScript's
+//     docker run below.
+// Tmpfs size deliberately left uncapped (defaults to a fraction of host RAM)
+// rather than guessing a limit - an unusually large bundle (see the
+// bundled-QEMU example elsewhere in this file) could need capping this
+// explicitly with --tmpfs /staging-repo:size=... if it ever OOMs.
 //
 // GPG import + preset-passphrase happen in here too now rather than on the
 // host, since gpg-agent needs to be reachable for both that step and the
@@ -393,57 +392,7 @@ APPID="${app.appid}"
 ${buildGpgImportSection('$GPG_KEY_PATH')}
 
 STAGING_REPO="/staging-repo"
-
-# TEMP DIAGNOSTIC (2026-08-07): the tmpfs move above (see this function's doc
-# comment) reproduced the exact same "renameat: Operation not permitted" on
-# the very next real run, so the tmpfs theory is suspect. The image's own
-# Dockerfile (FROM fedora:44, no USER directive) confirmed this container
-# actually runs as UID 0, ruling out the sticky-tmpfs/non-root theory this
-# block originally logged for. Current leading theory instead: EPERM (not
-# EACCES, not ENOSYS) on a syscall inside a container is the textbook
-# signature of Docker/Podman's default seccomp profile, which returns EPERM
-# for anything outside its allowlist - and OSTree's commit path uses
-# renameat2() (RENAME_NOREPLACE) for atomic object writes, a syscall some
-# seccomp profile versions have had allowlist gaps for. --privileged is
-# documented to disable seccomp filtering entirely, but that's exactly the
-# assumption being checked here rather than trusted - /proc/self/status's
-# Seccomp field is 0 when filtering is truly off and nonzero (2 = filter
-# mode) when it isn't, regardless of what --privileged was supposed to do.
-#
-# RESULT (2026-08-07, this same day): seccomp=0, uid=0, tmpfs confirmed
-# mounted and matches stat/mount output, and a plain touch+mv directly on
-# $STAGING_REPO's top level SUCCEEDED - yet the real `ostree`-driven rename
-# a few lines later, on the very same mount, same process, still hit the
-# identical EPERM. That rules out seccomp, sticky bit, non-root, and "is
-# this really tmpfs" all at once. Two things the plain smoke test above does
-# NOT replicate about ostree's actual write, tested below instead: (a)
-# ostree fchmod()s a loose object to read-only (0444) before renaming it
-# into place (immutable-content convention), (b) the rename crosses from a
-# flat temp location into a freshly-created objects/xx/ fanout subdirectory,
-# not a same-directory rename. Also: SELinux enforcement happens at the
-# HOST kernel, shared with every container regardless of namespacing -
-# `getenforce` isn't even installed in this minimal image, so its absence
-# here proves nothing about whether the HOST is enforcing and silently
-# denying this. That's only checkable host-side, right after reproducing:
-# `sudo ausearch -m avc -ts recent -i | tail -50` (or, if audit isn't
-# running, `sudo journalctl -k --since '5 min ago' | grep -i denied`) on
-# the signing host itself, plus `getenforce` there (not in-container).
-echo "FORGE_DIAG seccomp=$(awk '/^Seccomp:/{print $2}' /proc/self/status 2>/dev/null) uid=$(id -u)" >&2
-mount | grep -E ' /work | /staging-repo ' >&2 || echo "FORGE_DIAG: /staging-repo not yet mounted (created below)" >&2
-
 ostree init --repo="$STAGING_REPO" --mode=archive-z2
-echo "FORGE_DIAG /staging-repo: $(stat -c '%U:%G %a' "$STAGING_REPO" 2>&1) fstype=$(stat -f -c '%T' "$STAGING_REPO" 2>&1)" >&2
-
-touch "$STAGING_REPO/.forge-diag-plain" && mv "$STAGING_REPO/.forge-diag-plain" "$STAGING_REPO/.forge-diag-plain2" \
-  && echo "FORGE_DIAG plain same-dir rename: OK" >&2 || echo "FORGE_DIAG plain same-dir rename: FAILED" >&2
-rm -f "$STAGING_REPO/.forge-diag-plain2"
-
-mkdir -p "$STAGING_REPO/objects/00"
-touch "$STAGING_REPO/.forge-diag-ostreelike" && chmod 0444 "$STAGING_REPO/.forge-diag-ostreelike" \
-  && mv "$STAGING_REPO/.forge-diag-ostreelike" "$STAGING_REPO/objects/00/.forge-diag-ostreelike" \
-  && echo "FORGE_DIAG chmod-0444 + cross-dir rename (mimics ostree's own pattern): OK" >&2 \
-  || echo "FORGE_DIAG chmod-0444 + cross-dir rename (mimics ostree's own pattern): FAILED" >&2
-rm -rf "$STAGING_REPO/objects/00/.forge-diag-ostreelike" "$STAGING_REPO/.forge-diag-ostreelike"
 
 ${buildBundleImportSection(app, localBundlePath)}
 
@@ -496,6 +445,25 @@ flatpak build-update-repo \\
 // doesn't own. Rootful Podman via sudo makes container root real host root
 // instead, avoiding that whole class of problem. Same image as the build
 // host (settings.buildDockerImage) - one Dockerfile serves both purposes.
+//
+// --security-opt apparmor=unconfined, explicit and redundant with
+// --privileged (added 2026-08-07, after the tmpfs fix above STILL reproduced
+// the identical `renameat: Operation not permitted`, with tmpfs confirmed via
+// diagnostics: root-owned, a plain rename on it succeeded, only OSTree's own
+// bare flag-less `renameat()` - see commit_path_final in ostree's
+// ostree-repo-commit.c, no special flags at all - failed). At that point
+// every remaining explanation involving the filesystem itself, UID mapping,
+// or syscall flags had been directly ruled out by diagnostics, which pointed
+// at something intercepting the syscall rather than anything about the
+// storage or privilege level. Podman has a confirmed open bug
+// (containers/podman#24142) where a host AppArmor profile keeps mediating
+// operations inside a container even when --privileged or an explicit
+// apparmor=unconfined is passed - Ubuntu (unlike this image's Fedora base)
+// runs AppArmor by default, unlike the SELinux the earlier (wrong) theory on
+// the build host assumed. Confirm independently with `dmesg | grep -i
+// apparmor` / `journalctl -k | grep -i apparmor` on the signing host right
+// after a failed run - a DENIED line naming the operation there would
+// confirm this before trusting that the flag alone fixed it.
 function buildRemoteScript(
 	app: FlatpakApp,
 	settings: InfraSettings,
@@ -512,6 +480,7 @@ ${buildR2VolumeSetup(settings)}
 
 sudo docker run --rm \\
   --privileged \\
+  --security-opt apparmor=unconfined \\
   --tmpfs /staging-repo \\
   --tmpfs /work \\
   -v "$R2_VOLUME:/repo" \\
