@@ -484,6 +484,17 @@ trap 'rm -f "$0" "${containerScriptPath}" "${passphraseFilePath}" "${gpgKeyFileP
 
 ${buildR2VolumeSetup(settings)}
 
+# TEMP DIAGNOSTIC (2026-08-07): every conventional theory (NFS, seccomp,
+# SELinux, AppArmor, UID mapping, missing capabilities) has now been directly
+# ruled out by real diagnostics against a live failure - this traces the
+# actual syscall so the next failure shows the real errno/arguments instead
+# of guessing again. Written under /tmp (bind-mounted, host-persistent) so it
+# survives this container's --rm even on failure. Requires strace in
+# settings.buildDockerImage - remove this block (and the strace wrapping of
+# the entrypoint below) once root-caused.
+STRACE_LOG="/tmp/$R2_VOLUME.strace.log"
+echo "FORGE_DIAG strace log: $STRACE_LOG"
+
 sudo docker run --rm \\
   --privileged \\
   --security-opt apparmor=unconfined \\
@@ -496,6 +507,7 @@ sudo docker run --rm \\
   -e GPG_KEY_PATH="${gpgKeyFilePath}" \\
   -e GPG_PASSPHRASE_PATH="${passphraseFilePath}" \\
   "${settings.buildDockerImage}" \\
+  strace -f -o "$STRACE_LOG" -e trace=renameat,renameat2,rename,openat,fchmodat,fchmod,unlinkat,mkdirat \\
   bash "${containerScriptPath}"
 
 echo "FORGE_PUBLISH_OK"
