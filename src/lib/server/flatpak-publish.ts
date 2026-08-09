@@ -187,6 +187,9 @@ function buildBundleImportSection(app: FlatpakApp, localBundlePath?: string): st
 		return `
 BUNDLE_PATH="${localBundlePath}"
 
+grep -E '^Cap(Inh|Prm|Eff|Bnd|Amb):' /proc/self/status
+capsh --print 2>/dev/null || true
+
 flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" "$BUNDLE_PATH"
 `;
 	}
@@ -195,6 +198,9 @@ flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" "$BUNDLE_PATH"
 BUNDLE_URL="${app.bundleUrl}"
 
 curl -fsSL "$BUNDLE_URL" -o bundle.flatpak
+
+grep -E '^Cap(Inh|Prm|Eff|Bnd|Amb):' /proc/self/status
+capsh --print 2>/dev/null || true
 
 flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" bundle.flatpak
 `;
