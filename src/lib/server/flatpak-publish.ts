@@ -12,50 +12,52 @@ import type { FlatpakApp } from '$lib/generated/prisma/client';
 
 const execFileAsync = promisify(execFile);
 
-// Build+sign+publish all happen inside this one long-lived sibling container
-// (see docker-compose.yml's `builder` service, `sleep infinity` keeps it up
-// for repeated `docker exec`) in the same docker-compose stack as Forge
-// itself - no more SSH to a separate host. `/repo` is a real local
-// filesystem there (a Hetzner Volume, not R2/rclone-FUSE-mounted - OSTree's
-// commit writes rely on hardlinks, which rclone's FUSE mount can't provide,
-// a real reproduced `renameat`/`linkat` EPERM confirmed this). Forge itself
-// serves this same mount directly to Flatpak clients (read-only, see
-// src/routes/flatpak/[...path]/+server.ts) - no R2/CDN involved at all
-// anymore, that bucket holds unrelated content (RPMs) this repo can't share
-// a domain with.
-const BUILDER_CONTAINER = 'forge-builder';
+// Build+sign+publish all happen as plain subprocesses of Forge's own server
+// process, in Forge's own container - no separate builder container, no
+// docker.sock, no `docker exec`. This container already IS the isolation
+// boundary; see docker-compose.yml's `privileged: true` and the Dockerfile
+// for what that now costs (flatpak-builder's bwrap sandbox needs it, and
+// it's the same container serving public HTTP traffic - a real trade-off,
+// see README.md). `/repo` is a real local filesystem (a Hetzner Volume, not
+// R2/rclone-FUSE-mounted - OSTree's commit writes rely on hardlinks, which
+// rclone's FUSE mount can't provide, a real reproduced `renameat`/`linkat`
+// EPERM confirmed this). Forge itself serves this same mount directly to
+// Flatpak clients (see src/routes/flatpak/[...path]/+server.ts) - no R2/CDN
+// involved at all anymore, that bucket holds unrelated content (RPMs) this
+// repo can't share a domain with.
 const CONTAINER_REPO_PATH = '/repo';
-// Ephemeral per-run scratch space (scripts, GPG passphrase/key files, build
-// logs) - a plain Docker volume mounted at this same path in both `app` and
-// `builder`, so Forge can write files directly via Node fs and have
-// `builder` see them instantly (no SFTP/docker cp needed), and read log/exit
-// files back the same way while polling.
-const SCRATCH_ROOT = '/scratch';
+// Per-run scratch space (scripts, GPG passphrase/key files, build logs) - a
+// plain local directory, created on demand. Nothing here needs to be shared
+// with another container anymore.
+const SCRATCH_ROOT = '/tmp/forge-flatpak';
 
-// Fires the given bash command detached inside the builder container and
-// returns as soon as the `docker exec -d` call itself completes (near
-// instant) - the command keeps running inside `builder` independent of this
-// Node process, Forge restarting, or this docker exec's own CLI process
-// exiting. Used for the actual (potentially long) build+sign+publish run -
-// see launchDetachedRun.
-async function dockerExecDetached(command: string): Promise<{ ok: boolean; log: string }> {
+// Fires the given bash command as a fully independent process (`detached:
+// true` + `unref()`, the Node equivalent of the old `screen -dmS`) and
+// returns immediately - the command keeps running independent of this
+// specific call, this Node process restarting, or this function's own
+// return. Survives a Forge code-level restart; does not survive the whole
+// container being recreated (see the module doc comment above for that
+// trade-off). Used for the actual (potentially long) build+sign+publish run
+// - see launchDetachedRun.
+function runDetached(command: string): { ok: boolean; log: string } {
 	try {
-		await execFileAsync('docker', ['exec', '-d', BUILDER_CONTAINER, 'bash', '-c', command]);
+		const child = spawn('bash', ['-c', command], { detached: true, stdio: 'ignore' });
+		child.on('error', (e) => console.error('Detached build process failed to start:', e));
+		child.unref();
 		return { ok: true, log: '' };
 	} catch (e) {
 		return { ok: false, log: e instanceof Error ? e.message : String(e) };
 	}
 }
 
-// Runs a command inside the builder container and waits for it to finish,
-// piping `stdin` in (matches the old SSH `execScript`'s piped-passphrase
-// behavior exactly, see runOnBuilder). Only for short/synchronous scripts
+// Runs a script and waits for it to finish, piping `stdin` in (the GPG
+// passphrase - see runOnBuilder). Only for short/synchronous scripts
 // (repair, unpublish, appstream extraction) - never for the detached publish
 // run, which would otherwise tie up this Node process for as long as the
 // build takes.
-function dockerExecPiped(command: string, stdin: string): Promise<{ exitCode: number; log: string }> {
+function runPiped(scriptPath: string, stdin: string): Promise<{ exitCode: number; log: string }> {
 	return new Promise((resolve, reject) => {
-		const child = spawn('docker', ['exec', '-i', BUILDER_CONTAINER, 'bash', '-c', command]);
+		const child = spawn('bash', [scriptPath]);
 		let log = '';
 		child.stdout.on('data', (chunk: Buffer) => {
 			log += chunk.toString('utf8');
@@ -69,7 +71,7 @@ function dockerExecPiped(command: string, stdin: string): Promise<{ exitCode: nu
 	});
 }
 
-// Writes to the shared scratch volume - creates the run's directory on first
+// Writes to the scratch directory - creates the run's directory on first
 // write. mode matters here same as it did over SFTP (0600 for secrets like
 // the GPG passphrase/key, 0700 for the executable script itself).
 async function writeScratchFile(path: string, contents: string, mode = 0o600): Promise<void> {
@@ -105,7 +107,7 @@ async function tailFile(path: string, maxBytes: number): Promise<string> {
 }
 
 // Builds the full publish pipeline as a single self-deleting script. The GPG key ID is
-// derived dynamically inside the builder container (matching the user's existing tooling)
+// derived dynamically at run time (matching the user's existing tooling)
 // rather than stored anywhere. Deliberately does NOT force-delete the appstream2/x86_64 ref
 // before regenerating: that's a manual repair step for when the branch is already
 // broken, not something to run on every routine publish, doing it unconditionally
@@ -129,14 +131,14 @@ async function tailFile(path: string, maxBytes: number): Promise<string> {
 // Imports the admin-uploaded signing key fresh on every run and resolves its
 // fingerprint straight from the key file itself (via --import-options
 // show-only, which doesn't touch the keyring), rather than by listing
-// whatever secret keys the builder container's own keyring happens to
-// already have. That "just list secret keys and take the first one" approach
-// is what silently signed everything with the wrong key once the keyring
-// ever held more than one - see the incident this replaced. Requires
-// $GPG_PASSPHRASE to already be set (each caller reads its own passphrase
-// differently, see buildPublishScript/buildRepairScript/buildUnpublishScript).
-// Re-importing the same key on every run (the builder container is
-// long-lived now, not a disposable one per run) is idempotent and harmless.
+// whatever secret keys the local keyring happens to already have. That "just
+// list secret keys and take the first one" approach is what silently signed
+// everything with the wrong key once the keyring ever held more than one -
+// see the incident this replaced. Requires $GPG_PASSPHRASE to already be set
+// (each caller reads its own passphrase differently, see
+// buildPublishScript/buildRepairScript/buildUnpublishScript). Re-importing
+// the same key on every run (this container's own keyring is long-lived, not
+// disposable per run) is idempotent and harmless.
 function buildGpgImportSection(gpgKeyPath: string): string {
 	return `GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${gpgKeyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
 if [ -z "$GPG_ID" ]; then
@@ -273,12 +275,11 @@ function buildRunPaths(appId: string): RunPaths {
 }
 
 // The full per-run script: GPG import -> (GIT clone+build | BUNDLE curl+import)
-// -> build-update-repo, all in one file that gets docker-exec'd detached into
-// the builder container (see launchDetachedRun). $WORKDIR is a plain
-// mktemp'd directory inside the container's own (ephemeral-per-container-
-// lifetime, not per-run) filesystem - it doesn't need to be on the shared
-// scratch volume, nothing outside this script ever needs to read it, only
-// $REPO_PATH's result and the sidecar files under paths.runDir do.
+// -> build-update-repo, all in one file that gets launched detached (see
+// launchDetachedRun). $WORKDIR is a plain mktemp'd directory - it doesn't
+// need to be under SCRATCH_ROOT, nothing outside this script ever needs to
+// read it, only $REPO_PATH's result and the sidecar files under
+// paths.runDir do.
 function buildPublishScript(app: FlatpakApp, paths: RunPaths): string {
 	const isGit = app.sourceType === 'GIT';
 	const gitCloneSection = isGit
@@ -320,11 +321,9 @@ flatpak build-update-repo \\
 }
 
 // Writes the script (plus any extra small files it needs, e.g. a GPG
-// passphrase/key) to the shared scratch volume and fires it detached inside
-// the builder container - see pollBuildOnce for how its outcome is picked
-// back up. Runs independent of this Node process, Forge restarting, or this
-// call's own docker CLI process exiting, as long as the `builder` container
-// itself keeps running.
+// passphrase/key) to the scratch directory and fires it detached - see
+// pollBuildOnce for how its outcome is picked back up. Runs independent of
+// this Node process or Forge restarting (see runDetached).
 async function launchDetachedRun(
 	paths: RunPaths,
 	script: string,
@@ -335,7 +334,7 @@ async function launchDetachedRun(
 		for (const f of extraFiles) {
 			await writeScratchFile(f.path, f.contents, f.mode ?? 0o600);
 		}
-		const { ok, log } = await dockerExecDetached(
+		const { ok, log } = runDetached(
 			`bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"`
 		);
 		if (!ok) return { ok: false, log: `Failed to launch detached build: ${log}` };
@@ -389,10 +388,9 @@ echo "FORGE_REPAIR_OK"
 // infra settings (just to check GPG is configured - R2 isn't involved here
 // at all anymore, see the module doc comment above), writes the given script
 // (plus a GPG key file, even when the script itself doesn't use one - see
-// buildExtractScript) to the shared scratch volume, runs it inside the
-// builder container with the passphrase piped over stdin, and always cleans
-// the run's scratch files up afterward. Never throws, callers get {ok, log}
-// either way.
+// buildExtractScript) to the scratch directory, runs it with the passphrase
+// piped over stdin, and always cleans the run's scratch files up afterward.
+// Never throws, callers get {ok, log} either way.
 async function runOnBuilder(
 	scriptBuilder: (gpgKeyPath: string) => string,
 	runIdPrefix: string
@@ -416,7 +414,7 @@ async function runOnBuilder(
 
 		await writeScratchFile(gpgKeyPath, gpgKey, 0o600);
 		await writeScratchFile(scriptPath, script, 0o700);
-		const { exitCode, log } = await dockerExecPiped(`bash "${scriptPath}"`, gpgPassphrase);
+		const { exitCode, log } = await runPiped(scriptPath, gpgPassphrase);
 		return { ok: exitCode === 0, exitCode, log };
 	} catch (e) {
 		return { ok: false, exitCode: null, log: e instanceof Error ? e.message : String(e) };
@@ -699,7 +697,7 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 		// returned below) has the real detail.
 		const lastStepMatch = [...log.matchAll(/^FORGE_STEP: (.+)$/gm)].pop();
 		const lastStep = lastStepMatch?.[1];
-		const codeDesc = exitCode === null ? 'the builder container was unreachable' : `exit code ${exitCode}`;
+		const codeDesc = exitCode === null ? 'the extraction process failed to start' : `exit code ${exitCode}`;
 		return {
 			ok: false,
 			error: lastStep
@@ -840,9 +838,10 @@ const activeBuildIds = new Set<string>();
 // is still sitting there, so the very next tick (~POLL_INTERVAL_MS later)
 // re-reads it and retries the same finalize from scratch. No bespoke
 // backoff/retry helper needed: a blip under one interval self-heals silently,
-// a longer outage self-heals whenever Postgres comes back, and a Forge restart
-// mid-outage is covered by reconcileStuckBuilds re-discovering the same build
-// (the detached run keeps going inside the builder container regardless).
+// a longer outage self-heals whenever Postgres comes back, and a Forge
+// process-level restart mid-outage is covered by reconcileStuckBuilds
+// re-discovering the same build (the detached run keeps going regardless,
+// see runDetached - as long as the container itself isn't recreated).
 async function pollBuildOnce(buildId: string): Promise<void> {
 	const build = await db.flatpakBuild.findUnique({
 		where: { id: buildId },
@@ -976,8 +975,8 @@ async function finalizeLaunchFailure(buildId: string, app: FlatpakApp, log: stri
 }
 
 // Emergency stop, wired from the Infra Settings admin action: kills whatever's
-// actually still running in the builder container (best effort - a process
-// that already finished/never existed just no-ops) and marks every
+// actually still running locally (best effort - a process that already
+// finished/never existed just no-ops) and marks every
 // PROCESSING app/build FAILED. Unlike pollBuildOnce's finalize, this is a
 // deliberate synchronous one-off admin action (matches repairAppstream's
 // shape), not something retried automatically, so a per-app failure is
@@ -1003,14 +1002,13 @@ export async function abortAllProcessingBuilds(): Promise<{
 		try {
 			// screenSessionName no longer names a real `screen` session - it holds
 			// the run's script path (see launchPublish), matched here to kill the
-			// right process inside the builder container.
-			await dockerExecDetached(`pkill -f "${build.screenSessionName}" || true`);
+			// right local process. pkill exits non-zero when nothing matches
+			// (already finished), not a real failure.
+			await execFileAsync('pkill', ['-f', build.screenSessionName]).catch(() => {});
 			await rm(dirname(build.remoteLogPath), { recursive: true, force: true }).catch(() => {});
 			lines.push(`${app.appid}: kill attempted`);
 		} catch (e) {
-			lines.push(
-				`${app.appid}: could not reach the builder container to abort (${e instanceof Error ? e.message : String(e)})`
-			);
+			lines.push(`${app.appid}: could not abort (${e instanceof Error ? e.message : String(e)})`);
 		}
 	}
 
