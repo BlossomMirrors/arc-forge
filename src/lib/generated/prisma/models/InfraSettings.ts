@@ -26,52 +26,22 @@ export type AggregateInfraSettings = {
 
 export type InfraSettingsMinAggregateOutputType = {
   id: string | null
-  sshPublicKey: string | null
-  sshPrivateKeyEncrypted: string | null
   gpgPrivateKeyEncrypted: string | null
   gpgPassphraseEncrypted: string | null
-  remoteHost: string | null
-  remoteUser: string | null
-  r2BucketName: string | null
-  r2RepoPath: string | null
-  buildWorkDir: string | null
-  buildHost: string | null
-  buildUser: string | null
-  buildDockerImage: string | null
   updatedAt: Date | null
 }
 
 export type InfraSettingsMaxAggregateOutputType = {
   id: string | null
-  sshPublicKey: string | null
-  sshPrivateKeyEncrypted: string | null
   gpgPrivateKeyEncrypted: string | null
   gpgPassphraseEncrypted: string | null
-  remoteHost: string | null
-  remoteUser: string | null
-  r2BucketName: string | null
-  r2RepoPath: string | null
-  buildWorkDir: string | null
-  buildHost: string | null
-  buildUser: string | null
-  buildDockerImage: string | null
   updatedAt: Date | null
 }
 
 export type InfraSettingsCountAggregateOutputType = {
   id: number
-  sshPublicKey: number
-  sshPrivateKeyEncrypted: number
   gpgPrivateKeyEncrypted: number
   gpgPassphraseEncrypted: number
-  remoteHost: number
-  remoteUser: number
-  r2BucketName: number
-  r2RepoPath: number
-  buildWorkDir: number
-  buildHost: number
-  buildUser: number
-  buildDockerImage: number
   updatedAt: number
   _all: number
 }
@@ -79,52 +49,22 @@ export type InfraSettingsCountAggregateOutputType = {
 
 export type InfraSettingsMinAggregateInputType = {
   id?: true
-  sshPublicKey?: true
-  sshPrivateKeyEncrypted?: true
   gpgPrivateKeyEncrypted?: true
   gpgPassphraseEncrypted?: true
-  remoteHost?: true
-  remoteUser?: true
-  r2BucketName?: true
-  r2RepoPath?: true
-  buildWorkDir?: true
-  buildHost?: true
-  buildUser?: true
-  buildDockerImage?: true
   updatedAt?: true
 }
 
 export type InfraSettingsMaxAggregateInputType = {
   id?: true
-  sshPublicKey?: true
-  sshPrivateKeyEncrypted?: true
   gpgPrivateKeyEncrypted?: true
   gpgPassphraseEncrypted?: true
-  remoteHost?: true
-  remoteUser?: true
-  r2BucketName?: true
-  r2RepoPath?: true
-  buildWorkDir?: true
-  buildHost?: true
-  buildUser?: true
-  buildDockerImage?: true
   updatedAt?: true
 }
 
 export type InfraSettingsCountAggregateInputType = {
   id?: true
-  sshPublicKey?: true
-  sshPrivateKeyEncrypted?: true
   gpgPrivateKeyEncrypted?: true
   gpgPassphraseEncrypted?: true
-  remoteHost?: true
-  remoteUser?: true
-  r2BucketName?: true
-  r2RepoPath?: true
-  buildWorkDir?: true
-  buildHost?: true
-  buildUser?: true
-  buildDockerImage?: true
   updatedAt?: true
   _all?: true
 }
@@ -203,18 +143,8 @@ export type InfraSettingsGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 
 export type InfraSettingsGroupByOutputType = {
   id: string
-  sshPublicKey: string | null
-  sshPrivateKeyEncrypted: string | null
   gpgPrivateKeyEncrypted: string | null
   gpgPassphraseEncrypted: string | null
-  remoteHost: string
-  remoteUser: string
-  r2BucketName: string
-  r2RepoPath: string
-  buildWorkDir: string | null
-  buildHost: string | null
-  buildUser: string
-  buildDockerImage: string
   updatedAt: Date
   _count: InfraSettingsCountAggregateOutputType | null
   _min: InfraSettingsMinAggregateOutputType | null
@@ -241,35 +171,15 @@ export type InfraSettingsWhereInput = {
   OR?: Prisma.InfraSettingsWhereInput[]
   NOT?: Prisma.InfraSettingsWhereInput | Prisma.InfraSettingsWhereInput[]
   id?: Prisma.StringFilter<"InfraSettings"> | string
-  sshPublicKey?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  sshPrivateKeyEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
   gpgPrivateKeyEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
   gpgPassphraseEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  remoteHost?: Prisma.StringFilter<"InfraSettings"> | string
-  remoteUser?: Prisma.StringFilter<"InfraSettings"> | string
-  r2BucketName?: Prisma.StringFilter<"InfraSettings"> | string
-  r2RepoPath?: Prisma.StringFilter<"InfraSettings"> | string
-  buildWorkDir?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  buildHost?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  buildUser?: Prisma.StringFilter<"InfraSettings"> | string
-  buildDockerImage?: Prisma.StringFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"InfraSettings"> | Date | string
 }
 
 export type InfraSettingsOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  sshPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  sshPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   gpgPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   gpgPassphraseEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
-  remoteHost?: Prisma.SortOrder
-  remoteUser?: Prisma.SortOrder
-  r2BucketName?: Prisma.SortOrder
-  r2RepoPath?: Prisma.SortOrder
-  buildWorkDir?: Prisma.SortOrderInput | Prisma.SortOrder
-  buildHost?: Prisma.SortOrderInput | Prisma.SortOrder
-  buildUser?: Prisma.SortOrder
-  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -278,35 +188,15 @@ export type InfraSettingsWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.InfraSettingsWhereInput | Prisma.InfraSettingsWhereInput[]
   OR?: Prisma.InfraSettingsWhereInput[]
   NOT?: Prisma.InfraSettingsWhereInput | Prisma.InfraSettingsWhereInput[]
-  sshPublicKey?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  sshPrivateKeyEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
   gpgPrivateKeyEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
   gpgPassphraseEncrypted?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  remoteHost?: Prisma.StringFilter<"InfraSettings"> | string
-  remoteUser?: Prisma.StringFilter<"InfraSettings"> | string
-  r2BucketName?: Prisma.StringFilter<"InfraSettings"> | string
-  r2RepoPath?: Prisma.StringFilter<"InfraSettings"> | string
-  buildWorkDir?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  buildHost?: Prisma.StringNullableFilter<"InfraSettings"> | string | null
-  buildUser?: Prisma.StringFilter<"InfraSettings"> | string
-  buildDockerImage?: Prisma.StringFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeFilter<"InfraSettings"> | Date | string
 }, "id">
 
 export type InfraSettingsOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  sshPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  sshPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   gpgPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   gpgPassphraseEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
-  remoteHost?: Prisma.SortOrder
-  remoteUser?: Prisma.SortOrder
-  r2BucketName?: Prisma.SortOrder
-  r2RepoPath?: Prisma.SortOrder
-  buildWorkDir?: Prisma.SortOrderInput | Prisma.SortOrder
-  buildHost?: Prisma.SortOrderInput | Prisma.SortOrder
-  buildUser?: Prisma.SortOrder
-  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InfraSettingsCountOrderByAggregateInput
   _max?: Prisma.InfraSettingsMaxOrderByAggregateInput
@@ -318,188 +208,78 @@ export type InfraSettingsScalarWhereWithAggregatesInput = {
   OR?: Prisma.InfraSettingsScalarWhereWithAggregatesInput[]
   NOT?: Prisma.InfraSettingsScalarWhereWithAggregatesInput | Prisma.InfraSettingsScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  sshPublicKey?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
-  sshPrivateKeyEncrypted?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
   gpgPrivateKeyEncrypted?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
   gpgPassphraseEncrypted?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
-  remoteHost?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  remoteUser?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  r2BucketName?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  r2RepoPath?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  buildWorkDir?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
-  buildHost?: Prisma.StringNullableWithAggregatesFilter<"InfraSettings"> | string | null
-  buildUser?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
-  buildDockerImage?: Prisma.StringWithAggregatesFilter<"InfraSettings"> | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"InfraSettings"> | Date | string
 }
 
 export type InfraSettingsCreateInput = {
   id?: string
-  sshPublicKey?: string | null
-  sshPrivateKeyEncrypted?: string | null
   gpgPrivateKeyEncrypted?: string | null
   gpgPassphraseEncrypted?: string | null
-  remoteHost?: string
-  remoteUser?: string
-  r2BucketName?: string
-  r2RepoPath?: string
-  buildWorkDir?: string | null
-  buildHost?: string | null
-  buildUser?: string
-  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
 export type InfraSettingsUncheckedCreateInput = {
   id?: string
-  sshPublicKey?: string | null
-  sshPrivateKeyEncrypted?: string | null
   gpgPrivateKeyEncrypted?: string | null
   gpgPassphraseEncrypted?: string | null
-  remoteHost?: string
-  remoteUser?: string
-  r2BucketName?: string
-  r2RepoPath?: string
-  buildWorkDir?: string | null
-  buildHost?: string | null
-  buildUser?: string
-  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
 export type InfraSettingsUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sshPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sshPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteHost?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteUser?: Prisma.StringFieldUpdateOperationsInput | string
-  r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
-  r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
-  buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
-  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type InfraSettingsUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sshPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sshPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteHost?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteUser?: Prisma.StringFieldUpdateOperationsInput | string
-  r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
-  r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
-  buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
-  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type InfraSettingsCreateManyInput = {
   id?: string
-  sshPublicKey?: string | null
-  sshPrivateKeyEncrypted?: string | null
   gpgPrivateKeyEncrypted?: string | null
   gpgPassphraseEncrypted?: string | null
-  remoteHost?: string
-  remoteUser?: string
-  r2BucketName?: string
-  r2RepoPath?: string
-  buildWorkDir?: string | null
-  buildHost?: string | null
-  buildUser?: string
-  buildDockerImage?: string
   updatedAt?: Date | string
 }
 
 export type InfraSettingsUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sshPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sshPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteHost?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteUser?: Prisma.StringFieldUpdateOperationsInput | string
-  r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
-  r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
-  buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
-  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type InfraSettingsUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  sshPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sshPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remoteHost?: Prisma.StringFieldUpdateOperationsInput | string
-  remoteUser?: Prisma.StringFieldUpdateOperationsInput | string
-  r2BucketName?: Prisma.StringFieldUpdateOperationsInput | string
-  r2RepoPath?: Prisma.StringFieldUpdateOperationsInput | string
-  buildWorkDir?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  buildUser?: Prisma.StringFieldUpdateOperationsInput | string
-  buildDockerImage?: Prisma.StringFieldUpdateOperationsInput | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type InfraSettingsCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  sshPublicKey?: Prisma.SortOrder
-  sshPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPassphraseEncrypted?: Prisma.SortOrder
-  remoteHost?: Prisma.SortOrder
-  remoteUser?: Prisma.SortOrder
-  r2BucketName?: Prisma.SortOrder
-  r2RepoPath?: Prisma.SortOrder
-  buildWorkDir?: Prisma.SortOrder
-  buildHost?: Prisma.SortOrder
-  buildUser?: Prisma.SortOrder
-  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InfraSettingsMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  sshPublicKey?: Prisma.SortOrder
-  sshPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPassphraseEncrypted?: Prisma.SortOrder
-  remoteHost?: Prisma.SortOrder
-  remoteUser?: Prisma.SortOrder
-  r2BucketName?: Prisma.SortOrder
-  r2RepoPath?: Prisma.SortOrder
-  buildWorkDir?: Prisma.SortOrder
-  buildHost?: Prisma.SortOrder
-  buildUser?: Prisma.SortOrder
-  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InfraSettingsMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  sshPublicKey?: Prisma.SortOrder
-  sshPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPrivateKeyEncrypted?: Prisma.SortOrder
   gpgPassphraseEncrypted?: Prisma.SortOrder
-  remoteHost?: Prisma.SortOrder
-  remoteUser?: Prisma.SortOrder
-  r2BucketName?: Prisma.SortOrder
-  r2RepoPath?: Prisma.SortOrder
-  buildWorkDir?: Prisma.SortOrder
-  buildHost?: Prisma.SortOrder
-  buildUser?: Prisma.SortOrder
-  buildDockerImage?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -507,91 +287,41 @@ export type InfraSettingsMinOrderByAggregateInput = {
 
 export type InfraSettingsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  sshPublicKey?: boolean
-  sshPrivateKeyEncrypted?: boolean
   gpgPrivateKeyEncrypted?: boolean
   gpgPassphraseEncrypted?: boolean
-  remoteHost?: boolean
-  remoteUser?: boolean
-  r2BucketName?: boolean
-  r2RepoPath?: boolean
-  buildWorkDir?: boolean
-  buildHost?: boolean
-  buildUser?: boolean
-  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
 export type InfraSettingsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  sshPublicKey?: boolean
-  sshPrivateKeyEncrypted?: boolean
   gpgPrivateKeyEncrypted?: boolean
   gpgPassphraseEncrypted?: boolean
-  remoteHost?: boolean
-  remoteUser?: boolean
-  r2BucketName?: boolean
-  r2RepoPath?: boolean
-  buildWorkDir?: boolean
-  buildHost?: boolean
-  buildUser?: boolean
-  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
 export type InfraSettingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  sshPublicKey?: boolean
-  sshPrivateKeyEncrypted?: boolean
   gpgPrivateKeyEncrypted?: boolean
   gpgPassphraseEncrypted?: boolean
-  remoteHost?: boolean
-  remoteUser?: boolean
-  r2BucketName?: boolean
-  r2RepoPath?: boolean
-  buildWorkDir?: boolean
-  buildHost?: boolean
-  buildUser?: boolean
-  buildDockerImage?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["infraSettings"]>
 
 export type InfraSettingsSelectScalar = {
   id?: boolean
-  sshPublicKey?: boolean
-  sshPrivateKeyEncrypted?: boolean
   gpgPrivateKeyEncrypted?: boolean
   gpgPassphraseEncrypted?: boolean
-  remoteHost?: boolean
-  remoteUser?: boolean
-  r2BucketName?: boolean
-  r2RepoPath?: boolean
-  buildWorkDir?: boolean
-  buildHost?: boolean
-  buildUser?: boolean
-  buildDockerImage?: boolean
   updatedAt?: boolean
 }
 
-export type InfraSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sshPublicKey" | "sshPrivateKeyEncrypted" | "gpgPrivateKeyEncrypted" | "gpgPassphraseEncrypted" | "remoteHost" | "remoteUser" | "r2BucketName" | "r2RepoPath" | "buildWorkDir" | "buildHost" | "buildUser" | "buildDockerImage" | "updatedAt", ExtArgs["result"]["infraSettings"]>
+export type InfraSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "gpgPrivateKeyEncrypted" | "gpgPassphraseEncrypted" | "updatedAt", ExtArgs["result"]["infraSettings"]>
 
 export type $InfraSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "InfraSettings"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    sshPublicKey: string | null
-    sshPrivateKeyEncrypted: string | null
     gpgPrivateKeyEncrypted: string | null
     gpgPassphraseEncrypted: string | null
-    remoteHost: string
-    remoteUser: string
-    r2BucketName: string
-    r2RepoPath: string
-    buildWorkDir: string | null
-    buildHost: string | null
-    buildUser: string
-    buildDockerImage: string
     updatedAt: Date
   }, ExtArgs["result"]["infraSettings"]>
   composites: {}
@@ -1017,18 +747,8 @@ export interface Prisma__InfraSettingsClient<T, Null = never, ExtArgs extends ru
  */
 export interface InfraSettingsFieldRefs {
   readonly id: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly sshPublicKey: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly sshPrivateKeyEncrypted: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly gpgPrivateKeyEncrypted: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly gpgPassphraseEncrypted: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly remoteHost: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly remoteUser: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly r2BucketName: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly r2RepoPath: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly buildWorkDir: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly buildHost: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly buildUser: Prisma.FieldRef<"InfraSettings", 'String'>
-  readonly buildDockerImage: Prisma.FieldRef<"InfraSettings", 'String'>
   readonly updatedAt: Prisma.FieldRef<"InfraSettings", 'DateTime'>
 }
     

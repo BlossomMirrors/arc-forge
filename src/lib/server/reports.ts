@@ -100,7 +100,8 @@ export async function resolvePublicRef(
 			return app ? { id: app.id, name: app.name, iconUrl: app.iconUrl } : null;
 		}
 		case 'FLATPAK': {
-			const app = await db.flatpakApp.findUnique({ where: { appid: ref } });
+			// appid alone isn't unique anymore (see FlatpakApp.appid schema comment).
+			const app = await db.flatpakApp.findFirst({ where: { appid: ref } });
 			return app ? { id: app.id, name: app.name, iconUrl: app.iconUrl } : null;
 		}
 		case 'LIST': {

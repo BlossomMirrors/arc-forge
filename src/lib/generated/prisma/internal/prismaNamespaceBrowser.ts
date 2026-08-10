@@ -349,18 +349,8 @@ export type FlatpakBuildScalarFieldEnum = (typeof FlatpakBuildScalarFieldEnum)[k
 
 export const InfraSettingsScalarFieldEnum = {
   id: 'id',
-  sshPublicKey: 'sshPublicKey',
-  sshPrivateKeyEncrypted: 'sshPrivateKeyEncrypted',
   gpgPrivateKeyEncrypted: 'gpgPrivateKeyEncrypted',
   gpgPassphraseEncrypted: 'gpgPassphraseEncrypted',
-  remoteHost: 'remoteHost',
-  remoteUser: 'remoteUser',
-  r2BucketName: 'r2BucketName',
-  r2RepoPath: 'r2RepoPath',
-  buildWorkDir: 'buildWorkDir',
-  buildHost: 'buildHost',
-  buildUser: 'buildUser',
-  buildDockerImage: 'buildDockerImage',
   updatedAt: 'updatedAt'
 } as const
 

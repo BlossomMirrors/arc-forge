@@ -336,7 +336,11 @@ enum FlatpakBuildStage {
 
 model FlatpakApp {
   id                 String            @id @default(cuid())
-  appid              String            @unique
+  // Not unique on its own: the same appid can legitimately be submitted more
+  // than once at different branches, e.g. a Qt style/theme extension built
+  // against org.kde.Platform 5.15-24.08, 6.9, and 6.10 all as
+  // org.kde.KStyle.BlossomUI, just with a different branch each time.
+  appid              String
   branch             String            @default("stable")
   name               String
   summary            String
@@ -375,6 +379,7 @@ model FlatpakApp {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
+  @@unique([appid, branch])
   @@index([status])
   @@index([sourceType, status])
   @@index([developerProfileId])

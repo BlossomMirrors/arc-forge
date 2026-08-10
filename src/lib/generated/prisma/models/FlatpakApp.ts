@@ -457,10 +457,11 @@ export type FlatpakAppOrderByWithRelationInput = {
 
 export type FlatpakAppWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  appid?: string
+  appid_branch?: Prisma.FlatpakAppAppidBranchCompoundUniqueInput
   AND?: Prisma.FlatpakAppWhereInput | Prisma.FlatpakAppWhereInput[]
   OR?: Prisma.FlatpakAppWhereInput[]
   NOT?: Prisma.FlatpakAppWhereInput | Prisma.FlatpakAppWhereInput[]
+  appid?: Prisma.StringFilter<"FlatpakApp"> | string
   branch?: Prisma.StringFilter<"FlatpakApp"> | string
   name?: Prisma.StringFilter<"FlatpakApp"> | string
   summary?: Prisma.StringFilter<"FlatpakApp"> | string
@@ -493,7 +494,7 @@ export type FlatpakAppWhereUniqueInput = Prisma.AtLeast<{
   submittedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   reviewedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   builds?: Prisma.FlatpakBuildListRelationFilter
-}, "id" | "appid">
+}, "id" | "appid_branch">
 
 export type FlatpakAppOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -809,6 +810,11 @@ export type FlatpakAppListRelationFilter = {
 
 export type FlatpakAppOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type FlatpakAppAppidBranchCompoundUniqueInput = {
+  appid: string
+  branch: string
 }
 
 export type FlatpakAppCountOrderByAggregateInput = {

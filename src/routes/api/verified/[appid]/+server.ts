@@ -7,7 +7,11 @@ import type { RequestHandler } from './$types';
 // treated as verified (see DeveloperProfile.verified's schema comment and
 // /dashboard/verified-developers for where the flag itself gets set/revoked).
 export const GET: RequestHandler = async ({ params }) => {
-	const app = await db.flatpakApp.findUnique({
+	// appid alone isn't unique anymore (see FlatpakApp.appid schema comment) - a
+	// style/theme extension can have several branches under the same appid, all
+	// submitted by the same developer profile, so any matching row answers the
+	// same verified question.
+	const app = await db.flatpakApp.findFirst({
 		where: { appid: params.appid },
 		select: {
 			appid: true,

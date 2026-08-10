@@ -81,7 +81,12 @@ async function resolveGitSubmission(
 	}
 
 	if (!params.existingAppId) {
-		const duplicate = await db.flatpakApp.findUnique({ where: { appid } });
+		// Flatpak branch, not source.gitBranch (the git repo branch) - a
+		// git-sourced submission always resolves to the 'stable' Flatpak branch,
+		// see the returned object below.
+		const duplicate = await db.flatpakApp.findUnique({
+			where: { appid_branch: { appid, branch: 'stable' } }
+		});
 		if (duplicate) {
 			return { ok: false, error: `An app with id ${appid} has already been submitted` };
 		}
@@ -127,10 +132,20 @@ async function resolveBundleSubmission(
 		};
 	}
 
+	const branch = extracted.branch ?? 'stable';
+
 	if (!params.existingAppId) {
-		const duplicate = await db.flatpakApp.findUnique({ where: { appid: extracted.appid } });
+		// Same appid at a different branch is a distinct, legitimate submission
+		// (see the FlatpakApp.appid schema comment) - only reject an exact
+		// appid+branch repeat.
+		const duplicate = await db.flatpakApp.findUnique({
+			where: { appid_branch: { appid: extracted.appid, branch } }
+		});
 		if (duplicate) {
-			return { ok: false, error: `An app with id ${extracted.appid} has already been submitted` };
+			return {
+				ok: false,
+				error: `An app with id ${extracted.appid} at branch ${branch} has already been submitted`
+			};
 		}
 	}
 
@@ -177,7 +192,7 @@ async function resolveBundleSubmission(
 	return {
 		ok: true,
 		appid: extracted.appid,
-		branch: extracted.branch ?? 'stable',
+		branch,
 		name: extracted.name || extracted.appid,
 		summary: extracted.summary ?? '',
 		description: extracted.description ?? '',
