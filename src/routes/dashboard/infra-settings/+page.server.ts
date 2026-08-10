@@ -1,12 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { requireAdmin } from '$lib/server/authz';
-import { encryptSecret } from '$lib/server/secrets';
-import {
-	generateSshKeypair,
-	repairAppstream,
-	abortAllProcessingBuilds
-} from '$lib/server/flatpak-publish';
+import { encryptSecret, decryptSecret } from '$lib/server/secrets';
+import { repairAppstream, abortAllProcessingBuilds } from '$lib/server/flatpak-publish';
 import {
 	infraAccessExpiresAt,
 	requestInfraAccessCode,
@@ -29,19 +25,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		verified: true as const,
 		accessExpiresAt: expiresAt.toISOString(),
-		sshPublicKey: settings?.sshPublicKey ?? null,
-		hasSshKey: !!settings?.sshPrivateKeyEncrypted,
 		hasGpgPrivateKey: !!settings?.gpgPrivateKeyEncrypted,
 		hasGpgPassphrase: !!settings?.gpgPassphraseEncrypted,
-		remoteHost: settings?.remoteHost ?? 'repo.blossomos.org',
-		remoteUser: settings?.remoteUser ?? 'forge',
-		r2BucketName: settings?.r2BucketName ?? 'blossom-repos',
-		r2RepoPath: settings?.r2RepoPath ?? 'flatpak',
-		buildWorkDir: settings?.buildWorkDir ?? '',
-		buildHost: settings?.buildHost ?? '',
-		buildUser: settings?.buildUser ?? 'forge',
-		buildDockerImage:
-			settings?.buildDockerImage ?? 'registry.blossomos.org/blossom/arc-store/flatpak-builder-docker/main:latest'
+		gpgPassphraseIsEmpty: settings?.gpgPassphraseEncrypted
+			? decryptSecret(settings.gpgPassphraseEncrypted) === ''
+			: false
 	};
 };
 
@@ -71,29 +59,10 @@ export const actions: Actions = {
 		await signOutInfraAccess(locals.session.id);
 	},
 
-	// Destructive: invalidates whatever's currently authorized on the remote host.
-	// The UI gates this behind a confirm dialog before submitting.
-	generateSshKey: async ({ locals }) => {
-		requireAdmin(locals.user);
-		if (!locals.session) throw error(401);
-		await requireVerifiedInfraAccess(locals.session.id);
-
-		const { publicKey, privateKeyOpenSsh } = generateSshKeypair();
-		await db.infraSettings.upsert({
-			where: { id: 'singleton' },
-			update: { sshPublicKey: publicKey, sshPrivateKeyEncrypted: encryptSecret(privateKeyOpenSsh) },
-			create: {
-				id: 'singleton',
-				sshPublicKey: publicKey,
-				sshPrivateKeyEncrypted: encryptSecret(privateKeyOpenSsh)
-			}
-		});
-	},
-
 	// Uploads the actual signing key material rather than assuming it already
-	// exists on the remote host's own keyring - see the gpgPrivateKeyEncrypted
+	// exists on the builder container's own keyring - see the gpgPrivateKeyEncrypted
 	// comment in schema.prisma for why. Only a loose armor-header sanity check:
-	// real validation happens on the remote host at import time (see
+	// real validation happens inside the builder container at import time (see
 	// buildGpgImportSection in flatpak-publish.ts), which also derives and uses
 	// the key's actual fingerprint, so nothing here needs to parse OpenPGP.
 	setGpgPrivateKey: async ({ request, locals }) => {
@@ -122,60 +91,15 @@ export const actions: Actions = {
 
 		const data = await request.formData();
 		const passphrase = (data.get('passphrase') as string) ?? '';
-		if (!passphrase) return fail(400, { error: 'Passphrase is required' });
+		const noPassphrase = data.get('noPassphrase') === 'on';
+		if (!passphrase && !noPassphrase) {
+			return fail(400, { error: 'Passphrase is required (or check "key has no passphrase")' });
+		}
 
 		await db.infraSettings.upsert({
 			where: { id: 'singleton' },
 			update: { gpgPassphraseEncrypted: encryptSecret(passphrase) },
 			create: { id: 'singleton', gpgPassphraseEncrypted: encryptSecret(passphrase) }
-		});
-	},
-
-	updateRemote: async ({ request, locals }) => {
-		requireAdmin(locals.user);
-		if (!locals.session) throw error(401);
-		await requireVerifiedInfraAccess(locals.session.id);
-
-		const data = await request.formData();
-		const remoteHost = ((data.get('remoteHost') as string) ?? '').trim();
-		const remoteUser = ((data.get('remoteUser') as string) ?? '').trim();
-		const r2BucketName = ((data.get('r2BucketName') as string) ?? '').trim();
-		const r2RepoPath = ((data.get('r2RepoPath') as string) ?? '').trim();
-		// Optional: falls back to the remote host's default TMPDIR when unset.
-		const buildWorkDir = ((data.get('buildWorkDir') as string) ?? '').trim() || null;
-		if (!remoteHost || !remoteUser || !r2BucketName || !r2RepoPath) {
-			return fail(400, { error: 'All fields are required' });
-		}
-
-		await db.infraSettings.upsert({
-			where: { id: 'singleton' },
-			update: { remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir },
-			create: { id: 'singleton', remoteHost, remoteUser, r2BucketName, r2RepoPath, buildWorkDir }
-		});
-	},
-
-	// Separate from updateRemote above on purpose: this is a genuinely
-	// different host (the isolated Docker build host for GIT submissions, see
-	// flatpak-publish.ts), never the signing host, so it gets its own action
-	// and its own required-fields check rather than being folded into the
-	// same form.
-	updateBuildHost: async ({ request, locals }) => {
-		requireAdmin(locals.user);
-		if (!locals.session) throw error(401);
-		await requireVerifiedInfraAccess(locals.session.id);
-
-		const data = await request.formData();
-		const buildHost = ((data.get('buildHost') as string) ?? '').trim();
-		const buildUser = ((data.get('buildUser') as string) ?? '').trim();
-		const buildDockerImage = ((data.get('buildDockerImage') as string) ?? '').trim();
-		if (!buildHost || !buildUser || !buildDockerImage) {
-			return fail(400, { error: 'All fields are required' });
-		}
-
-		await db.infraSettings.upsert({
-			where: { id: 'singleton' },
-			update: { buildHost, buildUser, buildDockerImage },
-			create: { id: 'singleton', buildHost, buildUser, buildDockerImage }
 		});
 	},
 
@@ -193,7 +117,7 @@ export const actions: Actions = {
 	},
 
 	// Emergency stop for stuck/misbehaving builds: best-effort kills whatever's
-	// actually still running remotely and marks every PROCESSING app FAILED. The
+	// actually still running in the builder container and marks every PROCESSING app FAILED. The
 	// UI gates this behind a confirm dialog too, same as repairAppstreamAction.
 	abortProcessingBuildsAction: async ({ locals }) => {
 		requireAdmin(locals.user);

@@ -17,7 +17,13 @@ RUN deno task build
 
 FROM denoland/deno:latest AS runner
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
+# docker.io provides the `docker` CLI (client + daemon in one Debian package,
+# but only the client binary is ever used here) - needed to `docker exec`
+# into the sibling `builder` service for Flatpak publishing, see
+# src/lib/server/flatpak-publish.ts. Requires /var/run/docker.sock mounted in
+# at runtime (see docker-compose.yml) - root-equivalent host access, an
+# explicit accepted trade-off, see README.md.
+RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates docker.io && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

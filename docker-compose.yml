@@ -14,6 +14,22 @@ services:
       timeout: 5s
       retries: 10
 
+  # Builds/signs/publishes Flatpaks (see src/lib/server/flatpak-publish.ts) - a
+  # long-lived sibling container `app` reaches via `docker exec`, not a
+  # per-run `docker run`. Stays up via `sleep infinity` purely so there's
+  # something to exec into; the actual work happens per `docker exec` call.
+  # container_name is fixed (not left to compose's auto-naming) since
+  # flatpak-publish.ts hardcodes it as the exec target.
+  builder:
+    image: registry.blossomos.org/blossom/arc-store/flatpak-builder-docker/main:latest
+    container_name: forge-builder
+    privileged: true
+    command: ['sleep', 'infinity']
+    volumes:
+      - flatpak-repo:/repo
+      - flatpak-scratch:/scratch
+    restart: unless-stopped
+
   app:
     image: registry.blossomos.org/blossom/arc-store/forge/main
     ports:
@@ -21,6 +37,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      builder:
+        condition: service_started
+    volumes:
+      # Lets Forge `docker exec` into the `builder` service above instead of
+      # SSHing to a separate host - see flatpak-publish.ts. This is
+      # root-equivalent access to the whole host, an explicit accepted
+      # trade-off for dropping the old SSH-based remote pipeline; see
+      # README.md's Flatpak publishing section.
+      - /var/run/docker.sock:/var/run/docker.sock
+      - flatpak-scratch:/scratch
+      # Read-only: Forge serves the repo directly at /flatpak/* off this same
+      # mount (see src/routes/flatpak/[...path]/+server.ts) - only `builder`
+      # ever writes to it.
+      - flatpak-repo:/repo:ro
     environment:
       DATABASE_URL: postgresql://postgres:password@db:5432/forge
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -55,3 +85,25 @@ services:
 
 volumes:
   postgres_data:
+  # The OSTree repo itself - needs a real local filesystem (flatpak-builder's
+  # commit writes rely on hardlinks, which an R2/rclone FUSE mount can't
+  # provide - see flatpak_publish_pipeline memory for the reproduced
+  # `renameat`/`linkat` EPERM). Point this at a real block storage volume
+  # (e.g. a Hetzner Volume) mounted on the host, not the VM's boot disk - this
+  # repo is tens of GB and growing. Forge serves it directly off this same
+  # mount (read-only, see the `app` service above and
+  # src/routes/flatpak/[...path]/+server.ts) - no R2/CDN involved for
+  # Flatpaks at all anymore, that bucket holds unrelated content (RPMs) this
+  # repo can't share a domain with.
+  flatpak-repo:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/hetzner-volume/flatpak-repo # adjust to the real mount path on this host
+  # Ephemeral per-run scratch space (scripts, GPG passphrase/key files, build
+  # logs) shared between `app` and `builder` at the same path - lets Forge
+  # write files directly via Node fs and have `builder` see them instantly,
+  # no SFTP/docker cp needed. Plain Docker-managed volume, not Hetzner-backed
+  # (nothing here needs to survive being deleted).
+  flatpak-scratch:

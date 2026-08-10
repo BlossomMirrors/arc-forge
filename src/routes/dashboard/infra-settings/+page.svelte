@@ -1,27 +1,29 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { Copy, Check, LogOut } from '@lucide/svelte';
+	import { LogOut } from '@lucide/svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
+	import { onMount } from 'svelte';
 
 	let { data, form } = $props();
 
-	let copied = $state(false);
 	let repairing = $state(false);
 	let aborting = $state(false);
 	// The `form` prop is shared across every action on this page - track which
 	// card's submit populated it so each only renders its own result/log.
 	let lastAction = $state<'repair' | 'abort' | null>(null);
 
-	async function copyPublicKey() {
-		if (!data.sshPublicKey) return;
-		await navigator.clipboard.writeText(data.sshPublicKey);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
+	// svelte-ignore state_referenced_locally
+	let noPassphrase = $state(data.gpgPassphraseIsEmpty);
+
+	onMount(() => {
+		setTimeout(() => {
+			noPassphrase = data.gpgPassphraseIsEmpty;
+		}, 100);
+	});
 
 	let codeSent = $state(false);
 	let sending = $state(false);
@@ -145,38 +147,6 @@
 		{/if}
 
 		<div class="space-y-3 rounded-lg border border-border p-4">
-			<h3 class="text-sm font-semibold">{m.infra_ssh_heading()}</h3>
-			{#if data.sshPublicKey}
-				<div class="flex gap-2">
-					<code
-						class="flex-1 overflow-x-auto rounded bg-muted px-2 py-1.5 font-mono text-xs whitespace-nowrap"
-						>{data.sshPublicKey}</code
-					>
-					<Button type="button" variant="ghost" size="icon" onclick={copyPublicKey}>
-						{#if copied}<Check class="size-4" />{:else}<Copy class="size-4" />{/if}
-					</Button>
-				</div>
-				<p class="text-xs text-muted-foreground">{m.infra_ssh_authorize_hint()}</p>
-			{:else}
-				<p class="text-sm text-muted-foreground">{m.infra_ssh_none()}</p>
-			{/if}
-			<form
-				method="POST"
-				action="?/generateSshKey"
-				use:enhance={({ cancel }) => {
-					const msg = data.sshPublicKey
-						? m.infra_ssh_regenerate_confirm()
-						: m.infra_ssh_generate_confirm();
-					if (!confirm(msg)) cancel();
-				}}
-			>
-				<Button type="submit" variant={data.sshPublicKey ? 'ghost' : 'default'} size="sm">
-					{data.sshPublicKey ? m.infra_ssh_regenerate() : m.infra_ssh_generate()}
-				</Button>
-			</form>
-		</div>
-
-		<div class="space-y-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold">{m.infra_gpg_key_heading()}</h3>
 			<p class="text-sm text-muted-foreground">
 				{data.hasGpgPrivateKey ? m.infra_gpg_key_set() : m.infra_gpg_key_none()}
@@ -205,71 +175,30 @@
 		<div class="space-y-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold">{m.infra_gpg_heading()}</h3>
 			<p class="text-sm text-muted-foreground">
-				{data.hasGpgPassphrase ? m.infra_gpg_set() : m.infra_gpg_none()}
+				{#if !data.hasGpgPassphrase}
+					{m.infra_gpg_none()}
+				{:else if data.gpgPassphraseIsEmpty}
+					{m.infra_gpg_set_empty()}
+				{:else}
+					{m.infra_gpg_set()}
+				{/if}
 			</p>
-			<form method="POST" action="?/setGpgPassphrase" use:enhance class="flex gap-2">
-				<Input
-					type="password"
-					name="passphrase"
-					placeholder={m.infra_gpg_placeholder()}
-					class="flex-1"
-					required
-				/>
-				<Button type="submit" size="sm">{m.infra_gpg_save()}</Button>
-			</form>
-		</div>
-
-		<div class="space-y-3 rounded-lg border border-border p-4">
-			<h3 class="text-sm font-semibold">{m.infra_remote_heading()}</h3>
-			<form method="POST" action="?/updateRemote" use:enhance class="space-y-3">
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_remote_host()}</span>
-					<Input name="remoteHost" value={data.remoteHost} required />
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_remote_user()}</span>
-					<Input name="remoteUser" value={data.remoteUser} required />
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_r2_bucket()}</span>
-					<Input name="r2BucketName" value={data.r2BucketName} required />
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_r2_path()}</span>
-					<Input name="r2RepoPath" value={data.r2RepoPath} required />
-					<span class="text-xs text-muted-foreground">{m.infra_r2_path_hint()}</span>
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_build_work_dir()}</span>
+			<form method="POST" action="?/setGpgPassphrase" use:enhance class="space-y-2">
+				<div class="flex gap-2">
 					<Input
-						name="buildWorkDir"
-						value={data.buildWorkDir}
-						placeholder={m.infra_build_work_dir_placeholder()}
+						type="password"
+						name="passphrase"
+						placeholder={m.infra_gpg_placeholder()}
+						class="flex-1"
+						disabled={noPassphrase}
+						required={!noPassphrase}
 					/>
-					<span class="text-xs text-muted-foreground">{m.infra_build_work_dir_hint()}</span>
+					<Button type="submit" size="sm">{m.infra_gpg_save()}</Button>
+				</div>
+				<label class="flex items-center gap-2 text-sm text-muted-foreground">
+					<input type="checkbox" name="noPassphrase" bind:checked={noPassphrase} />
+					{m.infra_gpg_no_passphrase()}
 				</label>
-				<Button type="submit" size="sm">{m.infra_remote_save()}</Button>
-			</form>
-		</div>
-
-		<div class="space-y-3 rounded-lg border border-border p-4">
-			<h3 class="text-sm font-semibold">{m.infra_build_host_heading()}</h3>
-			<p class="text-sm text-muted-foreground">{m.infra_build_host_hint()}</p>
-			<form method="POST" action="?/updateBuildHost" use:enhance class="space-y-3">
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_build_host_host()}</span>
-					<Input name="buildHost" value={data.buildHost} required />
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_build_host_user()}</span>
-					<Input name="buildUser" value={data.buildUser} required />
-				</label>
-				<label class="block space-y-1.5">
-					<span class="text-sm font-medium">{m.infra_build_host_image()}</span>
-					<Input name="buildDockerImage" value={data.buildDockerImage} required />
-					<span class="text-xs text-muted-foreground">{m.infra_build_host_image_hint()}</span>
-				</label>
-				<Button type="submit" size="sm">{m.infra_build_host_save()}</Button>
 			</form>
 		</div>
 

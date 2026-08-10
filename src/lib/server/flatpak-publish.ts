@@ -1,25 +1,112 @@
-import { Client } from 'ssh2';
-import sshpk from 'sshpk';
+// deno-lint-ignore-file no-sloppy-imports
+import { execFile, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
+import { mkdir, writeFile, readFile, rm, open } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
-import { env } from '$env/dynamic/private';
 import { db } from './db';
 import { decryptSecret } from './secrets';
 import { notifyUser } from './notifications';
 import { uploadFile } from './r2';
-import type { FlatpakApp, InfraSettings } from '$lib/generated/prisma/client';
+import type { FlatpakApp } from '$lib/generated/prisma/client';
 
-export function generateSshKeypair(): { publicKey: string; privateKeyOpenSsh: string } {
-	const key = sshpk.generatePrivateKey('ed25519');
-	key.comment = 'forge@blossomos';
-	return {
-		publicKey: key.toPublic().toString('ssh'),
-		privateKeyOpenSsh: key.toString('openssh')
-	};
+const execFileAsync = promisify(execFile);
+
+// Build+sign+publish all happen inside this one long-lived sibling container
+// (see docker-compose.yml's `builder` service, `sleep infinity` keeps it up
+// for repeated `docker exec`) in the same docker-compose stack as Forge
+// itself - no more SSH to a separate host. `/repo` is a real local
+// filesystem there (a Hetzner Volume, not R2/rclone-FUSE-mounted - OSTree's
+// commit writes rely on hardlinks, which rclone's FUSE mount can't provide,
+// a real reproduced `renameat`/`linkat` EPERM confirmed this). Forge itself
+// serves this same mount directly to Flatpak clients (read-only, see
+// src/routes/flatpak/[...path]/+server.ts) - no R2/CDN involved at all
+// anymore, that bucket holds unrelated content (RPMs) this repo can't share
+// a domain with.
+const BUILDER_CONTAINER = 'forge-builder';
+const CONTAINER_REPO_PATH = '/repo';
+// Ephemeral per-run scratch space (scripts, GPG passphrase/key files, build
+// logs) - a plain Docker volume mounted at this same path in both `app` and
+// `builder`, so Forge can write files directly via Node fs and have
+// `builder` see them instantly (no SFTP/docker cp needed), and read log/exit
+// files back the same way while polling.
+const SCRATCH_ROOT = '/scratch';
+
+// Fires the given bash command detached inside the builder container and
+// returns as soon as the `docker exec -d` call itself completes (near
+// instant) - the command keeps running inside `builder` independent of this
+// Node process, Forge restarting, or this docker exec's own CLI process
+// exiting. Used for the actual (potentially long) build+sign+publish run -
+// see launchDetachedRun.
+async function dockerExecDetached(command: string): Promise<{ ok: boolean; log: string }> {
+	try {
+		await execFileAsync('docker', ['exec', '-d', BUILDER_CONTAINER, 'bash', '-c', command]);
+		return { ok: true, log: '' };
+	} catch (e) {
+		return { ok: false, log: e instanceof Error ? e.message : String(e) };
+	}
 }
 
-// Builds the full remote pipeline as a single self-deleting script. The GPG key ID is
-// derived dynamically on the remote host (matching the user's existing tooling) rather
-// than stored anywhere. Deliberately does NOT force-delete the appstream2/x86_64 ref
+// Runs a command inside the builder container and waits for it to finish,
+// piping `stdin` in (matches the old SSH `execScript`'s piped-passphrase
+// behavior exactly, see runOnBuilder). Only for short/synchronous scripts
+// (repair, unpublish, appstream extraction) - never for the detached publish
+// run, which would otherwise tie up this Node process for as long as the
+// build takes.
+function dockerExecPiped(command: string, stdin: string): Promise<{ exitCode: number; log: string }> {
+	return new Promise((resolve, reject) => {
+		const child = spawn('docker', ['exec', '-i', BUILDER_CONTAINER, 'bash', '-c', command]);
+		let log = '';
+		child.stdout.on('data', (chunk: Buffer) => {
+			log += chunk.toString('utf8');
+		});
+		child.stderr.on('data', (chunk: Buffer) => {
+			log += chunk.toString('utf8');
+		});
+		child.on('error', reject);
+		child.on('close', (exitCode) => resolve({ exitCode: exitCode ?? 1, log }));
+		child.stdin.end(`${stdin}\n`);
+	});
+}
+
+// Writes to the shared scratch volume - creates the run's directory on first
+// write. mode matters here same as it did over SFTP (0600 for secrets like
+// the GPG passphrase/key, 0700 for the executable script itself).
+async function writeScratchFile(path: string, contents: string, mode = 0o600): Promise<void> {
+	await mkdir(dirname(path), { recursive: true });
+	await writeFile(path, contents, { mode });
+}
+
+async function readScratchFileOrEmpty(path: string): Promise<string> {
+	try {
+		return await readFile(path, 'utf8');
+	} catch {
+		return '';
+	}
+}
+
+// Replicates `tail -c maxBytes` without reading a potentially large,
+// still-growing log file in full on every poll tick - see LOG_READ_BYTES.
+async function tailFile(path: string, maxBytes: number): Promise<string> {
+	let handle;
+	try {
+		handle = await open(path, 'r');
+		const { size } = await handle.stat();
+		const start = Math.max(0, size - maxBytes);
+		const length = size - start;
+		const buffer = Buffer.alloc(length);
+		await handle.read(buffer, 0, length, start);
+		return buffer.toString('utf8');
+	} catch {
+		return '';
+	} finally {
+		await handle?.close();
+	}
+}
+
+// Builds the full publish pipeline as a single self-deleting script. The GPG key ID is
+// derived dynamically inside the builder container (matching the user's existing tooling)
+// rather than stored anywhere. Deliberately does NOT force-delete the appstream2/x86_64 ref
 // before regenerating: that's a manual repair step for when the branch is already
 // broken, not something to run on every routine publish, doing it unconditionally
 // disconnects the ref's history from what existing clients have cached, which can
@@ -39,109 +126,17 @@ export function generateSshKeypair(): { publicKey: string; privateKeyOpenSsh: st
 // validate in staging, copy the untouched commit into the shared repo, and let
 // build-update-repo compose the aggregate catalog from what's really there.
 
-// Shared by every remote script that needs build scratch space (buildRemoteScript,
-// buildExtractScript). Defaults to mktemp's own default TMPDIR, which on some hosts
-// sits on a partition too small for a flatpak-builder build or a multi-GB bundle
-// download. settings.buildWorkDir lets an admin point that scratch space at a
-// larger disk instead. mkdir -p plus set -e means a misconfigured/unwritable path
-// fails the script immediately with mkdir's own error, rather than surfacing later
-// as an opaque "No space left on device" mid-build.
-function buildWorkdirSetup(settings: InfraSettings): string {
-	if (!settings.buildWorkDir) return 'WORKDIR=$(mktemp -d)';
-	return `mkdir -p "${settings.buildWorkDir}"
-WORKDIR=$(mktemp -d -p "${settings.buildWorkDir}")`;
-}
-
-// The OSTree repo itself lives in R2, not on the remote host's local disk, so
-// every script that touches $REPO_PATH mounts the admin-configured bucket/path
-// with rclone first and unmounts it again on the way out (see r2UnmountClause,
-// wired into each script's trap). The mount is entirely ephemeral: config is
-// passed as env vars for this one rclone invocation, nothing is ever written to
-// an rclone.conf on the remote host, and R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY
-// are the same credentials Forge's own server already uses for uploads (see
-// r2.ts), just pointed at a different bucket. Must run after $WORKDIR exists,
-// the mountpoint and rclone's own vfs cache both live under it.
-// --vfs-cache-mode writes buffers a file locally until it's closed and then
-// uploads it whole, which is what gives ostree's rename-based object writes the
-// atomicity object storage can't provide on its own; reads of objects already
-// in the bucket still stream straight from R2.
-function buildR2MountSetup(settings: InfraSettings): string {
-	return `MOUNT_DIR="$WORKDIR/r2-repo"
-mkdir -p "$MOUNT_DIR"
-RCLONE_CONFIG_R2REPO_TYPE=s3 \\
-RCLONE_CONFIG_R2REPO_PROVIDER=Cloudflare \\
-RCLONE_CONFIG_R2REPO_ACCESS_KEY_ID="${env.R2_ACCESS_KEY_ID}" \\
-RCLONE_CONFIG_R2REPO_SECRET_ACCESS_KEY="${env.R2_SECRET_ACCESS_KEY}" \\
-RCLONE_CONFIG_R2REPO_ENDPOINT="https://${env.R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com" \\
-rclone mount "r2repo:${settings.r2BucketName}/${settings.r2RepoPath}" "$MOUNT_DIR" \\
-  --daemon --vfs-cache-mode writes --cache-dir="$WORKDIR/rclone-cache"
-
-for i in $(seq 1 30); do
-  mountpoint -q "$MOUNT_DIR" && break
-  sleep 1
-done
-mountpoint -q "$MOUNT_DIR" || { echo "R2 repo mount never became ready" >&2; exit 1; }
-
-REPO_PATH="$MOUNT_DIR"
-`;
-}
-
-// Appended to every trap that calls buildR2MountSetup, and must run before the
-// trap's "rm -rf $WORKDIR" (the mountpoint lives under it) - lazy unmount as a
-// fallback in case something still has a handle open when the script exits.
-function r2UnmountClause(): string {
-	return `[ -n "\${MOUNT_DIR:-}" ] && (fusermount -uz "$MOUNT_DIR" 2>/dev/null || umount "$MOUNT_DIR" 2>/dev/null || true)`;
-}
-
-// Used by buildRemoteScript (PUBLISH phase) ONLY, in place of
-// buildR2MountSetup above - repair/unpublish still use the plain host-side
-// rclone mount, unmigrated for now. Instead of Forge running `rclone mount`
-// itself, this asks the rclone Docker/Podman volume plugin (`rclone serve
-// docker`, registered as a persistent systemd service on this host, socket
-// path listed in /etc/containers/containers.conf's [engine.volume_plugins] -
-// manual one-time host prerequisite, see README, UNVERIFIED against a real
-// Podman install) to create and manage the FUSE mount itself, entirely inside
-// its own daemon/namespace, then hands the container a plain named volume
-// (`-v "$R2_VOLUME:/repo"` in buildRemoteScript) instead of a bind-mounted
-// host path. A fresh, uniquely-named volume per run, destroyed in the trap
-// the moment this script exits - same "credentials only exist for the
-// duration of one run" posture buildR2MountSetup always had, the plugin's own
-// on-disk volume bookkeeping (docker-plugin.state) never holds
-// R2_ACCESS_KEY_ID/SECRET for longer than a single publish. Must run with
-// `sudo docker` (same rootful Podman as everywhere else in this file, and the
-// plugin socket must be registered in ROOT's own containers.conf, not
-// buildUser's/remoteUser's per-user one, or `sudo docker volume create` won't
-// see it).
-function buildR2VolumeSetup(settings: InfraSettings): string {
-	return `R2_VOLUME="forge-r2-$(date +%s)-$$"
-sudo docker volume create --driver rclone \\
-  -o type=s3 \\
-  -o path="${settings.r2BucketName}/${settings.r2RepoPath}" \\
-  -o s3-provider=Cloudflare \\
-  -o s3-access-key-id="${env.R2_ACCESS_KEY_ID}" \\
-  -o s3-secret-access-key="${env.R2_SECRET_ACCESS_KEY}" \\
-  -o s3-endpoint="https://${env.R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com" \\
-  -o vfs-cache-mode=writes \\
-  "$R2_VOLUME"
-`;
-}
-
-// Mirrors r2UnmountClause above but for buildR2VolumeSetup's plugin-backed
-// volume - removing it also tears down the rclone plugin's own FUSE mount for
-// it, nothing left running once this exits.
-function r2VolumeRemoveClause(): string {
-	return `[ -n "\${R2_VOLUME:-}" ] && sudo docker volume rm -f "$R2_VOLUME" 2>/dev/null || true`;
-}
-
 // Imports the admin-uploaded signing key fresh on every run and resolves its
 // fingerprint straight from the key file itself (via --import-options
 // show-only, which doesn't touch the keyring), rather than by listing
-// whatever secret keys the remote keyring happens to already have. That
-// "just list secret keys and take the first one" approach is what silently
-// signed everything with the wrong key once the remote keyring ever held
-// more than one - see the incident this replaced. Requires $GPG_PASSPHRASE
-// to already be set (each caller reads its own passphrase differently, see
-// buildRemoteScript/buildRepairScript/buildUnpublishScript).
+// whatever secret keys the builder container's own keyring happens to
+// already have. That "just list secret keys and take the first one" approach
+// is what silently signed everything with the wrong key once the keyring
+// ever held more than one - see the incident this replaced. Requires
+// $GPG_PASSPHRASE to already be set (each caller reads its own passphrase
+// differently, see buildPublishScript/buildRepairScript/buildUnpublishScript).
+// Re-importing the same key on every run (the builder container is
+// long-lived now, not a disposable one per run) is idempotent and harmless.
 function buildGpgImportSection(gpgKeyPath: string): string {
 	return `GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${gpgKeyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
 if [ -z "$GPG_ID" ]; then
@@ -150,122 +145,89 @@ if [ -z "$GPG_ID" ]; then
 fi
 gpg --batch --import "${gpgKeyPath}"
 KEYGRIP=$(gpg --with-keygrip -K "$GPG_ID" | awk '/Keygrip/ {print $3; exit}')
-$(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"`;
+if [ -n "$GPG_PASSPHRASE" ]; then
+  $(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase --preset "$KEYGRIP" <<< "$GPG_PASSPHRASE"
+fi`;
 }
 
-// Bundles are self-describing: build-import-bundle always imports under the
-// bundle's OWN embedded appid/branch, regardless of what this submission
-// declared. Importing straight into $REPO_PATH and only checking the ref
-// afterward would leave a real, signed commit sitting in the shared repo on
-// a mismatch, nothing ever cleans that up, and every later aggregate
-// appstream2 rebuild sweeps it back in. Staging first means a mismatch never
-// touches the shared repo at all.
-//
-// GIT-sourced submissions no longer run flatpak-builder here at all - that
-// now happens in isolation on a separate Docker build host (see
-// buildContainerScript/buildDockerBuildScript below), which produces an
-// unsigned bundle and hands it to this same import path via localBundlePath,
-// same as a developer's own direct BUNDLE upload just without the curl. The
-// commit hash and metainfo/icon base64 for GIT submissions are extracted
-// during that build-host step instead (into their own small sidecar files,
-// same reasoning as ever - see pollBuildOnce's LOG_READ_BYTES comment for why
-// these can't just be echoed into the combined log).
+// Neither source type stages anymore (explicit user decision) - both
+// build/import straight into $REPO_PATH (now a real local filesystem, see
+// CONTAINER_REPO_PATH above). Bundles are self-describing (build-import-bundle
+// always imports under the bundle's OWN embedded appid/branch, regardless of
+// what the submission declared) and a manifest could equally drift from its
+// submission's declared appid - a mismatch on either path now leaves a real,
+// signed commit sitting in the shared repo with nothing to clean it up,
+// swept into every later aggregate appstream2 rebuild. Mandatory human
+// review before approval is the only guard against that now, same posture as
+// the GIT-manifest security note in README.md. See flatpak_publish_pipeline
+// memory for the real, reproduced corruption incident (a submission
+// declaring `com.koyu.test` whose bundle was actually Hytale Launcher) that
+// originally motivated staging.
 interface BuildSidecarPaths {
 	commitPath: string;
 	metainfoPath: string;
 	iconPath: string;
-	bundlePath: string;
 }
 
-// localBundlePath is set only when Forge has already SFTP'd a built bundle to
-// this fixed path before launching the script (the GIT case, after the
-// Docker build host finishes) - same fixed-path-outside-$WORKDIR convention
-// already used for gpgKeyFilePath/passphraseFilePath below. Otherwise (a
-// developer's direct BUNDLE upload) this curls app.bundleUrl as before.
-function buildBundleImportSection(app: FlatpakApp, localBundlePath?: string): string {
-	if (localBundlePath) {
-		return `
-BUNDLE_PATH="${localBundlePath}"
-
-grep -E '^Cap(Inh|Prm|Eff|Bnd|Amb):' /proc/self/status
-capsh --print 2>/dev/null || true
-
-flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" "$BUNDLE_PATH"
-`;
-	}
-
+// Curls the developer's uploaded bundle straight into $WORKDIR (the script's
+// own mktemp'd cwd - see buildPublishScript) and imports it directly into
+// $REPO_PATH.
+function buildBundleImportSection(app: FlatpakApp): string {
 	return `
 BUNDLE_URL="${app.bundleUrl}"
 
 curl -fsSL "$BUNDLE_URL" -o bundle.flatpak
 
-grep -E '^Cap(Inh|Prm|Eff|Bnd|Amb):' /proc/self/status
-capsh --print 2>/dev/null || true
-
-flatpak build-import-bundle --gpg-sign="$GPG_ID" "$STAGING_REPO" bundle.flatpak
+flatpak build-import-bundle --gpg-sign="$GPG_ID" "$REPO_PATH" bundle.flatpak
 `;
 }
 
-// Runs *inside* the Docker container launched by buildDockerBuildScript
-// below, against WORKDIR/APPID/MANIFEST_PATH/METAINFO_PATH/ICON_PATH/
-// BUNDLE_PATH env vars the outer script passes in. The container is started
-// with identity bind mounts (host path == container path for both $WORKDIR
-// and /tmp), so every path here is exactly the same absolute path on both
-// sides - no host/container path translation needed anywhere. Never touches
-// GPG or the shared repo: this only ever produces an UNSIGNED bundle, which
-// buildBundleImportSection above imports and signs on the signing host
-// afterward. This is deliberately almost identical to the old GIT branch of
-// the old single-host GIT build path (see git history), just relocated into the container
-// and ending in `flatpak build-bundle` instead of `pull-local` into a shared
-// repo - preserve the appid-scoped extraction exactly, it's already been
-// fixed through several real production bugs (see flatpak_publish_pipeline
-// notes: an unscoped glob previously picked up a bundled QEMU module's own
-// qemu.png, or a base Wine app's own name/icon, instead of the submitted
-// app's).
-function buildContainerScript(): string {
-	return `#!/usr/bin/env bash
-set -euo pipefail
-cd "$WORKDIR"
-
-# --disable-rofiles-fuse: FUSE may not be available/permitted in the
-# container, matching the same "don't assume privileged capabilities" lesson
-# as ostree checkout's -U flag elsewhere in this file. --state-dir explicitly
-# under $WORKDIR avoids flatpak-builder's cache dir landing on a different
-# filesystem than the build/target dirs, which it refuses to do.
-flatpak-builder --repo=build-repo --state-dir=.flatpak-builder \\
+// GIT submissions: builds AND signs directly into $REPO_PATH, same as the
+// user's own pre-Forge command (`flatpak-builder --gpg-sign=...
+// --repo=/srv/repos/flatpak build-dir`), just now writing into a real local
+// disk (a Hetzner Volume) instead of `/srv/repos/flatpak` directly.
+// --state-dir explicitly under $WORKDIR since flatpak-builder refuses to run
+// when its cache dir and target dir are on different filesystems;
+// --disable-rofiles-fuse since FUSE may not be available in the container
+// (same lesson as ostree checkout's -U flag below). Resolves $REF straight
+// out of $REPO_PATH afterward - not a pre-publish validation gate anymore
+// (see the interface comment above), just finding what was actually built so
+// buildGitExtractionSection knows what to check out. That extraction is
+// copied over from the old build-host container script's tail: this
+// appid-scoping (never a bare glob) was a real, reproduced production bug
+// fix (a base app/SDK/module's own metainfo/icon could otherwise be picked
+// instead of the submitted app's, e.g. a bundled QEMU module's qemu.png) -
+// see flatpak_publish_pipeline memory.
+function buildGitBuildSection(): string {
+	return `
+flatpak-builder --repo="$REPO_PATH" --gpg-sign="$GPG_ID" --state-dir="$WORKDIR/.flatpak-builder" \\
   --force-clean --disable-rofiles-fuse --install-deps-from=flathub \\
-  build-dir "src/$MANIFEST_PATH"
+  "$WORKDIR/build-dir" "$WORKDIR/src/$MANIFEST_PATH"
 
-REF=$(ostree refs --repo=build-repo | grep "^app/$APPID/" | head -n1 || true)
+REF=$(ostree refs --repo="$REPO_PATH" | grep "^app/$APPID/" | head -n1)
 if [ -z "$REF" ]; then
   # Themes/extensions publish as a runtime rather than an app.
-  REF=$(ostree refs --repo=build-repo | grep "^runtime/$APPID/" | head -n1 || true)
+  REF=$(ostree refs --repo="$REPO_PATH" | grep "^runtime/$APPID/" | head -n1)
 fi
 if [ -z "$REF" ]; then
   echo "Could not find a matching app or runtime ref for $APPID after building (appid/branch mismatch, or the build didn't produce a ref)" >&2
   exit 1
 fi
-BRANCH_NAME=$(echo "$REF" | cut -d/ -f4)
 
-BUNDLE_EXTRA_ARGS=()
-case "$REF" in
-  runtime/*) BUNDLE_EXTRA_ARGS+=(--runtime) ;;
-esac
-flatpak build-bundle "\${BUNDLE_EXTRA_ARGS[@]}" build-repo "$BUNDLE_PATH" "$APPID" "$BRANCH_NAME"
+${buildGitExtractionSection()}
+`;
+}
 
-ostree checkout -U --repo=build-repo "$REF" post-build-checkout
-# Named exactly $APPID, never a bare '*.xml'/'*.png' glob: a git build's tree
-# isn't just the submitted app, it's also whatever base app/SDK
-# extension/module the manifest pulled in (e.g. org.winehq.Wine as a base, or
-# a bundled qemu module), and those ship their own metainfo/icon files in the
-# exact same directories.
+// checkout MUST come before creating any subdirectories under the
+// destination and needs -U/--user-mode, same as everywhere else this file
+// does an ostree checkout.
+function buildGitExtractionSection(): string {
+	return `
+ostree checkout -U --repo="$REPO_PATH" "$REF" post-build-checkout
 METAINFO_SRC=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
 if [ -n "$METAINFO_SRC" ]; then
   base64 -w0 "$METAINFO_SRC" > "$METAINFO_PATH"
 fi
-# Sized PNGs first, then scalable/apps as a fallback: some manifests only
-# ship an svg there (no raster icon at all), and some mistakenly install a
-# raster png into scalable/apps instead of a proper sized directory.
 ICON_SRC=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
   post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
   post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
@@ -278,141 +240,75 @@ fi
 `;
 }
 
-// The outer script that actually runs on the build host (never inside the
-// container) via the same detached `screen -dmS` mechanism the signing
-// host's script already uses - see launchDetachedScript. A real Docker build
-// can run just as long as flatpak-builder always could, so it gets the same
-// survives-a-restart treatment. Never imports the GPG key or mounts the R2
-// repo: this host only ever produces an unsigned bundle, nothing here needs
-// signing-host credentials.
-function buildDockerBuildScript(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	sidecar: BuildSidecarPaths,
-	containerScriptPath: string
-): string {
-	return `#!/usr/bin/env bash
-set -euo pipefail
-trap 'rm -f "$0" "${containerScriptPath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
-
-APPID="${app.appid}"
-GIT_URL="${app.gitUrl}"
-GIT_BRANCH="${app.gitBranch}"
-MANIFEST_PATH="${app.gitManifestPath}"
-
-${buildWorkdirSetup(settings)}
-cd "$WORKDIR"
-
-git clone --recurse-submodules --branch "$GIT_BRANCH" --depth 1 "$GIT_URL" src
-git -C src rev-parse HEAD > "${sidecar.commitPath}"
-
-# sudo + rootful podman, not the plain rootless \`docker\` (Podman's docker-shim)
-# buildUser normally has: rootless Podman remaps container root onto an
-# unprivileged subordinate UID from /etc/subuid no matter what
-# capabilities/--privileged are added, so it can never actually access the
-# bind-mounted $WORKDIR (owned by buildUser's own real UID, created by the
-# mktemp above) - this is what produced \`Can't find source path
-# .../build-dir/files: Permission denied\` from bwrap. Rootful podman's
-# container root IS real host root, same as the pipeline's original
-# pre-Docker-isolation design, so --privileged actually means something and
-# none of the rootless UID-mapping problems apply. Requires buildUser to have
-# passwordless sudo for podman (see README), and the image to be pulled/built
-# into root's OWN podman storage (/var/lib/containers) separately from
-# whatever's in buildUser's rootless storage (~/.local/share/containers) -
-# the two are entirely separate stores, this never touches buildUser's own
-# rootless images/containers. Identity bind mounts ($WORKDIR and /tmp map to
-# the same path inside the container) so buildContainerScript can share these
-# exact paths with no translation.
-sudo docker run --rm \\
-  --privileged \\
-  -v "$WORKDIR:$WORKDIR" \\
-  -v /tmp:/tmp \\
-  -w "$WORKDIR" \\
-  -e WORKDIR="$WORKDIR" \\
-  -e APPID="$APPID" \\
-  -e MANIFEST_PATH="$MANIFEST_PATH" \\
-  -e METAINFO_PATH="${sidecar.metainfoPath}" \\
-  -e ICON_PATH="${sidecar.iconPath}" \\
-  -e BUNDLE_PATH="${sidecar.bundlePath}" \\
-  "${settings.buildDockerImage}" \\
-  bash "${containerScriptPath}"
-
-echo "FORGE_BUILD_OK"
-`;
+interface RunPaths extends BuildSidecarPaths {
+	runDir: string;
+	scriptPath: string;
+	logPath: string;
+	exitPath: string;
+	passphrasePath: string;
+	gpgKeyPath: string;
 }
 
-// Runs *inside* the Docker container launched by buildRemoteScript below,
-// against WORKDIR/REPO_PATH/APPID/GPG_KEY_PATH/GPG_PASSPHRASE_PATH env vars
-// the outer script passes in. $REPO_PATH (the outer script's R2 volume) is
-// mounted in under /repo - see buildR2VolumeSetup.
-//
-// $STAGING_REPO and /work (the bundle-download scratch dir for the
-// direct-BUNDLE curl case) are both --tmpfs mounts (see buildRemoteScript's
-// docker run). Getting this right took several real attempts (2026-08-07),
-// all against the same reproduced `error: Importing <hash>.commit: renameat:
-// Operation not permitted` from `flatpak build-import-bundle`:
-// (1) a bind-mounted $WORKDIR under a privileged/rootful container - no
-//     change, a bind mount doesn't alter the underlying filesystem, it was
-//     still whatever the signing host's own storage was doing;
-// (2) $STAGING_REPO moved to a plain container-native path, no bind mount at
-//     all - STILL no change, ruling out container/privilege/mount strategy
-//     as the cause entirely (every combination tried produced the
-//     byte-identical error - containers still make the real renameat()
-//     syscall through the *host kernel*);
-// (3) forced onto tmpfs specifically (this attempt), on the NFS theory
-//     (a well-documented cause of exactly this error) - diagnostics run
-//     directly against a real failure confirmed uid=0, seccomp fully
-//     disabled (/proc/self/status Seccomp: 0), the mount genuinely is tmpfs,
-//     AND that a plain rename() on that same tmpfs succeeds - yet OSTree's
-//     own bare, flag-less renameat() (see commit_path_final in ostree's
-//     ostree-repo-commit.c - no renameat2/RENAME_NOREPLACE involved at all)
-//     still fails identically. That rules out NFS, seccomp, non-root, and
-//     "is this really tmpfs" all at once, while leaving the tmpfs mounts in
-//     place anyway since they're strictly better regardless;
-// (4) current leading theory, being tested now: a confirmed open Podman bug
-//     (containers/podman#24142) where a host AppArmor profile keeps
-//     mediating operations inside a container even when --privileged or an
-//     explicit apparmor=unconfined is passed - see the
-//     --security-opt apparmor=unconfined comment on buildRemoteScript's
-//     docker run below.
-// Tmpfs size deliberately left uncapped (defaults to a fraction of host RAM)
-// rather than guessing a limit - an unusually large bundle (see the
-// bundled-QEMU example elsewhere in this file) could need capping this
-// explicitly with --tmpfs /staging-repo:size=... if it ever OOMs.
-//
-// GPG import + preset-passphrase happen in here too now rather than on the
-// host, since gpg-agent needs to be reachable for both that step and the
-// later --gpg-sign, and this container's lifetime spans both - see the
-// shared image's baked-in allow-preset-passphrase (was previously a manual
-// one-time host prerequisite, now obsolete: every run gets a fresh
-// disposable keyring/agent from the image, nothing to configure or reload on
-// the host anymore).
-function buildPublishContainerScript(app: FlatpakApp, localBundlePath?: string): string {
+function sidecarPathsFromRunDir(runDir: string): BuildSidecarPaths {
+	return {
+		commitPath: `${runDir}/commit`,
+		metainfoPath: `${runDir}/metainfo.b64`,
+		iconPath: `${runDir}/icon.b64`
+	};
+}
+
+// Minted once per publish run - a fresh, uniquely-named subdirectory under
+// the shared scratch volume.
+function buildRunPaths(appId: string): RunPaths {
+	const runDir = `${SCRATCH_ROOT}/run-${appId}-${Date.now()}`;
+	return {
+		runDir,
+		scriptPath: `${runDir}/script.sh`,
+		logPath: `${runDir}/log`,
+		exitPath: `${runDir}/exit`,
+		passphrasePath: `${runDir}/pass`,
+		gpgKeyPath: `${runDir}/gpgkey`,
+		...sidecarPathsFromRunDir(runDir)
+	};
+}
+
+// The full per-run script: GPG import -> (GIT clone+build | BUNDLE curl+import)
+// -> build-update-repo, all in one file that gets docker-exec'd detached into
+// the builder container (see launchDetachedRun). $WORKDIR is a plain
+// mktemp'd directory inside the container's own (ephemeral-per-container-
+// lifetime, not per-run) filesystem - it doesn't need to be on the shared
+// scratch volume, nothing outside this script ever needs to read it, only
+// $REPO_PATH's result and the sidecar files under paths.runDir do.
+function buildPublishScript(app: FlatpakApp, paths: RunPaths): string {
+	const isGit = app.sourceType === 'GIT';
+	const gitCloneSection = isGit
+		? `
+git clone --recurse-submodules --branch "${app.gitBranch}" --depth 1 "${app.gitUrl}" "$WORKDIR/src"
+git -C "$WORKDIR/src" rev-parse HEAD > "${paths.commitPath}"
+`
+		: '';
+	const gitVars = isGit
+		? `
+MANIFEST_PATH="${app.gitManifestPath}"
+METAINFO_PATH="${paths.metainfoPath}"
+ICON_PATH="${paths.iconPath}"`
+		: '';
+	const body = isGit ? buildGitBuildSection() : buildBundleImportSection(app);
+
 	return `#!/usr/bin/env bash
 set -euo pipefail
-cd /work
+trap 'rm -f "$0" "${paths.passphrasePath}" "${paths.gpgKeyPath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
-GPG_PASSPHRASE=$(cat "$GPG_PASSPHRASE_PATH")
+WORKDIR=$(mktemp -d)
+cd "$WORKDIR"
+
+GPG_PASSPHRASE=$(cat "${paths.passphrasePath}")
 APPID="${app.appid}"
+REPO_PATH="${CONTAINER_REPO_PATH}"${gitVars}
 
-${buildGpgImportSection('$GPG_KEY_PATH')}
-
-STAGING_REPO="/staging-repo"
-ostree init --repo="$STAGING_REPO" --mode=archive-z2
-
-${buildBundleImportSection(app, localBundlePath)}
-
-REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/$APPID/" | head -n1)
-if [ -z "$REF" ]; then
-  # Themes/extensions publish as a runtime rather than an app, see extractAppstreamMetadata.
-  REF=$(ostree refs --repo="$STAGING_REPO" | grep "^runtime/$APPID/" | head -n1)
-fi
-if [ -z "$REF" ]; then
-  echo "Could not find a matching app or runtime ref for $APPID after building (appid/branch mismatch, or the build didn't produce a ref) - refusing to publish to the shared repo" >&2
-  exit 1
-fi
-
-ostree pull-local --repo="$REPO_PATH" "$STAGING_REPO" "$REF"
+${buildGpgImportSection(paths.gpgKeyPath)}
+${gitCloneSection}
+${body}
 
 flatpak build-update-repo \\
   --gpg-sign="$GPG_ID" \\
@@ -423,200 +319,58 @@ flatpak build-update-repo \\
 `;
 }
 
-// passphraseFilePath: unlike buildRepairScript/buildUnpublishScript (still piped
-// over exec's stdin, see execScript), this script runs detached inside a `screen`
-// session with no interactive stdin to receive anything - the passphrase has to
-// arrive as a file instead. Deleted via the trap the moment it's read, same
-// self-deleting treatment the script already gives itself.
-//
-// localBundlePath (see buildBundleImportSection) is also cleaned up by the
-// trap when present - it's a file Forge SFTP'd in ahead of time to a fixed
-// path under /tmp, same as the passphrase/GPG key files.
-//
-// R2 is no longer bind-mounted from a host-side `rclone mount` at all - see
-// buildR2VolumeSetup above for why (a bind mount doesn't isolate anything
-// from whatever the host filesystem itself is doing, same lesson the
-// $STAGING_REPO fix above already taught the hard way). Instead the rclone
-// Docker/Podman volume plugin creates+owns the FUSE mount entirely inside its
-// own daemon, and the container just gets a plain named volume
-// (`-v "$R2_VOLUME:/repo"`) - no host path, no bind mount, no identity-mount
-// path-matching to keep in sync between outer/inner scripts. This also means
-// this script has no more use for $WORKDIR at all (nothing it does touches
-// the host filesystem anymore), so unlike buildDockerBuildScript on the build
-// host, there's no workdir setup or bind mount of one here.
-// `sudo docker run --privileged`: same reasoning as buildDockerBuildScript on
-// the build host - this account's `docker` is rootless Podman, which remaps
-// container root onto an unprivileged subordinate UID no matter what
-// capabilities/--privileged are added, so it can never access resources it
-// doesn't own. Rootful Podman via sudo makes container root real host root
-// instead, avoiding that whole class of problem. Same image as the build
-// host (settings.buildDockerImage) - one Dockerfile serves both purposes.
-//
-// --security-opt apparmor=unconfined, explicit and redundant with
-// --privileged (added 2026-08-07, after the tmpfs fix above STILL reproduced
-// the identical `renameat: Operation not permitted`, with tmpfs confirmed via
-// diagnostics: root-owned, a plain rename on it succeeded, only OSTree's own
-// bare flag-less `renameat()` - see commit_path_final in ostree's
-// ostree-repo-commit.c, no special flags at all - failed). At that point
-// every remaining explanation involving the filesystem itself, UID mapping,
-// or syscall flags had been directly ruled out by diagnostics, which pointed
-// at something intercepting the syscall rather than anything about the
-// storage or privilege level. Podman has a confirmed open bug
-// (containers/podman#24142) where a host AppArmor profile keeps mediating
-// operations inside a container even when --privileged or an explicit
-// apparmor=unconfined is passed - Ubuntu (unlike this image's Fedora base)
-// runs AppArmor by default, unlike the SELinux the earlier (wrong) theory on
-// the build host assumed. Confirm independently with `dmesg | grep -i
-// apparmor` / `journalctl -k | grep -i apparmor` on the signing host right
-// after a failed run - a DENIED line naming the operation there would
-// confirm this before trusting that the flag alone fixed it.
-function buildRemoteScript(
+// Writes the script (plus any extra small files it needs, e.g. a GPG
+// passphrase/key) to the shared scratch volume and fires it detached inside
+// the builder container - see pollBuildOnce for how its outcome is picked
+// back up. Runs independent of this Node process, Forge restarting, or this
+// call's own docker CLI process exiting, as long as the `builder` container
+// itself keeps running.
+async function launchDetachedRun(
+	paths: RunPaths,
+	script: string,
+	extraFiles: { path: string; contents: string; mode?: number }[] = []
+): Promise<{ ok: boolean; log: string }> {
+	try {
+		await writeScratchFile(paths.scriptPath, script, 0o700);
+		for (const f of extraFiles) {
+			await writeScratchFile(f.path, f.contents, f.mode ?? 0o600);
+		}
+		const { ok, log } = await dockerExecDetached(
+			`bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"`
+		);
+		if (!ok) return { ok: false, log: `Failed to launch detached build: ${log}` };
+		return { ok: true, log: '' };
+	} catch (e) {
+		return { ok: false, log: e instanceof Error ? e.message : String(e) };
+	}
+}
+
+async function launchSigningPublish(
 	app: FlatpakApp,
-	settings: InfraSettings,
-	passphraseFilePath: string,
-	gpgKeyFilePath: string,
-	containerScriptPath: string,
-	localBundlePath?: string
-): string {
-	return `#!/usr/bin/env bash
-set -euo pipefail
-trap 'rm -f "$0" "${containerScriptPath}" "${passphraseFilePath}" "${gpgKeyFilePath}"${localBundlePath ? ` "${localBundlePath}"` : ''}; ${r2VolumeRemoveClause()}' EXIT
-
-${buildR2VolumeSetup(settings)}
-
-# TEMP DIAGNOSTIC (2026-08-07): every conventional theory (NFS, seccomp,
-# SELinux, AppArmor, UID mapping, missing capabilities) has now been directly
-# ruled out by real diagnostics against a live failure - this traces the
-# actual syscall so the next failure shows the real errno/arguments instead
-# of guessing again. Written under /tmp (bind-mounted, host-persistent) so it
-# survives this container's --rm even on failure. Requires strace in
-# settings.buildDockerImage - remove this block (and the strace wrapping of
-# the entrypoint below) once root-caused.
-STRACE_LOG="/tmp/$R2_VOLUME.strace.log"
-echo "FORGE_DIAG strace log: $STRACE_LOG"
-
-sudo docker run --rm \\
-  --privileged \\
-  --security-opt apparmor=unconfined \\
-  --tmpfs /staging-repo \\
-  --tmpfs /work \\
-  -v "$R2_VOLUME:/repo" \\
-  -v /tmp:/tmp \\
-  -e REPO_PATH=/repo \\
-  -e APPID="${app.appid}" \\
-  -e GPG_KEY_PATH="${gpgKeyFilePath}" \\
-  -e GPG_PASSPHRASE_PATH="${passphraseFilePath}" \\
-  "${settings.buildDockerImage}" \\
-  strace -f -o "$STRACE_LOG" \\
-  bash "${containerScriptPath}"
-
-echo "FORGE_PUBLISH_OK"
-`;
-}
-
-function sftpWriteFile(
-	conn: Client,
-	remotePath: string,
-	contents: string,
-	mode = 0o700
-): Promise<void> {
-	return new Promise((resolve, reject) => {
-		conn.sftp((err, sftp) => {
-			if (err) return reject(err);
-			sftp.writeFile(remotePath, contents, { mode }, (writeErr) => {
-				if (writeErr) return reject(writeErr);
-				resolve();
-			});
-		});
-	});
-}
-
-// Like execScript, but for commands that don't need a piped stdin (the launch and
-// poll steps of the detached-build flow below never pipe the GPG passphrase over
-// exec - see buildRemoteScript's passphraseFilePath for why).
-function execCommand(conn: Client, command: string): Promise<{ exitCode: number; output: string }> {
-	return new Promise((resolve, reject) => {
-		conn.exec(command, (err, stream) => {
-			if (err) return reject(err);
-			let output = '';
-			stream.on('data', (chunk: Buffer) => {
-				output += chunk.toString('utf8');
-			});
-			stream.stderr.on('data', (chunk: Buffer) => {
-				output += chunk.toString('utf8');
-			});
-			stream.on('close', (exitCode: number) => {
-				resolve({ exitCode: exitCode ?? 1, output });
-			});
-			stream.on('error', reject);
-		});
-	});
-}
-
-function execScript(
-	conn: Client,
-	remotePath: string,
-	gpgPassphrase: string
-): Promise<{ exitCode: number; log: string }> {
-	return new Promise((resolve, reject) => {
-		conn.exec(`bash ${remotePath}`, (err, stream) => {
-			if (err) return reject(err);
-			let log = '';
-			stream.on('data', (chunk: Buffer) => {
-				log += chunk.toString('utf8');
-			});
-			stream.stderr.on('data', (chunk: Buffer) => {
-				log += chunk.toString('utf8');
-			});
-			stream.on('close', (exitCode: number) => {
-				resolve({ exitCode: exitCode ?? 1, log });
-			});
-			stream.on('error', reject);
-			stream.end(`${gpgPassphrase}\n`);
-		});
-	});
-}
-
-// Parameterized by which host/user to reach rather than always reading
-// settings.remoteHost/remoteUser, so this same helper serves both the
-// signing host and the separate Docker build host (see ConnectTarget).
-interface ConnectTarget {
-	host: string;
-	user: string;
-}
-
-function signingHostTarget(settings: InfraSettings): ConnectTarget {
-	return { host: settings.remoteHost, user: settings.remoteUser };
-}
-
-function connect(target: ConnectTarget, privateKey: string): Promise<Client> {
-	return new Promise((resolve, reject) => {
-		const conn = new Client();
-		conn.on('ready', () => resolve(conn));
-		conn.on('error', reject);
-		conn.connect({
-			host: target.host,
-			username: target.user,
-			privateKey
-		});
-	});
+	gpgKey: string,
+	gpgPassphrase: string,
+	paths: RunPaths
+): Promise<{ ok: boolean; log: string }> {
+	const script = buildPublishScript(app, paths);
+	return launchDetachedRun(paths, script, [
+		{ path: paths.passphrasePath, contents: gpgPassphrase, mode: 0o600 },
+		{ path: paths.gpgKeyPath, contents: gpgKey, mode: 0o600 }
+	]);
 }
 
 // Manual, explicitly-triggered repair for when the appstream2/x86_64 branch is
 // already broken/stale, not run automatically as part of routine publishing
-// (see buildRemoteScript's comment for why that caused real corruption once).
-function buildRepairScript(settings: InfraSettings, gpgKeyPath: string): string {
+// (see buildPublishScript's comment for why that caused real corruption once).
+function buildRepairScript(gpgKeyPath: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${gpgKeyPath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${gpgKeyPath}"' EXIT
 
 IFS= read -r GPG_PASSPHRASE
 
-${buildWorkdirSetup(settings)}
+REPO_PATH="${CONTAINER_REPO_PATH}"
 
 ${buildGpgImportSection(gpgKeyPath)}
-
-${buildR2MountSetup(settings)}
 
 ostree refs --repo="$REPO_PATH" appstream2/x86_64 --delete || true
 
@@ -631,49 +385,48 @@ echo "FORGE_REPAIR_OK"
 `;
 }
 
-// Shared by repairAppstream/unpublishFlatpak/runPublish: loads infra settings, connects,
-// writes the given script over SFTP, runs it with the passphrase piped over stdin, and
-// always tears the connection down. Never throws, callers get {ok, log} either way.
-async function runOnRemote(
-	scriptBuilder: (settings: InfraSettings, gpgKeyPath: string) => string,
-	remotePathPrefix: string
+// Shared by repairAppstream/unpublishFlatpak/extractAppstreamMetadata: loads
+// infra settings (just to check GPG is configured - R2 isn't involved here
+// at all anymore, see the module doc comment above), writes the given script
+// (plus a GPG key file, even when the script itself doesn't use one - see
+// buildExtractScript) to the shared scratch volume, runs it inside the
+// builder container with the passphrase piped over stdin, and always cleans
+// the run's scratch files up afterward. Never throws, callers get {ok, log}
+// either way.
+async function runOnBuilder(
+	scriptBuilder: (gpgKeyPath: string) => string,
+	runIdPrefix: string
 ): Promise<{ ok: boolean; exitCode: number | null; log: string }> {
 	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
-	if (
-		!settings?.sshPrivateKeyEncrypted ||
-		!settings.gpgPrivateKeyEncrypted ||
-		!settings.gpgPassphraseEncrypted
-	) {
+	if (!settings?.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
 		return {
 			ok: false,
 			exitCode: null,
-			log: 'Infra settings are not fully configured (missing SSH key, GPG key, or GPG passphrase).'
+			log: 'Infra settings are not fully configured (missing GPG key or GPG passphrase).'
 		};
 	}
 
-	let conn: Client | undefined;
+	const runDir = `${SCRATCH_ROOT}/${runIdPrefix}-${Date.now()}`;
 	try {
-		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
 		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
 		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const remotePath = `${remotePathPrefix}-${Date.now()}.sh`;
-		const gpgKeyPath = `${remotePath}.gpgkey`;
-		const script = scriptBuilder(settings, gpgKeyPath);
+		const scriptPath = `${runDir}/script.sh`;
+		const gpgKeyPath = `${runDir}/gpgkey`;
+		const script = scriptBuilder(gpgKeyPath);
 
-		conn = await connect(signingHostTarget(settings), privateKey);
-		await sftpWriteFile(conn, gpgKeyPath, gpgKey, 0o600);
-		await sftpWriteFile(conn, remotePath, script);
-		const { exitCode, log } = await execScript(conn, remotePath, gpgPassphrase);
+		await writeScratchFile(gpgKeyPath, gpgKey, 0o600);
+		await writeScratchFile(scriptPath, script, 0o700);
+		const { exitCode, log } = await dockerExecPiped(`bash "${scriptPath}"`, gpgPassphrase);
 		return { ok: exitCode === 0, exitCode, log };
 	} catch (e) {
 		return { ok: false, exitCode: null, log: e instanceof Error ? e.message : String(e) };
 	} finally {
-		conn?.end();
+		await rm(runDir, { recursive: true, force: true }).catch(() => {});
 	}
 }
 
 export async function repairAppstream(): Promise<{ ok: boolean; log: string }> {
-	return runOnRemote(buildRepairScript, '/tmp/forge-repair');
+	return runOnBuilder(buildRepairScript, 'repair');
 }
 
 const EXTRACT_METAINFO_START = 'FORGE_METAINFO_B64_START';
@@ -691,17 +444,18 @@ export function iconFileExtension(buffer: Buffer): 'png' | 'svg' {
 }
 
 // Read-only: imports the bundle into a throwaway staging repo (never touches the
-// shared repo) purely to read back its own, real AppStream metainfo.xml and icon, so
-// Forge's web UI can be populated from what's actually inside the bundle instead of
-// free-text form fields a developer could type anything into.
-function buildExtractScript(bundleUrl: string, settings: InfraSettings): string {
+// shared repo, never imports/uses the GPG key) purely to read back its own, real
+// AppStream metainfo.xml and icon, so Forge's web UI can be populated from what's
+// actually inside the bundle instead of free-text form fields a developer could
+// type anything into.
+function buildExtractScript(bundleUrl: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
 trap '[ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
 
 BUNDLE_URL="${bundleUrl}"
 
-${buildWorkdirSetup(settings)}
+WORKDIR=$(mktemp -d)
 cd "$WORKDIR"
 
 echo "FORGE_STEP: downloading bundle"
@@ -936,20 +690,16 @@ export type ExtractedAppstream = {
 };
 
 export async function extractAppstreamMetadata(bundleUrl: string): Promise<ExtractedAppstream> {
-	const { ok, exitCode, log } = await runOnRemote(
-		(settings) => buildExtractScript(bundleUrl, settings),
-		'/tmp/forge-extract'
-	);
+	const { ok, exitCode, log } = await runOnBuilder(() => buildExtractScript(bundleUrl), 'extract');
 	if (!ok || !log.includes('FORGE_EXTRACT_OK')) {
 		// The last line isn't necessarily the actual failure, a step can print a
 		// perfectly normal progress message and then die with no further output at
-		// all (connection drop, remote process killed, out of disk, etc.), so the
-		// headline names the last step reached instead of guessing at an error
-		// line, the full log (always returned below) has the real detail.
+		// all (process killed, out of disk, etc.), so the headline names the last
+		// step reached instead of guessing at an error line, the full log (always
+		// returned below) has the real detail.
 		const lastStepMatch = [...log.matchAll(/^FORGE_STEP: (.+)$/gm)].pop();
 		const lastStep = lastStepMatch?.[1];
-		const codeDesc =
-			exitCode === null ? 'the connection to the signing host failed' : `exit code ${exitCode}`;
+		const codeDesc = exitCode === null ? 'the builder container was unreachable' : `exit code ${exitCode}`;
 		return {
 			ok: false,
 			error: lastStep
@@ -997,24 +747,17 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 // Removes a specific app's ref from the repo (if present) and republishes, so the
 // repo's summary/deltas/appstream catalog no longer advertise it. Used both by a
 // reviewer's explicit "pull" and by deleting a Flatpak that's currently live.
-function buildUnpublishScript(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	gpgKeyPath: string
-): string {
+function buildUnpublishScript(app: FlatpakApp, gpgKeyPath: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
-trap 'rm -f "$0" "${gpgKeyPath}"; ${r2UnmountClause()}; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
+trap 'rm -f "$0" "${gpgKeyPath}"' EXIT
 
 IFS= read -r GPG_PASSPHRASE
 
 APPID="${app.appid}"
-
-${buildWorkdirSetup(settings)}
+REPO_PATH="${CONTAINER_REPO_PATH}"
 
 ${buildGpgImportSection(gpgKeyPath)}
-
-${buildR2MountSetup(settings)}
 
 REF=$(ostree refs --repo="$REPO_PATH" | grep "^app/$APPID/" | head -n1)
 if [ -n "$REF" ]; then
@@ -1033,18 +776,15 @@ echo "FORGE_UNPUBLISH_OK"
 }
 
 export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; log: string }> {
-	return runOnRemote(
-		(settings, gpgKeyPath) => buildUnpublishScript(app, settings, gpgKeyPath),
-		`/tmp/forge-unpublish-${app.id}`
-	);
+	return runOnBuilder((gpgKeyPath) => buildUnpublishScript(app, gpgKeyPath), `unpublish-${app.id}`);
 }
 
 // Only relevant for GIT-sourced apps: a bundle submission already extracted its
 // display data once at upload time (see extractAppstreamMetadata), but a git
 // submission has nothing to show until a build actually produces AppStream data,
-// so it's re-read from the sidecar files a successful BUILD-phase run wrote
-// (see buildContainerScript and BuildSidecarPaths) instead, at the BUILD ->
-// PUBLISH handoff in pollBuildOnce.
+// so it's re-read from the sidecar files a successful run wrote (see
+// buildGitExtractionSection and BuildSidecarPaths) at finalize time in
+// pollBuildOnce.
 async function updateDisplayDataFromSidecars(
 	metainfoB64: string,
 	iconB64: string
@@ -1082,173 +822,18 @@ async function updateDisplayDataFromSidecars(
 // generous enough for any real build, matches the "read a bounded amount"
 // posture already used elsewhere in this file (e.g. notification bodies).
 const LOG_READ_BYTES = 5_000_000;
-const POLL_SPLIT_MARKER = '__FORGE_POLL_SPLIT__';
 const POLL_INTERVAL_MS = 7_000;
-
-interface RemoteBuildPaths extends BuildSidecarPaths {
-	scriptPath: string;
-	containerScriptPath: string;
-	logPath: string;
-	exitPath: string;
-	passphrasePath: string;
-	gpgKeyPath: string;
-	sessionName: string;
-}
-
-// Sidecar paths are derived from logPath with a fixed suffix scheme so
-// pollBuildOnce/abortAllProcessingBuilds can re-derive the exact same paths
-// later from just the remoteLogPath already persisted on the FlatpakBuild row,
-// no extra columns needed.
-function sidecarPathsFromLogPath(logPath: string): BuildSidecarPaths {
-	const base = logPath.slice(0, -'.log'.length);
-	return {
-		commitPath: `${base}.commit`,
-		metainfoPath: `${base}.metainfo.b64`,
-		iconPath: `${base}.icon.b64`,
-		bundlePath: `${base}.flatpak`
-	};
-}
-
-// Called once per phase (BUILD and, for GIT apps, again for the PUBLISH
-// handoff) - each call mints a fresh timestamp-suffixed base, so reusing it
-// for a second phase on a different host never collides with the first.
-function remoteBuildPaths(appId: string): RemoteBuildPaths {
-	const base = `/tmp/forge-publish-${appId}-${Date.now()}`;
-	const logPath = `${base}.log`;
-	return {
-		scriptPath: `${base}.sh`,
-		containerScriptPath: `${base}.container.sh`,
-		logPath,
-		exitPath: `${base}.exit`,
-		passphrasePath: `${base}.pass`,
-		gpgKeyPath: `${base}.gpgkey`,
-		sessionName: `forge-build-${appId}-${Date.now()}`,
-		...sidecarPathsFromLogPath(logPath)
-	};
-}
-
-// Shared by both the build-host and signing-host launches: writes the given
-// already-built script (plus any extra small files it needs, e.g. a GPG
-// passphrase or the in-container script) and launches it detached inside a
-// `screen` session, returning as soon as that launch itself completes
-// (near-instant, `-dm` never attaches). The script keeps running on its host
-// independent of this SSH connection, this Node process, or Forge restarting
-// - see pollBuildOnce for how its outcome is picked back up. Requires
-// `screen` on the host (same "assume it's already there" posture as
-// flatpak-builder/docker/gpg/git elsewhere in this file). Note: a host with
-// systemd-logind's KillUserProcesses=yes will kill a detached screen session
-// on SSH logout same as any other process - if builds still die on
-// disconnect, `loginctl enable-linger <user>` is the fix.
-async function launchDetachedScript(
-	target: ConnectTarget,
-	privateKey: string,
-	scriptPath: string,
-	script: string,
-	sessionName: string,
-	logPath: string,
-	exitPath: string,
-	extraFiles: { path: string; contents: string; mode?: number }[] = []
-): Promise<{ ok: boolean; log: string }> {
-	let conn: Client | undefined;
-	try {
-		conn = await connect(target, privateKey);
-		await sftpWriteFile(conn, scriptPath, script);
-		for (const f of extraFiles) {
-			await sftpWriteFile(conn, f.path, f.contents, f.mode ?? 0o600);
-		}
-
-		const launchCommand = `screen -dmS "${sessionName}" bash -c 'bash "${scriptPath}" > "${logPath}" 2>&1; echo $? > "${exitPath}"'`;
-		const { exitCode, output } = await execCommand(conn, launchCommand);
-		if (exitCode !== 0) {
-			return {
-				ok: false,
-				log: `Failed to launch detached build (screen exited ${exitCode}): ${output}`
-			};
-		}
-		return { ok: true, log: '' };
-	} catch (e) {
-		return { ok: false, log: e instanceof Error ? e.message : String(e) };
-	} finally {
-		conn?.end();
-	}
-}
-
-// BUILD phase: launches the Docker build on settings.buildHost. Caller
-// (launchPublish) has already checked settings.buildHost is configured.
-async function launchDockerBuild(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	privateKey: string,
-	paths: RemoteBuildPaths
-): Promise<{ ok: boolean; log: string }> {
-	const script = buildDockerBuildScript(app, settings, paths, paths.containerScriptPath);
-	return launchDetachedScript(
-		{ host: settings.buildHost!, user: settings.buildUser },
-		privateKey,
-		paths.scriptPath,
-		script,
-		paths.sessionName,
-		paths.logPath,
-		paths.exitPath,
-		[{ path: paths.containerScriptPath, contents: buildContainerScript(), mode: 0o700 }]
-	);
-}
-
-// PUBLISH phase: launches the sign+import+publish script on the signing
-// host. localBundlePath, when set, must already exist on that host (Forge
-// SFTPs it there itself before calling this - see pollBuildOnce's BUILD ->
-// PUBLISH handoff) - this function only writes the script/passphrase/GPG
-// key/container script. paths.containerScriptPath is the same field the
-// BUILD phase already uses for its own inner script (see RemoteBuildPaths) -
-// each phase mints a fresh one via remoteBuildPaths, so reusing the field
-// name here never collides with the build host's.
-async function launchSigningPublish(
-	app: FlatpakApp,
-	settings: InfraSettings,
-	privateKey: string,
-	gpgKey: string,
-	gpgPassphrase: string,
-	paths: RemoteBuildPaths,
-	localBundlePath?: string
-): Promise<{ ok: boolean; log: string }> {
-	const script = buildRemoteScript(
-		app,
-		settings,
-		paths.passphrasePath,
-		paths.gpgKeyPath,
-		paths.containerScriptPath,
-		localBundlePath
-	);
-	return launchDetachedScript(
-		signingHostTarget(settings),
-		privateKey,
-		paths.scriptPath,
-		script,
-		paths.sessionName,
-		paths.logPath,
-		paths.exitPath,
-		[
-			{ path: paths.passphrasePath, contents: gpgPassphrase, mode: 0o600 },
-			{ path: paths.gpgKeyPath, contents: gpgKey, mode: 0o600 },
-			{
-				path: paths.containerScriptPath,
-				contents: buildPublishContainerScript(app, localBundlePath),
-				mode: 0o700
-			}
-		]
-	);
-}
 
 // Builds currently being tracked by the poller below - populated by triggerPublish
 // right after a successful launch, and by reconcileStuckBuilds on server startup.
 const activeBuildIds = new Set<string>();
 
-// One poll tick for one build: opens a fresh short-lived SSH connection (never
-// the one that launched it), checks whether the exit-marker file exists yet,
+// One poll tick for one build: reads the exit-marker file straight off the
+// shared scratch volume (no network round trip at all now, just local fs)
 // and either refreshes the live log (still running) or finalizes (done).
 //
 // Finalizing is deliberately idempotent and safe to retry: the tracked build id
-// is only removed from activeBuildIds, and the remote log/exit files are only
+// is only removed from activeBuildIds, and the scratch run directory is only
 // deleted, *after* the DB writes below actually succeed. If they throw (e.g.
 // the exact transient Postgres error that originally left a row stuck on
 // PROCESSING forever), this function just logs it and returns - the exit file
@@ -1256,34 +841,8 @@ const activeBuildIds = new Set<string>();
 // re-reads it and retries the same finalize from scratch. No bespoke
 // backoff/retry helper needed: a blip under one interval self-heals silently,
 // a longer outage self-heals whenever Postgres comes back, and a Forge restart
-// mid-outage is covered by reconcileStuckBuilds re-discovering the same build.
-// Streams a file from one already-open connection straight into another's
-// SFTP session, without buffering the whole thing in this process's memory -
-// used for the BUILD -> PUBLISH bundle handoff below, where a real app's
-// built bundle can be arbitrarily large (same "don't assume it's small"
-// lesson as LOG_READ_BYTES above, just for binary data this time).
-function sftpTransfer(
-	fromConn: Client,
-	fromPath: string,
-	toConn: Client,
-	toPath: string
-): Promise<void> {
-	return new Promise((resolve, reject) => {
-		fromConn.sftp((fromErr, fromSftp) => {
-			if (fromErr) return reject(fromErr);
-			toConn.sftp((toErr, toSftp) => {
-				if (toErr) return reject(toErr);
-				const readStream = fromSftp.createReadStream(fromPath);
-				const writeStream = toSftp.createWriteStream(toPath, { mode: 0o600 });
-				readStream.on('error', reject);
-				writeStream.on('error', reject);
-				writeStream.on('close', () => resolve());
-				readStream.pipe(writeStream);
-			});
-		});
-	});
-}
-
+// mid-outage is covered by reconcileStuckBuilds re-discovering the same build
+// (the detached run keeps going inside the builder container regardless).
 async function pollBuildOnce(buildId: string): Promise<void> {
 	const build = await db.flatpakBuild.findUnique({
 		where: { id: buildId },
@@ -1294,158 +853,43 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		return;
 	}
 
-	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
-	if (!settings?.sshPrivateKeyEncrypted) return; // transient config gap, retry next tick
-
-	const onBuildHost = build.stage === 'BUILD';
-	if (onBuildHost && !settings.buildHost) return; // build host got unconfigured mid-flight, retry next tick
-	const target: ConnectTarget = onBuildHost
-		? { host: settings.buildHost!, user: settings.buildUser }
-		: signingHostTarget(settings);
-
-	let conn: Client | undefined;
 	try {
-		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-		conn = await connect(target, privateKey);
-		const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
-		// The BUILD phase also has commit/metainfo/icon sidecars to read back;
-		// the PUBLISH phase's script no longer produces any of those (see
-		// buildRemoteScript), just a log/exit marker.
-		const { output } = await execCommand(
-			conn,
-			`EC=""; [ -f "${build.remoteExitPath}" ] && EC=$(cat "${build.remoteExitPath}"); ` +
-				`echo "$EC"; echo "${POLL_SPLIT_MARKER}"; ` +
-				`tail -c ${LOG_READ_BYTES} "${build.remoteLogPath}" 2>/dev/null || true; ` +
-				(onBuildHost
-					? `echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.commitPath}" 2>/dev/null || true; ` +
-						`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.metainfoPath}" 2>/dev/null || true; ` +
-						`echo "${POLL_SPLIT_MARKER}"; cat "${sidecar.iconPath}" 2>/dev/null || true`
-					: '')
-		);
-		const parts = output.split(POLL_SPLIT_MARKER);
-		if (parts.length < (onBuildHost ? 5 : 2)) return; // unexpected shape, retry next tick
-
-		const exitCodeRaw = parts[0].trim();
-		const log = parts[1].replace(/^\r?\n/, '');
-
-		if (exitCodeRaw === '') {
+		const exitRaw = (await readScratchFileOrEmpty(build.remoteExitPath)).trim();
+		if (exitRaw === '') {
 			// Still running - keep the live-view log fresh, best effort only.
+			const log = await tailFile(build.remoteLogPath, LOG_READ_BYTES);
 			await db.flatpakBuild
 				.update({ where: { id: build.id }, data: { log } })
 				.catch((e) => console.error(`Failed to refresh live log for build ${build.id}:`, e));
 			return;
 		}
 
-		const ok = exitCodeRaw === '0';
+		const ok = exitRaw === '0';
 		const app = build.flatpakApp;
+		const log = await tailFile(build.remoteLogPath, LOG_READ_BYTES);
+		const runDir = dirname(build.remoteLogPath);
+		const sidecar = sidecarPathsFromRunDir(runDir);
+		// The commit actually built can be later than app.gitLastCommit if more
+		// pushes landed between the watcher flagging this for review and the
+		// reviewer approving it - record what was really built, not just what
+		// was detected.
+		const gitCommit = (await readScratchFileOrEmpty(sidecar.commitPath)).trim();
 
-		if (onBuildHost) {
-			if (!ok) {
-				await execCommand(
-					conn,
-					`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"`
-				).catch(() => {});
-				activeBuildIds.delete(build.id);
-				await finalizeLaunchFailure(build.id, app, log);
-				return;
-			}
-
-			if (!settings.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
-				await finalizeLaunchFailure(
-					build.id,
-					app,
-					`${log}\n\n[Build succeeded, but the signing host's GPG key/passphrase is not configured - see Infra Settings.]`
-				);
-				return;
-			}
-
-			// The commit actually built can be later than app.gitLastCommit if more
-			// pushes landed between the watcher flagging this for review and the
-			// reviewer approving it - record what was really built, not just what
-			// was detected. Read from its own sidecar file, not the (tail-bounded)
-			// log - see BuildSidecarPaths for why a large build's own commit
-			// marker can otherwise fall outside that tail.
-			const gitCommit = parts[2].trim();
-			const displayData = await updateDisplayDataFromSidecars(parts[3].trim(), parts[4].trim());
-
-			const nextPaths = remoteBuildPaths(app.id);
-			try {
-				let signingConn: Client | undefined;
-				try {
-					signingConn = await connect(signingHostTarget(settings), privateKey);
-					await sftpTransfer(conn, sidecar.bundlePath, signingConn, nextPaths.bundlePath);
-				} finally {
-					signingConn?.end();
-				}
-			} catch (e) {
-				await finalizeLaunchFailure(
-					build.id,
-					app,
-					`${log}\n\n[Failed to transfer the built bundle to the signing host: ${e instanceof Error ? e.message : String(e)}]`
-				);
-				return;
-			}
-
-			await execCommand(
-				conn,
-				`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"`
-			).catch(() => {});
-
-			const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
-			const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-			const { ok: launchOk, log: launchLog } = await launchSigningPublish(
-				app,
-				settings,
-				privateKey,
-				gpgKey,
-				gpgPassphrase,
-				nextPaths,
-				nextPaths.bundlePath
-			);
-			if (!launchOk) {
-				await finalizeLaunchFailure(build.id, app, `${log}\n\n${launchLog}`);
-				return;
-			}
-
-			try {
-				await db.flatpakBuild.update({
-					where: { id: build.id },
-					data: {
-						stage: 'PUBLISH',
-						gitCommit: gitCommit || undefined,
-						screenSessionName: nextPaths.sessionName,
-						remoteLogPath: nextPaths.logPath,
-						remoteExitPath: nextPaths.exitPath,
-						log: `${log}\n\n[Build finished, handed off to the signing host to sign and publish...]`
-					}
-				});
-				if (Object.keys(displayData).length) {
-					await db.flatpakApp.update({ where: { id: app.id }, data: displayData });
-				}
-			} catch (e) {
-				// Rare transient-DB-write case, same shape as the finalize catch
-				// below - the build keeps running on the signing host regardless,
-				// the next tick will retry recording this handoff. Not perfectly
-				// idempotent (a second attempt would re-launch a second PUBLISH
-				// script), but this is the same accepted rarity as the comment
-				// on this function's finalize step already documents.
-				console.error(`Failed to record BUILD -> PUBLISH handoff for build ${build.id}, will retry next tick:`, e);
-				return;
-			}
-
-			return; // stays in activeBuildIds; next tick polls the PUBLISH phase
-		}
-
-		// PUBLISH phase finalize. For a GIT app this row already got its display
-		// data and gitCommit applied at the BUILD -> PUBLISH handoff above; a
-		// BUNDLE app never had any to begin with (see extractAppstreamMetadata).
 		try {
+			const displayData =
+				ok && app.sourceType === 'GIT'
+					? await updateDisplayDataFromSidecars(
+							await readScratchFileOrEmpty(sidecar.metainfoPath),
+							await readScratchFileOrEmpty(sidecar.iconPath)
+						)
+					: {};
 			await db.flatpakApp.update({
 				where: { id: app.id },
 				data: {
 					status: ok ? 'APPROVED' : 'FAILED',
 					buildFinishedAt: new Date(),
-					...(ok && build.gitCommit ? { gitLastCommit: build.gitCommit } : {})
+					...(ok && gitCommit ? { gitLastCommit: gitCommit } : {}),
+					...displayData
 				}
 			});
 			await db.flatpakBuild.update({
@@ -1458,7 +902,7 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		}
 
 		activeBuildIds.delete(build.id);
-		await execCommand(conn, `rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"`).catch(() => {});
+		await rm(runDir, { recursive: true, force: true }).catch(() => {});
 
 		if (app.submittedById) {
 			await notifyUser(
@@ -1479,8 +923,6 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		}
 	} catch (e) {
 		console.error(`Poll failed for build ${buildId}, will retry next tick:`, e);
-	} finally {
-		conn?.end();
 	}
 }
 
@@ -1534,12 +976,13 @@ async function finalizeLaunchFailure(buildId: string, app: FlatpakApp, log: stri
 }
 
 // Emergency stop, wired from the Infra Settings admin action: kills whatever's
-// actually still running on the remote host (best effort - a session that
-// already finished/never existed just no-ops) and marks every PROCESSING
-// app/build FAILED. Unlike pollBuildOnce's finalize, this is a deliberate
-// synchronous one-off admin action (matches repairAppstream's shape), not
-// something retried automatically, so a per-app failure is recorded in the
-// returned log and skipped rather than the whole call throwing.
+// actually still running in the builder container (best effort - a process
+// that already finished/never existed just no-ops) and marks every
+// PROCESSING app/build FAILED. Unlike pollBuildOnce's finalize, this is a
+// deliberate synchronous one-off admin action (matches repairAppstream's
+// shape), not something retried automatically, so a per-app failure is
+// recorded in the returned log and skipped rather than the whole call
+// throwing.
 export async function abortAllProcessingBuilds(): Promise<{
 	ok: boolean;
 	log: string;
@@ -1554,57 +997,21 @@ export async function abortAllProcessingBuilds(): Promise<{
 	}
 
 	const lines: string[] = [];
-	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
-
-	if (settings?.sshPrivateKeyEncrypted) {
-		const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-		// A stuck build can be sitting on either host depending on its current
-		// stage (see FlatpakBuildStage) - lazily open at most one connection to
-		// each, reused across every app that needs that host.
-		let signingConn: Client | undefined;
-		let buildConn: Client | undefined;
+	for (const app of apps) {
+		const build = app.builds[0];
+		if (!build) continue;
 		try {
-			for (const app of apps) {
-				const build = app.builds[0];
-				if (!build) continue;
-				const sidecar = sidecarPathsFromLogPath(build.remoteLogPath);
-				try {
-					if (build.stage === 'BUILD') {
-						if (!settings.buildHost) {
-							lines.push(`${app.appid}: build host not configured, could not abort remotely`);
-							continue;
-						}
-						buildConn ??= await connect(
-							{ host: settings.buildHost, user: settings.buildUser },
-							privateKey
-						);
-						const { output } = await execCommand(
-							buildConn,
-							`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
-								`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}" "${sidecar.commitPath}" "${sidecar.metainfoPath}" "${sidecar.iconPath}" "${sidecar.bundlePath}"; echo done`
-						);
-						lines.push(`${app.appid}: session kill attempted on build host (${output.trim() || 'done'})`);
-					} else {
-						signingConn ??= await connect(signingHostTarget(settings), privateKey);
-						const { output } = await execCommand(
-							signingConn,
-							`screen -S "${build.screenSessionName}" -X quit >/dev/null 2>&1; ` +
-								`rm -f "${build.remoteLogPath}" "${build.remoteExitPath}"; echo done`
-						);
-						lines.push(`${app.appid}: session kill attempted (${output.trim() || 'done'})`);
-					}
-				} catch (e) {
-					lines.push(
-						`${app.appid}: could not reach its host to abort (${e instanceof Error ? e.message : String(e)})`
-					);
-				}
-			}
-		} finally {
-			signingConn?.end();
-			buildConn?.end();
+			// screenSessionName no longer names a real `screen` session - it holds
+			// the run's script path (see launchPublish), matched here to kill the
+			// right process inside the builder container.
+			await dockerExecDetached(`pkill -f "${build.screenSessionName}" || true`);
+			await rm(dirname(build.remoteLogPath), { recursive: true, force: true }).catch(() => {});
+			lines.push(`${app.appid}: kill attempted`);
+		} catch (e) {
+			lines.push(
+				`${app.appid}: could not reach the builder container to abort (${e instanceof Error ? e.message : String(e)})`
+			);
 		}
-	} else {
-		lines.push('Infra SSH key not configured - skipped aborting remote sessions.');
 	}
 
 	let ok = true;
@@ -1649,12 +1056,11 @@ export async function abortAllProcessingBuilds(): Promise<{
 const triggeringApps = new Set<string>();
 
 // Creates the FlatpakBuild history row, prunes anything past the 10 most recent
-// for this app, then launches the build detached (see launchDockerBuild /
-// launchSigningPublish) and hands it off to the shared poller. Doesn't await
-// the build itself completing -
-// the caller (the review approve/retry action) returns immediately, same as
-// before, but the build's outcome is now tracked durably instead of living only
-// in this async call's own stack.
+// for this app, then launches the build detached (see launchSigningPublish)
+// and hands it off to the shared poller. Doesn't await the build itself
+// completing - the caller (the review approve/retry action) returns
+// immediately, same as before, but the build's outcome is now tracked
+// durably instead of living only in this async call's own stack.
 export function triggerPublish(flatpakAppId: string, triggeredById?: string): void {
 	if (triggeringApps.has(flatpakAppId)) return;
 	triggeringApps.add(flatpakAppId);
@@ -1665,17 +1071,15 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 	const app = await db.flatpakApp.findUnique({ where: { id: flatpakAppId } });
 	if (!app) return;
 
-	const paths = remoteBuildPaths(app.id);
-	// GIT submissions start on the Docker build host (no secrets involved);
-	// BUNDLE submissions skip straight to the signing host, same as before.
-	const stage: 'BUILD' | 'PUBLISH' = app.sourceType === 'GIT' ? 'BUILD' : 'PUBLISH';
+	const paths = buildRunPaths(app.id);
 	const build = await db.flatpakBuild.create({
 		data: {
 			flatpakAppId: app.id,
 			status: 'PROCESSING',
 			log: '',
-			stage,
-			screenSessionName: paths.sessionName,
+			// No more real `screen` session (see abortAllProcessingBuilds) - this
+			// field now just holds the run's script path.
+			screenSessionName: paths.scriptPath,
 			remoteLogPath: paths.logPath,
 			remoteExitPath: paths.exitPath,
 			triggeredById
@@ -1697,46 +1101,20 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 		await finalizeLaunchFailure(build.id, app, 'Infra settings are not configured.');
 		return;
 	}
-	if (!settings.sshPrivateKeyEncrypted) {
+	if (!settings.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
 		await finalizeLaunchFailure(
 			build.id,
 			app,
-			'Infra settings are not fully configured (missing SSH key).'
+			'Infra settings are not fully configured (missing GPG key or GPG passphrase).'
 		);
 		return;
 	}
-	const privateKey = decryptSecret(settings.sshPrivateKeyEncrypted);
-
-	if (stage === 'BUILD') {
-		if (!settings.buildHost) {
-			await finalizeLaunchFailure(
-				build.id,
-				app,
-				'No Docker build host is configured (Infra Settings - Build Host) - GIT-sourced Flatpaks cannot be built.'
-			);
-			return;
-		}
-		const { ok, log } = await launchDockerBuild(app, settings, privateKey, paths);
-		if (!ok) {
-			await finalizeLaunchFailure(build.id, app, log);
-			return;
-		}
-	} else {
-		if (!settings.gpgPrivateKeyEncrypted || !settings.gpgPassphraseEncrypted) {
-			await finalizeLaunchFailure(
-				build.id,
-				app,
-				'Infra settings are not fully configured (missing GPG key or GPG passphrase).'
-			);
-			return;
-		}
-		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
-		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
-		const { ok, log } = await launchSigningPublish(app, settings, privateKey, gpgKey, gpgPassphrase, paths);
-		if (!ok) {
-			await finalizeLaunchFailure(build.id, app, log);
-			return;
-		}
+	const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
+	const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
+	const { ok, log } = await launchSigningPublish(app, gpgKey, gpgPassphrase, paths);
+	if (!ok) {
+		await finalizeLaunchFailure(build.id, app, log);
+		return;
 	}
 
 	activeBuildIds.add(build.id);

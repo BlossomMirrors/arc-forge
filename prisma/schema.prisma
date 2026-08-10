@@ -324,12 +324,11 @@ enum FlatpakBuildResult {
   FAILED
 }
 
-// Which host a FlatpakBuild row's screenSessionName/remoteLogPath/remoteExitPath
-// currently refer to. GIT-sourced builds start at BUILD (the Docker build host,
-// no secrets involved) and get flipped in place to PUBLISH (the signing host)
-// once flatpak-builder produces a bundle - see pollBuildOnce in
-// flatpak-publish.ts. BUNDLE-sourced builds skip BUILD entirely, defaulting
-// straight to PUBLISH.
+// Vestigial: both source types have run in a single PUBLISH-stage script
+// since the two-phase BUILD/PUBLISH split (a separate Docker build host,
+// then later a separate signing host) was collapsed away. Left in place
+// (never BUILD on new rows) purely so old history rows still deserialize -
+// not read for any branching logic anymore, see flatpak-publish.ts.
 enum FlatpakBuildStage {
   BUILD
   PUBLISH
@@ -392,18 +391,18 @@ model FlatpakBuild {
   flatpakApp        FlatpakApp         @relation(fields: [flatpakAppId], references: [id], onDelete: Cascade)
   status            FlatpakBuildResult @default(PROCESSING)
   log               String             @db.Text
-  // Set as soon as it's known (BUILD-phase handoff for GIT, unused for BUNDLE)
-  // rather than only at final finalize, since a GIT build's PUBLISH-phase
-  // script no longer has a git checkout of its own to read this back from.
+  // Set from the run's own git-clone sidecar file at finalize time (GIT only,
+  // unused for BUNDLE) - see updateDisplayDataFromSidecars in flatpak-publish.ts.
   gitCommit         String?
-  // Which host screenSessionName/remoteLogPath/remoteExitPath below currently
-  // point at - see the FlatpakBuildStage enum doc above.
+  // See the FlatpakBuildStage enum doc above - vestigial, always PUBLISH now.
   stage             FlatpakBuildStage  @default(PUBLISH)
-  // Remote screen session name plus the log/exit-marker file paths it writes to -
-  // the poller in flatpak-publish.ts uses these to find and tail an in-progress
-  // build over a fresh SSH connection each tick, independent of the connection
-  // that launched it. Reused in place for the PUBLISH phase after a BUILD
-  // phase completes (see pollBuildOnce), rather than a second row.
+  // screenSessionName no longer names a real `screen` session (there's no SSH
+  // session at all anymore) - it holds the run's script path inside the
+  // builder container, used by abortAllProcessingBuilds to `pkill -f` it.
+  // remoteLogPath/remoteExitPath are paths on the shared scratch Docker
+  // volume (see SCRATCH_ROOT in flatpak-publish.ts), not a remote host -
+  // names kept as-is to avoid widening this migration, see that file's
+  // pollBuildOnce for how they're read directly via local fs now.
   screenSessionName String
   remoteLogPath     String
   remoteExitPath    String
@@ -417,45 +416,25 @@ model FlatpakBuild {
 
 // Singleton row (see FrontPage for the same pattern) holding infra secrets for the
 // Flatpak publish pipeline. Only readable/writable by the "admin" group.
+//
+// No more SSH/remote-host/R2 fields (sshPublicKey/sshPrivateKeyEncrypted/
+// remoteHost/remoteUser/buildHost/buildUser/buildWorkDir/buildDockerImage/
+// r2BucketName/r2RepoPath, all removed here) - build+sign now run in a
+// sibling `builder` container in Forge's own docker-compose stack, reached
+// via `docker exec`, not SSH, and Forge serves the repo directly off the
+// same mounted disk (see src/routes/flatpak/[...path]/+server.ts) - no R2/CDN
+// involved for Flatpaks at all anymore. See flatpak-publish.ts and
+// README.md's Flatpak publishing section.
 model InfraSettings {
   id                     String   @id @default("singleton")
-  sshPublicKey           String?
-  sshPrivateKeyEncrypted String?  @db.Text
   // The actual GPG signing key material, uploaded by an admin rather than ever
-  // generated on (or assumed to already exist on) the remote host - see
+  // generated on (or assumed to already exist on) the builder container - see
   // buildGpgImportSection in flatpak-publish.ts. Every publish/repair/unpublish
   // run imports this fresh and unlocks it with gpgPassphraseEncrypted below, so
-  // the remote host's own keyring is disposable: losing it no longer means
-  // losing the signing key itself.
+  // the builder container's own keyring is disposable: losing it no longer
+  // means losing the signing key itself.
   gpgPrivateKeyEncrypted String?  @db.Text
   gpgPassphraseEncrypted String?  @db.Text
-  remoteHost             String   @default("repo.blossomos.org")
-  remoteUser             String   @default("forge")
-  // The OSTree repo itself lives in this Cloudflare R2 bucket/path, not on the
-  // remote host's local disk. Every publish/repair/unpublish script mounts it
-  // with rclone (reusing Forge's own R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY env
-  // credentials) for the duration of the run and unmounts it again before
-  // exiting. See buildR2MountSetup in flatpak-publish.ts.
-  r2BucketName           String   @default("blossom-repos")
-  r2RepoPath             String   @default("flatpak")
-  // Optional parent dir for the remote build scratch space (WORKDIR in
-  // flatpak-publish.ts). Unset means fall back to the remote host's default
-  // TMPDIR, which can be too small for a flatpak-builder build. See
-  // buildRemoteScript for how this is used.
-  buildWorkDir           String?
-  // Dedicated host for GIT-sourced Flatpak builds (see buildDockerBuildScript
-  // in flatpak-publish.ts) - deliberately separate from remoteHost/remoteUser
-  // above, since flatpak-builder runs arbitrary commands from a submitted
-  // manifest and this host never receives the GPG signing key or R2/repo
-  // credentials. Nullable: GIT builds fail with a clear config-missing error
-  // until an admin sets this, everything else (BUNDLE publish, repair,
-  // unpublish, appstream extraction) is unaffected by it being unset.
-  buildHost              String?
-  buildUser              String   @default("forge")
-  // Admin-overridable so a retag or private registry doesn't need a code
-  // change. Must have flatpak/flatpak-builder/git/ostree plus the flathub
-  // remote pre-added - see docker/flatpak-builder/Dockerfile.
-  buildDockerImage       String   @default("registry.blossomos.org/blossom/arc-store/flatpak-builder-docker/main:latest")
   updatedAt              DateTime @updatedAt
 }
 
