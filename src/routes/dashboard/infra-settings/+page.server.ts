@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		buildHost: settings?.buildHost ?? '',
 		buildUser: settings?.buildUser ?? 'forge',
 		buildDockerImage:
-			settings?.buildDockerImage ?? 'registry.blossomos.org/blossom/arc-store/flatpak-builder-docker:latest'
+			settings?.buildDockerImage ?? 'registry.blossomos.org/blossom/arc-store/flatpak-builder-docker/main:latest'
 	};
 };
 
