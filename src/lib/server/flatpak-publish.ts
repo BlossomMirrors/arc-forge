@@ -507,7 +507,7 @@ sudo docker run --rm \\
   -e GPG_KEY_PATH="${gpgKeyFilePath}" \\
   -e GPG_PASSPHRASE_PATH="${passphraseFilePath}" \\
   "${settings.buildDockerImage}" \\
-  strace -f -o "$STRACE_LOG" -e trace=renameat,renameat2,rename,openat,fchmodat,fchmod,unlinkat,mkdirat \\
+  strace -f -o "$STRACE_LOG" -e trace=%file,linkat,link \\
   bash "${containerScriptPath}"
 
 echo "FORGE_PUBLISH_OK"
