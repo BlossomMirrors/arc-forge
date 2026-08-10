@@ -223,6 +223,16 @@ ${buildGitExtractionSection()}
 // checkout MUST come before creating any subdirectories under the
 // destination and needs -U/--user-mode, same as everywhere else this file
 // does an ostree checkout.
+//
+// export/share/app-info/icons/flatpak/{size}/$APPID.png is checked first:
+// flatpak-builder's own per-app export already runs appstreamcli compose,
+// which resolves a manifest's declared icon (name-vs-appid mismatches,
+// looking up whatever the .desktop file's Icon= key actually says) AND
+// rasterizes an SVG-only icon into a real PNG - both problems the plain
+// files/share/icons/hicolor/*/apps/ lookup below can't handle on its own. A
+// real, reproduced case: io.github.shyvortex.BraveOrigin only ships an SVG
+// there at all, no raster PNG at any size - compose already solved exactly
+// this, reusing its output beats re-deriving the same resolution by hand.
 function buildGitExtractionSection(): string {
 	return `
 ostree checkout -U --repo="$REPO_PATH" "$REF" post-build-checkout
@@ -230,7 +240,9 @@ METAINFO_SRC=$(find post-build-checkout/files/share/metainfo post-build-checkout
 if [ -n "$METAINFO_SRC" ]; then
   base64 -w0 "$METAINFO_SRC" > "$METAINFO_PATH"
 fi
-ICON_SRC=$(ls post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
+ICON_SRC=$(ls post-build-checkout/export/share/app-info/icons/flatpak/128x128/"$APPID".png \\
+  post-build-checkout/export/share/app-info/icons/flatpak/64x64/"$APPID".png \\
+  post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
   post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
   post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
   post-build-checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
@@ -503,9 +515,20 @@ if [ -n "$METAINFO_PATH" ]; then
 fi
 
 echo "FORGE_STEP: looking for an icon"
-# Sized PNGs first, then scalable/apps as a fallback (svg-only icon, or a
-# raster png mistakenly installed into scalable/apps instead of a sized dir).
-ICON_PATH=$(ls checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
+# export/share/app-info/icons/flatpak/{size}/$APPID.png first: a bundle
+# built via the normal flatpak-builder/build-export flow already ran
+# appstreamcli compose on the developer's own machine, which resolves a
+# manifest's declared icon (name-vs-appid mismatches) and rasterizes an
+# SVG-only icon into a real PNG - both problems the plain
+# files/share/icons/hicolor/*/apps/ lookup below can't handle on its own
+# (see buildGitExtractionSection's comment for the real, reproduced case
+# this fixes - io.github.shyvortex.BraveOrigin ships only an SVG, no raster
+# PNG at any size). Falls back to sized PNGs then scalable/apps (svg-only
+# icon, or a raster png mistakenly installed into scalable/apps instead of a
+# sized dir) if the bundle's own export subtree doesn't have it.
+ICON_PATH=$(ls checkout/export/share/app-info/icons/flatpak/128x128/"$APPID".png \\
+  checkout/export/share/app-info/icons/flatpak/64x64/"$APPID".png \\
+  checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
   checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
   checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
   checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\

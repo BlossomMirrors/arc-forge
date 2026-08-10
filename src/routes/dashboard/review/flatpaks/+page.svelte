@@ -293,6 +293,13 @@
 								{badge.label}
 							</span>
 							{#if app.status === 'APPROVED'}
+								<form method="POST" action="?/retryFlatpak" use:enhance>
+									<input type="hidden" name="id" value={app.id} />
+									<Button type="submit" variant="ghost" size="sm">
+										<RotateCw class="size-4" />
+										{m.review_rebuild()}
+									</Button>
+								</form>
 								<PullConfirmDialog
 									id={app.id}
 									appName={app.name}

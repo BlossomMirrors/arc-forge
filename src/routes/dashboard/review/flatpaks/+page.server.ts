@@ -175,10 +175,14 @@ export const actions: Actions = {
 		}
 	},
 
-	// Re-runs the same pipeline for a FAILED build, without requiring the submitter
-	// to edit anything first. A PROCESSING row left behind by a crash/restart no
-	// longer needs this - see reconcileStuckBuilds in flatpak-publish.ts, which
-	// picks those back up automatically.
+	// Re-runs the same pipeline, without requiring the submitter to edit
+	// anything first - "Retry build" for a FAILED row, or "Rebuild" for an
+	// already-APPROVED one (e.g. to pick up a Forge-side pipeline fix, like
+	// improved icon extraction, without waiting for a new upstream commit).
+	// No status check: both call sites are equally valid uses. A PROCESSING
+	// row left behind by a crash/restart doesn't need this - see
+	// reconcileStuckBuilds in flatpak-publish.ts, which picks those back up
+	// automatically.
 	retryFlatpak: async ({ request, locals }) => {
 		const reviewer = requireReviewer(locals.user);
 		const data = await request.formData();

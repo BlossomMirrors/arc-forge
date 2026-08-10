@@ -294,6 +294,7 @@
 	"review_verifications_document": "Dokument",
 	"review_verifications_lookup_duns": "D-U-N-S nachschlagen",
 	"review_retry": "Build wiederholen",
+	"review_rebuild": "Neu bauen",
 	"pagination_previous": "Zurück",
 	"pagination_next": "Weiter",
 	"pagination_page_of": "Seite {page} von {total}",
