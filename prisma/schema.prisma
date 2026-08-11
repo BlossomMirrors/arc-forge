@@ -355,7 +355,10 @@ model FlatpakApp {
   sourceType         FlatpakSourceType @default(BUNDLE)
   bundleUrl          String?
   bundleFileName     String?
-  bundleSize         Int?
+  // BigInt, not Int: Postgres integer tops out around 2.1GB, well under the current
+  // 8 GiB bundle cap (see FLATPAK_MAX_BUNDLE_BYTES) - Int overflowed on insert for
+  // any bundle bigger than that before this was widened.
+  bundleSize         BigInt?
   // Git source fields - only set when sourceType is GIT. gitLastCommit is the
   // commit the current build/review was triggered from; the watcher (see
   // git-watch.ts) compares this against the remote's HEAD to detect new pushes.

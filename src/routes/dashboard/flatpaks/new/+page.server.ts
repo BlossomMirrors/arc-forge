@@ -88,7 +88,7 @@ export const actions: Actions = {
 				developerProfileId,
 				sourceType: sourceKind === 'git' ? 'GIT' : 'BUNDLE',
 				...(source.kind === 'bundle'
-					? { bundleUrl: source.bundleUrl, bundleFileName, bundleSize }
+					? { bundleUrl: source.bundleUrl, bundleFileName, bundleSize: BigInt(bundleSize) }
 					: {
 							gitUrl: source.gitUrl,
 							gitBranch: source.gitBranch,

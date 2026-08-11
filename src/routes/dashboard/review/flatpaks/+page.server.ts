@@ -63,18 +63,27 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		db.flatpakApp.count({ where: { status: 'FAILED' } })
 	]);
 
+	// bundleSize is BigInt in the DB (Postgres integer overflows past ~2.1GB) but stays
+	// a plain number everywhere client-side - always well under Number.MAX_SAFE_INTEGER
+	// for any realistic bundle, and bigint doesn't mix with the ordinary arithmetic the
+	// review UI does on it.
+	const withNumericBundleSize = <T extends { bundleSize: bigint | null }>(app: T) => ({
+		...app,
+		bundleSize: app.bundleSize === null ? null : Number(app.bundleSize)
+	});
+
 	return {
-		pendingFlatpaks,
+		pendingFlatpaks: pendingFlatpaks.map(withNumericBundleSize),
 		page,
 		totalPages: pageCount(pendingTotal),
-		processingFlatpaks,
+		processingFlatpaks: processingFlatpaks.map(withNumericBundleSize),
 		processingPage,
 		processingTotalPages: pageCount(processingTotal),
 		processingCount: processingTotal,
-		recentFlatpaks,
+		recentFlatpaks: recentFlatpaks.map(withNumericBundleSize),
 		reviewedPage,
 		reviewedTotalPages: pageCount(recentTotal),
-		failedFlatpaks,
+		failedFlatpaks: failedFlatpaks.map(withNumericBundleSize),
 		failedPage,
 		failedTotalPages: pageCount(failedTotal),
 		failedCount: failedTotal

@@ -47,7 +47,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	});
 
 	return {
-		app,
+		// bundleSize is BigInt in the DB (Postgres integer overflows past ~2.1GB) but
+		// stays a plain number everywhere client-side - always well under
+		// Number.MAX_SAFE_INTEGER for any realistic bundle, and bigint doesn't mix
+		// with the ordinary arithmetic the form/upload components do on it.
+		app: { ...app, bundleSize: app.bundleSize === null ? null : Number(app.bundleSize) },
 		isStaff: staff,
 		developerProfiles,
 		hasGithubAccount: await hasGithubAccount(locals.user.id),
@@ -158,7 +162,7 @@ export const actions: Actions = {
 				developerName: staff ? resolved.developerName : claimedDeveloperName,
 				developerProfileId,
 				...(source.kind === 'bundle'
-					? { bundleUrl: source.bundleUrl, bundleFileName, bundleSize }
+					? { bundleUrl: source.bundleUrl, bundleFileName, bundleSize: BigInt(bundleSize) }
 					: {
 							gitUrl: source.gitUrl,
 							gitBranch: source.gitBranch,
