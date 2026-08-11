@@ -2469,6 +2469,11 @@ export const InfraSettingsScalarFieldEnum = {
 	id: 'id',
 	gpgPrivateKeyEncrypted: 'gpgPrivateKeyEncrypted',
 	gpgPassphraseEncrypted: 'gpgPassphraseEncrypted',
+	flatpakRepoTitle: 'flatpakRepoTitle',
+	flatpakRepoHomepage: 'flatpakRepoHomepage',
+	flatpakRepoComment: 'flatpakRepoComment',
+	flatpakRepoDescription: 'flatpakRepoDescription',
+	flatpakRepoIconUrl: 'flatpakRepoIconUrl',
 	updatedAt: 'updatedAt'
 } as const;
 

@@ -29,7 +29,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 		hasGpgPassphrase: !!settings?.gpgPassphraseEncrypted,
 		gpgPassphraseIsEmpty: settings?.gpgPassphraseEncrypted
 			? decryptSecret(settings.gpgPassphraseEncrypted) === ''
-			: false
+			: false,
+		flatpakRepoTitle: settings?.flatpakRepoTitle ?? '',
+		flatpakRepoHomepage: settings?.flatpakRepoHomepage ?? '',
+		flatpakRepoComment: settings?.flatpakRepoComment ?? '',
+		flatpakRepoDescription: settings?.flatpakRepoDescription ?? '',
+		flatpakRepoIconUrl: settings?.flatpakRepoIconUrl ?? ''
 	};
 };
 
@@ -100,6 +105,41 @@ export const actions: Actions = {
 			where: { id: 'singleton' },
 			update: { gpgPassphraseEncrypted: encryptSecret(passphrase) },
 			create: { id: 'singleton', gpgPassphraseEncrypted: encryptSecret(passphrase) }
+		});
+	},
+
+	// Editable metadata for the public flatpak.flatpakrepo file (see
+	// src/lib/server/flatpak-repo-file.ts). Url and GPGKey aren't editable here,
+	// they're derived rather than stored, see that file's comment.
+	setFlatpakRepoMetadata: async ({ request, locals }) => {
+		requireAdmin(locals.user);
+		if (!locals.session) throw error(401);
+		await requireVerifiedInfraAccess(locals.session.id);
+
+		const data = await request.formData();
+		const title = ((data.get('flatpakRepoTitle') as string) ?? '').trim();
+		const homepage = ((data.get('flatpakRepoHomepage') as string) ?? '').trim();
+		const comment = ((data.get('flatpakRepoComment') as string) ?? '').trim();
+		const description = ((data.get('flatpakRepoDescription') as string) ?? '').trim();
+		const iconUrl = ((data.get('flatpakRepoIconUrl') as string) ?? '').trim();
+
+		await db.infraSettings.upsert({
+			where: { id: 'singleton' },
+			update: {
+				flatpakRepoTitle: title || null,
+				flatpakRepoHomepage: homepage || null,
+				flatpakRepoComment: comment || null,
+				flatpakRepoDescription: description || null,
+				flatpakRepoIconUrl: iconUrl || null
+			},
+			create: {
+				id: 'singleton',
+				flatpakRepoTitle: title || null,
+				flatpakRepoHomepage: homepage || null,
+				flatpakRepoComment: comment || null,
+				flatpakRepoDescription: description || null,
+				flatpakRepoIconUrl: iconUrl || null
+			}
 		});
 	},
 

@@ -28,6 +28,11 @@ export type InfraSettingsMinAggregateOutputType = {
 	id: string | null;
 	gpgPrivateKeyEncrypted: string | null;
 	gpgPassphraseEncrypted: string | null;
+	flatpakRepoTitle: string | null;
+	flatpakRepoHomepage: string | null;
+	flatpakRepoComment: string | null;
+	flatpakRepoDescription: string | null;
+	flatpakRepoIconUrl: string | null;
 	updatedAt: Date | null;
 };
 
@@ -35,6 +40,11 @@ export type InfraSettingsMaxAggregateOutputType = {
 	id: string | null;
 	gpgPrivateKeyEncrypted: string | null;
 	gpgPassphraseEncrypted: string | null;
+	flatpakRepoTitle: string | null;
+	flatpakRepoHomepage: string | null;
+	flatpakRepoComment: string | null;
+	flatpakRepoDescription: string | null;
+	flatpakRepoIconUrl: string | null;
 	updatedAt: Date | null;
 };
 
@@ -42,6 +52,11 @@ export type InfraSettingsCountAggregateOutputType = {
 	id: number;
 	gpgPrivateKeyEncrypted: number;
 	gpgPassphraseEncrypted: number;
+	flatpakRepoTitle: number;
+	flatpakRepoHomepage: number;
+	flatpakRepoComment: number;
+	flatpakRepoDescription: number;
+	flatpakRepoIconUrl: number;
 	updatedAt: number;
 	_all: number;
 };
@@ -50,6 +65,11 @@ export type InfraSettingsMinAggregateInputType = {
 	id?: true;
 	gpgPrivateKeyEncrypted?: true;
 	gpgPassphraseEncrypted?: true;
+	flatpakRepoTitle?: true;
+	flatpakRepoHomepage?: true;
+	flatpakRepoComment?: true;
+	flatpakRepoDescription?: true;
+	flatpakRepoIconUrl?: true;
 	updatedAt?: true;
 };
 
@@ -57,6 +77,11 @@ export type InfraSettingsMaxAggregateInputType = {
 	id?: true;
 	gpgPrivateKeyEncrypted?: true;
 	gpgPassphraseEncrypted?: true;
+	flatpakRepoTitle?: true;
+	flatpakRepoHomepage?: true;
+	flatpakRepoComment?: true;
+	flatpakRepoDescription?: true;
+	flatpakRepoIconUrl?: true;
 	updatedAt?: true;
 };
 
@@ -64,6 +89,11 @@ export type InfraSettingsCountAggregateInputType = {
 	id?: true;
 	gpgPrivateKeyEncrypted?: true;
 	gpgPassphraseEncrypted?: true;
+	flatpakRepoTitle?: true;
+	flatpakRepoHomepage?: true;
+	flatpakRepoComment?: true;
+	flatpakRepoDescription?: true;
+	flatpakRepoIconUrl?: true;
 	updatedAt?: true;
 	_all?: true;
 };
@@ -149,6 +179,11 @@ export type InfraSettingsGroupByOutputType = {
 	id: string;
 	gpgPrivateKeyEncrypted: string | null;
 	gpgPassphraseEncrypted: string | null;
+	flatpakRepoTitle: string | null;
+	flatpakRepoHomepage: string | null;
+	flatpakRepoComment: string | null;
+	flatpakRepoDescription: string | null;
+	flatpakRepoIconUrl: string | null;
 	updatedAt: Date;
 	_count: InfraSettingsCountAggregateOutputType | null;
 	_min: InfraSettingsMinAggregateOutputType | null;
@@ -175,6 +210,11 @@ export type InfraSettingsWhereInput = {
 	id?: Prisma.StringFilter<'InfraSettings'> | string;
 	gpgPrivateKeyEncrypted?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
 	gpgPassphraseEncrypted?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+	flatpakRepoTitle?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+	flatpakRepoHomepage?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+	flatpakRepoComment?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+	flatpakRepoDescription?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+	flatpakRepoIconUrl?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
 	updatedAt?: Prisma.DateTimeFilter<'InfraSettings'> | Date | string;
 };
 
@@ -182,6 +222,11 @@ export type InfraSettingsOrderByWithRelationInput = {
 	id?: Prisma.SortOrder;
 	gpgPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder;
 	gpgPassphraseEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoTitle?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoHomepage?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoComment?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoDescription?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoIconUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
 
@@ -193,6 +238,11 @@ export type InfraSettingsWhereUniqueInput = Prisma.AtLeast<
 		NOT?: Prisma.InfraSettingsWhereInput | Prisma.InfraSettingsWhereInput[];
 		gpgPrivateKeyEncrypted?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
 		gpgPassphraseEncrypted?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+		flatpakRepoTitle?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+		flatpakRepoHomepage?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+		flatpakRepoComment?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+		flatpakRepoDescription?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
+		flatpakRepoIconUrl?: Prisma.StringNullableFilter<'InfraSettings'> | string | null;
 		updatedAt?: Prisma.DateTimeFilter<'InfraSettings'> | Date | string;
 	},
 	'id'
@@ -202,6 +252,11 @@ export type InfraSettingsOrderByWithAggregationInput = {
 	id?: Prisma.SortOrder;
 	gpgPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder;
 	gpgPassphraseEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoTitle?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoHomepage?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoComment?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoDescription?: Prisma.SortOrderInput | Prisma.SortOrder;
+	flatpakRepoIconUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 	_count?: Prisma.InfraSettingsCountOrderByAggregateInput;
 	_max?: Prisma.InfraSettingsMaxOrderByAggregateInput;
@@ -225,6 +280,14 @@ export type InfraSettingsScalarWhereWithAggregatesInput = {
 		| Prisma.StringNullableWithAggregatesFilter<'InfraSettings'>
 		| string
 		| null;
+	flatpakRepoTitle?: Prisma.StringNullableWithAggregatesFilter<'InfraSettings'> | string | null;
+	flatpakRepoHomepage?: Prisma.StringNullableWithAggregatesFilter<'InfraSettings'> | string | null;
+	flatpakRepoComment?: Prisma.StringNullableWithAggregatesFilter<'InfraSettings'> | string | null;
+	flatpakRepoDescription?:
+		| Prisma.StringNullableWithAggregatesFilter<'InfraSettings'>
+		| string
+		| null;
+	flatpakRepoIconUrl?: Prisma.StringNullableWithAggregatesFilter<'InfraSettings'> | string | null;
 	updatedAt?: Prisma.DateTimeWithAggregatesFilter<'InfraSettings'> | Date | string;
 };
 
@@ -232,6 +295,11 @@ export type InfraSettingsCreateInput = {
 	id?: string;
 	gpgPrivateKeyEncrypted?: string | null;
 	gpgPassphraseEncrypted?: string | null;
+	flatpakRepoTitle?: string | null;
+	flatpakRepoHomepage?: string | null;
+	flatpakRepoComment?: string | null;
+	flatpakRepoDescription?: string | null;
+	flatpakRepoIconUrl?: string | null;
 	updatedAt?: Date | string;
 };
 
@@ -239,6 +307,11 @@ export type InfraSettingsUncheckedCreateInput = {
 	id?: string;
 	gpgPrivateKeyEncrypted?: string | null;
 	gpgPassphraseEncrypted?: string | null;
+	flatpakRepoTitle?: string | null;
+	flatpakRepoHomepage?: string | null;
+	flatpakRepoComment?: string | null;
+	flatpakRepoDescription?: string | null;
+	flatpakRepoIconUrl?: string | null;
 	updatedAt?: Date | string;
 };
 
@@ -246,6 +319,11 @@ export type InfraSettingsUpdateInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoHomepage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
@@ -253,6 +331,11 @@ export type InfraSettingsUncheckedUpdateInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoHomepage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
@@ -260,6 +343,11 @@ export type InfraSettingsCreateManyInput = {
 	id?: string;
 	gpgPrivateKeyEncrypted?: string | null;
 	gpgPassphraseEncrypted?: string | null;
+	flatpakRepoTitle?: string | null;
+	flatpakRepoHomepage?: string | null;
+	flatpakRepoComment?: string | null;
+	flatpakRepoDescription?: string | null;
+	flatpakRepoIconUrl?: string | null;
 	updatedAt?: Date | string;
 };
 
@@ -267,6 +355,11 @@ export type InfraSettingsUpdateManyMutationInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoHomepage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
@@ -274,6 +367,11 @@ export type InfraSettingsUncheckedUpdateManyInput = {
 	id?: Prisma.StringFieldUpdateOperationsInput | string;
 	gpgPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	gpgPassphraseEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoHomepage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+	flatpakRepoIconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 	updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 
@@ -281,6 +379,11 @@ export type InfraSettingsCountOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	gpgPrivateKeyEncrypted?: Prisma.SortOrder;
 	gpgPassphraseEncrypted?: Prisma.SortOrder;
+	flatpakRepoTitle?: Prisma.SortOrder;
+	flatpakRepoHomepage?: Prisma.SortOrder;
+	flatpakRepoComment?: Prisma.SortOrder;
+	flatpakRepoDescription?: Prisma.SortOrder;
+	flatpakRepoIconUrl?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
 
@@ -288,6 +391,11 @@ export type InfraSettingsMaxOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	gpgPrivateKeyEncrypted?: Prisma.SortOrder;
 	gpgPassphraseEncrypted?: Prisma.SortOrder;
+	flatpakRepoTitle?: Prisma.SortOrder;
+	flatpakRepoHomepage?: Prisma.SortOrder;
+	flatpakRepoComment?: Prisma.SortOrder;
+	flatpakRepoDescription?: Prisma.SortOrder;
+	flatpakRepoIconUrl?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
 
@@ -295,6 +403,11 @@ export type InfraSettingsMinOrderByAggregateInput = {
 	id?: Prisma.SortOrder;
 	gpgPrivateKeyEncrypted?: Prisma.SortOrder;
 	gpgPassphraseEncrypted?: Prisma.SortOrder;
+	flatpakRepoTitle?: Prisma.SortOrder;
+	flatpakRepoHomepage?: Prisma.SortOrder;
+	flatpakRepoComment?: Prisma.SortOrder;
+	flatpakRepoDescription?: Prisma.SortOrder;
+	flatpakRepoIconUrl?: Prisma.SortOrder;
 	updatedAt?: Prisma.SortOrder;
 };
 
@@ -305,6 +418,11 @@ export type InfraSettingsSelect<
 		id?: boolean;
 		gpgPrivateKeyEncrypted?: boolean;
 		gpgPassphraseEncrypted?: boolean;
+		flatpakRepoTitle?: boolean;
+		flatpakRepoHomepage?: boolean;
+		flatpakRepoComment?: boolean;
+		flatpakRepoDescription?: boolean;
+		flatpakRepoIconUrl?: boolean;
 		updatedAt?: boolean;
 	},
 	ExtArgs['result']['infraSettings']
@@ -317,6 +435,11 @@ export type InfraSettingsSelectCreateManyAndReturn<
 		id?: boolean;
 		gpgPrivateKeyEncrypted?: boolean;
 		gpgPassphraseEncrypted?: boolean;
+		flatpakRepoTitle?: boolean;
+		flatpakRepoHomepage?: boolean;
+		flatpakRepoComment?: boolean;
+		flatpakRepoDescription?: boolean;
+		flatpakRepoIconUrl?: boolean;
 		updatedAt?: boolean;
 	},
 	ExtArgs['result']['infraSettings']
@@ -329,6 +452,11 @@ export type InfraSettingsSelectUpdateManyAndReturn<
 		id?: boolean;
 		gpgPrivateKeyEncrypted?: boolean;
 		gpgPassphraseEncrypted?: boolean;
+		flatpakRepoTitle?: boolean;
+		flatpakRepoHomepage?: boolean;
+		flatpakRepoComment?: boolean;
+		flatpakRepoDescription?: boolean;
+		flatpakRepoIconUrl?: boolean;
 		updatedAt?: boolean;
 	},
 	ExtArgs['result']['infraSettings']
@@ -338,13 +466,26 @@ export type InfraSettingsSelectScalar = {
 	id?: boolean;
 	gpgPrivateKeyEncrypted?: boolean;
 	gpgPassphraseEncrypted?: boolean;
+	flatpakRepoTitle?: boolean;
+	flatpakRepoHomepage?: boolean;
+	flatpakRepoComment?: boolean;
+	flatpakRepoDescription?: boolean;
+	flatpakRepoIconUrl?: boolean;
 	updatedAt?: boolean;
 };
 
 export type InfraSettingsOmit<
 	ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > = runtime.Types.Extensions.GetOmit<
-	'id' | 'gpgPrivateKeyEncrypted' | 'gpgPassphraseEncrypted' | 'updatedAt',
+	| 'id'
+	| 'gpgPrivateKeyEncrypted'
+	| 'gpgPassphraseEncrypted'
+	| 'flatpakRepoTitle'
+	| 'flatpakRepoHomepage'
+	| 'flatpakRepoComment'
+	| 'flatpakRepoDescription'
+	| 'flatpakRepoIconUrl'
+	| 'updatedAt',
 	ExtArgs['result']['infraSettings']
 >;
 
@@ -358,6 +499,11 @@ export type $InfraSettingsPayload<
 			id: string;
 			gpgPrivateKeyEncrypted: string | null;
 			gpgPassphraseEncrypted: string | null;
+			flatpakRepoTitle: string | null;
+			flatpakRepoHomepage: string | null;
+			flatpakRepoComment: string | null;
+			flatpakRepoDescription: string | null;
+			flatpakRepoIconUrl: string | null;
 			updatedAt: Date;
 		},
 		ExtArgs['result']['infraSettings']
@@ -932,6 +1078,11 @@ export interface InfraSettingsFieldRefs {
 	readonly id: Prisma.FieldRef<'InfraSettings', 'String'>;
 	readonly gpgPrivateKeyEncrypted: Prisma.FieldRef<'InfraSettings', 'String'>;
 	readonly gpgPassphraseEncrypted: Prisma.FieldRef<'InfraSettings', 'String'>;
+	readonly flatpakRepoTitle: Prisma.FieldRef<'InfraSettings', 'String'>;
+	readonly flatpakRepoHomepage: Prisma.FieldRef<'InfraSettings', 'String'>;
+	readonly flatpakRepoComment: Prisma.FieldRef<'InfraSettings', 'String'>;
+	readonly flatpakRepoDescription: Prisma.FieldRef<'InfraSettings', 'String'>;
+	readonly flatpakRepoIconUrl: Prisma.FieldRef<'InfraSettings', 'String'>;
 	readonly updatedAt: Prisma.FieldRef<'InfraSettings', 'DateTime'>;
 }
 

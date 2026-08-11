@@ -147,6 +147,69 @@
 		{/if}
 
 		<div class="space-y-3 rounded-lg border border-border p-4">
+			<h3 class="text-sm font-semibold">{m.infra_repo_file_heading()}</h3>
+			<p class="text-sm text-muted-foreground">{m.infra_repo_file_hint()}</p>
+			<form method="POST" action="?/setFlatpakRepoMetadata" use:enhance class="space-y-3">
+				<div class="space-y-1">
+					<label class="text-xs text-muted-foreground" for="flatpakRepoTitle">
+						{m.infra_repo_file_title()}
+					</label>
+					<Input
+						id="flatpakRepoTitle"
+						name="flatpakRepoTitle"
+						value={data.flatpakRepoTitle}
+						placeholder={m.infra_repo_file_title_placeholder()}
+					/>
+				</div>
+				<div class="space-y-1">
+					<label class="text-xs text-muted-foreground" for="flatpakRepoHomepage">
+						{m.infra_repo_file_homepage()}
+					</label>
+					<Input
+						id="flatpakRepoHomepage"
+						name="flatpakRepoHomepage"
+						value={data.flatpakRepoHomepage}
+						placeholder={m.infra_repo_file_homepage_placeholder()}
+					/>
+				</div>
+				<div class="space-y-1">
+					<label class="text-xs text-muted-foreground" for="flatpakRepoComment">
+						{m.infra_repo_file_comment()}
+					</label>
+					<Input
+						id="flatpakRepoComment"
+						name="flatpakRepoComment"
+						value={data.flatpakRepoComment}
+						placeholder={m.infra_repo_file_comment_placeholder()}
+					/>
+				</div>
+				<div class="space-y-1">
+					<label class="text-xs text-muted-foreground" for="flatpakRepoDescription">
+						{m.infra_repo_file_description()}
+					</label>
+					<Input
+						id="flatpakRepoDescription"
+						name="flatpakRepoDescription"
+						value={data.flatpakRepoDescription}
+						placeholder={m.infra_repo_file_description_placeholder()}
+					/>
+				</div>
+				<div class="space-y-1">
+					<label class="text-xs text-muted-foreground" for="flatpakRepoIconUrl">
+						{m.infra_repo_file_icon_url()}
+					</label>
+					<Input
+						id="flatpakRepoIconUrl"
+						name="flatpakRepoIconUrl"
+						value={data.flatpakRepoIconUrl}
+						placeholder={m.infra_repo_file_icon_url_placeholder()}
+					/>
+				</div>
+				<Button type="submit" size="sm">{m.infra_repo_file_save()}</Button>
+			</form>
+		</div>
+
+		<div class="space-y-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold">{m.infra_gpg_key_heading()}</h3>
 			<p class="text-sm text-muted-foreground">
 				{data.hasGpgPrivateKey ? m.infra_gpg_key_set() : m.infra_gpg_key_none()}

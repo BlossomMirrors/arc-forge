@@ -439,6 +439,42 @@ export async function repairAppstream(): Promise<{ ok: boolean; log: string }> {
 	return runOnBuilder(buildRepairScript, 'repair');
 }
 
+// Public key export needs no passphrase (unlocking the secret part isn't
+// required to read the public part back out), so this doesn't go through
+// runOnBuilder. Used by flatpak-repo-file.ts to fill in the .flatpakrepo
+// file's GPGKey field, base64 of the raw exported key, not armored, same
+// shape flatpak itself expects there.
+export async function getGpgPublicKeyBase64(): Promise<{
+	ok: boolean;
+	base64?: string;
+	log: string;
+}> {
+	const settings = await db.infraSettings.findUnique({ where: { id: 'singleton' } });
+	if (!settings?.gpgPrivateKeyEncrypted) {
+		return { ok: false, log: 'No GPG signing key is configured yet.' };
+	}
+
+	const runDir = `${SCRATCH_ROOT}/pubkey-${Date.now()}`;
+	const keyPath = `${runDir}/gpgkey`;
+	try {
+		await writeScratchFile(keyPath, decryptSecret(settings.gpgPrivateKeyEncrypted), 0o600);
+		const { stdout } = await execFileAsync('bash', [
+			'-c',
+			`gpg --batch --import "${keyPath}" >/dev/null 2>&1
+GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${keyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
+[ -n "$GPG_ID" ] || exit 1
+gpg --batch --export "$GPG_ID" | base64 -w0`
+		]);
+		return { ok: true, base64: stdout.trim(), log: '' };
+	} catch (e) {
+		const stderr =
+			e && typeof e === 'object' && 'stderr' in e ? String((e as { stderr?: unknown }).stderr) : '';
+		return { ok: false, log: stderr || (e instanceof Error ? e.message : String(e)) };
+	} finally {
+		await rm(runDir, { recursive: true, force: true }).catch(() => {});
+	}
+}
+
 const EXTRACT_METAINFO_START = 'FORGE_METAINFO_B64_START';
 const EXTRACT_METAINFO_END = 'FORGE_METAINFO_B64_END';
 const EXTRACT_ICON_START = 'FORGE_ICON_B64_START';

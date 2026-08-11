@@ -443,6 +443,16 @@ model InfraSettings {
   // means losing the signing key itself.
   gpgPrivateKeyEncrypted String?  @db.Text
   gpgPassphraseEncrypted String?  @db.Text
+  // Editable metadata for the public flatpak.flatpakrepo file (see
+  // src/routes/flatpak.flatpakrepo/+server.ts). Url and GPGKey are never
+  // stored here: Url is derived from the request origin and GPGKey is
+  // derived from gpgPrivateKeyEncrypted at request time, see
+  // flatpak-repo-file.ts and getGpgPublicKeyBase64 in flatpak-publish.ts.
+  flatpakRepoTitle       String?
+  flatpakRepoHomepage    String?
+  flatpakRepoComment     String?
+  flatpakRepoDescription String?
+  flatpakRepoIconUrl     String?
   updatedAt              DateTime @updatedAt
 }
 
