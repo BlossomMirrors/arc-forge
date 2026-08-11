@@ -50,6 +50,10 @@
 			const xhr = new XMLHttpRequest();
 			const params = new URLSearchParams({ key, uploadId, partNumber: String(partNumber) });
 			xhr.open('PUT', `/api/upload-flatpak/multipart/part?${params}`);
+			// Blob.slice() drops the source File's MIME type, leaving each chunk with
+			// an empty type - without an explicit Content-Type, adapter-node's
+			// get_raw_body() treats the request as bodyless and never reads it.
+			xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 			xhr.upload.onprogress = (e) => {
 				if (e.lengthComputable) onProgress(e.loaded);
 			};

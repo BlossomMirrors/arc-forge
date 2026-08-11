@@ -27,7 +27,10 @@ export const PUT: RequestHandler = async ({ request, url, locals }) => {
 
 	const body = Buffer.from(await request.arrayBuffer());
 	if (!body.length || body.length > MAX_PART_BYTES) {
-		return new Response('Invalid part size', { status: 413 });
+		return new Response(
+			`Invalid part size: received ${body.length} bytes for part ${partNumber} (max ${MAX_PART_BYTES})`,
+			{ status: 413 }
+		);
 	}
 
 	const etag = await uploadPart(key, uploadId, partNumber, body);
