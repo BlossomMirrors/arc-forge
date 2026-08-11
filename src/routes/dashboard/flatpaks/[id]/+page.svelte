@@ -19,6 +19,7 @@
 	{#if form?.error}
 		<div class="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
 			<p class="font-medium text-destructive">{m.submission_error()}</p>
+			<p class="mt-1 text-muted-foreground">{form.error}</p>
 			{#if 'log' in form && form.log}
 				<pre
 					class="mt-2 max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>

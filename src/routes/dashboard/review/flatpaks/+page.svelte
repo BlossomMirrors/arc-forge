@@ -181,6 +181,9 @@
 									</span>
 								</div>
 								<p class="text-sm text-muted-foreground">{app.summary}</p>
+								{#if app.reviewNote}
+									<p class="text-xs font-medium text-amber-600">{app.reviewNote}</p>
+								{/if}
 								<p class="text-xs text-muted-foreground">
 									{m.review_submitted_by()}
 									{app.submittedBy?.name ?? m.review_unknown_submitter()}

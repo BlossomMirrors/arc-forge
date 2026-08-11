@@ -175,19 +175,22 @@ async function resolveBundleSubmission(
 	}
 
 	let status: 'PENDING' | 'REJECTED' = 'PENDING';
-	let reviewNote: string | null = null;
+	// Independent of the reject-reason branch below: a skipped scan doesn't reject
+	// the submission on its own, it just needs to stay visible to whoever reviews it.
+	const notes: string[] = scan.skippedReason ? [scan.skippedReason] : [];
 	const declaredDeveloperName = (extracted.developerName ?? '').trim();
 	if (scan.infected) {
 		status = 'REJECTED';
-		reviewNote = AUTO_REJECT_MALWARE;
+		notes.push(AUTO_REJECT_MALWARE);
 	} else if (
 		!params.isStaff &&
 		declaredDeveloperName &&
 		declaredDeveloperName.toLowerCase() !== (params.claimedDeveloperName ?? '').trim().toLowerCase()
 	) {
 		status = 'REJECTED';
-		reviewNote = AUTO_REJECT_DEVELOPER_MISMATCH;
+		notes.push(AUTO_REJECT_DEVELOPER_MISMATCH);
 	}
+	const reviewNote = notes.length > 0 ? notes.join(' ') : null;
 
 	return {
 		ok: true,
