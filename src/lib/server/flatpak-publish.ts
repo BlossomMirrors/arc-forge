@@ -471,96 +471,160 @@ cd "$WORKDIR"
 echo "FORGE_STEP: downloading bundle"
 curl -fsSL "$BUNDLE_URL" -o bundle.flatpak
 
-STAGING_REPO="$WORKDIR/staging-repo"
-echo "FORGE_STEP: initializing staging repo"
-ostree init --repo="$STAGING_REPO" --mode=archive-z2
-echo "FORGE_STEP: importing bundle"
-flatpak build-import-bundle "$STAGING_REPO" bundle.flatpak
+# flatpak build-bundle embeds the ref, a single-app appstream catalog (gzip'd, from
+# files/share/app-info/xmls/$NAME.xml.gz at build time) and 64x64/128x128 icon PNGs
+# directly into the bundle's own small header - the same data app-store frontends
+# like GNOME Software read to preview an app before installing it. Reading it touches
+# only a few KB at the start of the file regardless of how large the bundle's payload
+# is, unlike importing the whole thing into a staging repo (which for a multi-GB game
+# bundle previously made a metadata preview take as long as a full install). Falls
+# through to a full import below for whatever this couldn't determine - a bundle
+# assembled outside the normal flatpak-builder/build-export flow won't have this
+# header data at all, and an SVG-only icon isn't embeddable in the header regardless.
+echo "FORGE_STEP: reading bundle header"
+HEADER_OUTPUT=$(python3 - "$PWD/bundle.flatpak" <<'PYEOF' || true
+import base64, gzip, re, sys
+import gi
+gi.require_version('Flatpak', '1.0')
+from gi.repository import Flatpak, Gio, GLib
 
-echo "FORGE_STEP: resolving ref"
-# grep exits non-zero when a bundle has no app/ ref at all (e.g. a runtime-only
-# bundle, see below), which under set -e -o pipefail would otherwise kill the
-# whole script right here before the runtime fallback ever runs.
-REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/" | head -n1 || true)
-if [ -z "$REF" ]; then
-  # Not every submission is a user-facing app, GTK/Qt themes and other extensions
-  # ship as a runtime instead, those have no .desktop file or per-app metainfo.xml,
-  # but are still a legitimate thing to host, so accept them too.
-  REF=$(ostree refs --repo="$STAGING_REPO" | grep "^runtime/" | head -n1 || true)
+try:
+    ref = Flatpak.BundleRef.new(Gio.File.new_for_path(sys.argv[1]))
+except GLib.Error:
+    sys.exit(0)
+
+print("FORGE_HEADER_APPID=" + ref.get_name())
+print("FORGE_HEADER_REF=" + ref.format_ref())
+
+appstream = ref.get_appstream()
+if appstream:
+    catalog = gzip.decompress(bytes(appstream.get_data())).decode('utf-8', 'replace')
+    # "<component" is a prefix of "<components", the catalog's own wrapper tag -
+    # the lookahead keeps a lazy match from starting one tag too early and
+    # swallowing the wrapper's attributes into what should be a clean <component>.
+    match = re.search(r'<component(?=[\\s>])[\\s\\S]*?</component>', catalog)
+    if match:
+        print("${EXTRACT_METAINFO_START}")
+        print(base64.b64encode(match.group(0).encode()).decode())
+        print("${EXTRACT_METAINFO_END}")
+
+icon = ref.get_icon(128) or ref.get_icon(64)
+if icon:
+    print("${EXTRACT_ICON_START}")
+    print(base64.b64encode(bytes(icon.get_data())).decode())
+    print("${EXTRACT_ICON_END}")
+PYEOF
+)
+echo "$HEADER_OUTPUT"
+
+APPID=""
+REF=""
+if echo "$HEADER_OUTPUT" | grep -q "^FORGE_HEADER_APPID="; then
+  APPID=$(echo "$HEADER_OUTPUT" | grep "^FORGE_HEADER_APPID=" | head -n1 | cut -d= -f2-)
+  REF=$(echo "$HEADER_OUTPUT" | grep "^FORGE_HEADER_REF=" | head -n1 | cut -d= -f2-)
 fi
-if [ -z "$REF" ]; then
-  echo "Uploaded file has no importable Flatpak app or runtime ref" >&2
-  exit 1
+HAVE_METAINFO=$(echo "$HEADER_OUTPUT" | grep -c "${EXTRACT_METAINFO_START}" || true)
+HAVE_ICON=$(echo "$HEADER_OUTPUT" | grep -c "${EXTRACT_ICON_START}" || true)
+
+if [ -z "$APPID" ] || [ "$HAVE_METAINFO" -eq 0 ] || [ "$HAVE_ICON" -eq 0 ]; then
+  STAGING_REPO="$WORKDIR/staging-repo"
+  echo "FORGE_STEP: initializing staging repo"
+  ostree init --repo="$STAGING_REPO" --mode=archive-z2
+  echo "FORGE_STEP: importing bundle"
+  flatpak build-import-bundle "$STAGING_REPO" bundle.flatpak
+
+  if [ -z "$APPID" ]; then
+    echo "FORGE_STEP: resolving ref"
+    # grep exits non-zero when a bundle has no app/ ref at all (e.g. a runtime-only
+    # bundle, see below), which under set -e -o pipefail would otherwise kill the
+    # whole script right here before the runtime fallback ever runs.
+    REF=$(ostree refs --repo="$STAGING_REPO" | grep "^app/" | head -n1 || true)
+    if [ -z "$REF" ]; then
+      # Not every submission is a user-facing app, GTK/Qt themes and other extensions
+      # ship as a runtime instead, those have no .desktop file or per-app metainfo.xml,
+      # but are still a legitimate thing to host, so accept them too.
+      REF=$(ostree refs --repo="$STAGING_REPO" | grep "^runtime/" | head -n1 || true)
+    fi
+    if [ -z "$REF" ]; then
+      echo "Uploaded file has no importable Flatpak app or runtime ref" >&2
+      exit 1
+    fi
+    APPID=$(echo "$REF" | cut -d/ -f2)
+  fi
+
+  # Reads individual files straight out of the imported commit via "ostree cat"
+  # instead of checking out the whole tree - a checkout writes every file in the
+  # bundle to disk, which for a multi-GB game bundle is gigabytes of assets this
+  # only ever needed one small file out of.
+
+  if [ "$HAVE_METAINFO" -eq 0 ]; then
+    # metainfo.xml is optional, a runtime typically doesn't ship one, missing
+    # metainfo just means the name/summary/description/icon fall back to
+    # placeholders below rather than blocking the submission entirely.
+    echo "FORGE_STEP: looking for metainfo.xml"
+    # Named exactly $APPID, not a bare '*.xml' glob, same reasoning as the git
+    # build path below: a base app/SDK extension baked into the bundle can ship
+    # its own metainfo/icon in the same directories as the submitted app's own.
+    METAINFO_PATH=""
+    for candidate in \\
+      "files/share/metainfo/$APPID.metainfo.xml" \\
+      "files/share/metainfo/$APPID.appdata.xml" \\
+      "export/share/metainfo/$APPID.metainfo.xml" \\
+      "export/share/metainfo/$APPID.appdata.xml"; do
+      if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > metainfo.xml 2>/dev/null; then
+        METAINFO_PATH="metainfo.xml"
+        break
+      fi
+    done
+    if [ -n "$METAINFO_PATH" ]; then
+      echo "${EXTRACT_METAINFO_START}"
+      base64 -w0 "$METAINFO_PATH"
+      echo ""
+      echo "${EXTRACT_METAINFO_END}"
+    fi
+  fi
+
+  if [ "$HAVE_ICON" -eq 0 ]; then
+    echo "FORGE_STEP: looking for an icon"
+    # export/share/app-info/icons/flatpak/{size}/$APPID.png first: a bundle
+    # built via the normal flatpak-builder/build-export flow already ran
+    # appstreamcli compose on the developer's own machine, which resolves a
+    # manifest's declared icon (name-vs-appid mismatches) and rasterizes an
+    # SVG-only icon into a real PNG - both problems the plain
+    # files/share/icons/hicolor/*/apps/ lookup below can't handle on its own
+    # (see buildGitExtractionSection's comment for the real, reproduced case
+    # this fixes - io.github.shyvortex.BraveOrigin ships only an SVG, no raster
+    # PNG at any size, which is also why the header's own icon-64/icon-128
+    # embedding above never has one for it either). Falls back to sized PNGs
+    # then scalable/apps (svg-only icon, or a raster png mistakenly installed
+    # into scalable/apps instead of a sized dir) if the bundle's own export
+    # subtree doesn't have it.
+    ICON_PATH=""
+    for candidate in \\
+      "export/share/app-info/icons/flatpak/128x128/$APPID.png" \\
+      "export/share/app-info/icons/flatpak/64x64/$APPID.png" \\
+      "files/share/icons/hicolor/256x256/apps/$APPID.png" \\
+      "files/share/icons/hicolor/128x128/apps/$APPID.png" \\
+      "files/share/icons/hicolor/64x64/apps/$APPID.png" \\
+      "files/share/icons/hicolor/48x48/apps/$APPID.png" \\
+      "files/share/icons/hicolor/scalable/apps/$APPID.svg" \\
+      "files/share/icons/hicolor/scalable/apps/$APPID.png"; do
+      if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > icon.bin 2>/dev/null; then
+        ICON_PATH="icon.bin"
+        break
+      fi
+    done
+    if [ -n "$ICON_PATH" ]; then
+      echo "${EXTRACT_ICON_START}"
+      base64 -w0 "$ICON_PATH"
+      echo ""
+      echo "${EXTRACT_ICON_END}"
+    fi
+  fi
 fi
-APPID=$(echo "$REF" | cut -d/ -f2)
+
 echo "FORGE_APPID=$APPID"
 echo "FORGE_REF=$REF"
-
-# Reads individual files straight out of the imported commit via "ostree cat"
-# instead of checking out the whole tree - a checkout writes every file in the
-# bundle to disk (for a multi-GB game bundle, gigabytes of assets this only
-# ever needed two small files out of), which made preview/submission extraction
-# take as long as a full install for large bundles.
-
-# metainfo.xml is optional, a runtime typically doesn't ship one, missing metainfo
-# just means the name/summary/description/icon fall back to placeholders below
-# rather than blocking the submission entirely.
-echo "FORGE_STEP: looking for metainfo.xml"
-# Named exactly $APPID, not a bare '*.xml' glob, same reasoning as the git
-# build path below: a base app/SDK extension baked into the bundle can ship
-# its own metainfo/icon in the same directories as the submitted app's own.
-METAINFO_PATH=""
-for candidate in \\
-  "files/share/metainfo/$APPID.metainfo.xml" \\
-  "files/share/metainfo/$APPID.appdata.xml" \\
-  "export/share/metainfo/$APPID.metainfo.xml" \\
-  "export/share/metainfo/$APPID.appdata.xml"; do
-  if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > metainfo.xml 2>/dev/null; then
-    METAINFO_PATH="metainfo.xml"
-    break
-  fi
-done
-if [ -n "$METAINFO_PATH" ]; then
-  echo "${EXTRACT_METAINFO_START}"
-  base64 -w0 "$METAINFO_PATH"
-  echo ""
-  echo "${EXTRACT_METAINFO_END}"
-fi
-
-echo "FORGE_STEP: looking for an icon"
-# export/share/app-info/icons/flatpak/{size}/$APPID.png first: a bundle
-# built via the normal flatpak-builder/build-export flow already ran
-# appstreamcli compose on the developer's own machine, which resolves a
-# manifest's declared icon (name-vs-appid mismatches) and rasterizes an
-# SVG-only icon into a real PNG - both problems the plain
-# files/share/icons/hicolor/*/apps/ lookup below can't handle on its own
-# (see buildGitExtractionSection's comment for the real, reproduced case
-# this fixes - io.github.shyvortex.BraveOrigin ships only an SVG, no raster
-# PNG at any size). Falls back to sized PNGs then scalable/apps (svg-only
-# icon, or a raster png mistakenly installed into scalable/apps instead of a
-# sized dir) if the bundle's own export subtree doesn't have it.
-ICON_PATH=""
-for candidate in \\
-  "export/share/app-info/icons/flatpak/128x128/$APPID.png" \\
-  "export/share/app-info/icons/flatpak/64x64/$APPID.png" \\
-  "files/share/icons/hicolor/256x256/apps/$APPID.png" \\
-  "files/share/icons/hicolor/128x128/apps/$APPID.png" \\
-  "files/share/icons/hicolor/64x64/apps/$APPID.png" \\
-  "files/share/icons/hicolor/48x48/apps/$APPID.png" \\
-  "files/share/icons/hicolor/scalable/apps/$APPID.svg" \\
-  "files/share/icons/hicolor/scalable/apps/$APPID.png"; do
-  if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > icon.bin 2>/dev/null; then
-    ICON_PATH="icon.bin"
-    break
-  fi
-done
-if [ -n "$ICON_PATH" ]; then
-  echo "${EXTRACT_ICON_START}"
-  base64 -w0 "$ICON_PATH"
-  echo ""
-  echo "${EXTRACT_ICON_END}"
-fi
-
 echo "FORGE_EXTRACT_OK"
 `;
 }
@@ -730,7 +794,37 @@ export type ExtractedAppstream = {
 	log?: string;
 };
 
+// Preview and actual submission both call this for the same bundleUrl, moments apart -
+// caching the result means clicking Create right after a preview finishes reuses that
+// preview's own extraction instead of re-downloading and re-parsing the same bundle
+// (see FlatpakForm.svelte's canSubmit, which blocks submitting a bundle until its own
+// preview fetch has resolved, precisely so this cache is warm by then). Only successful
+// extractions are cached - a failure might be transient (network hiccup hitting the
+// builder), and submission should get its own fresh attempt rather than replaying a
+// stale one. Not scoped per-user: bundleUrl already embeds an unguessable
+// crypto.randomUUID() filename tied to one specific upload, so nothing meaningful leaks
+// by keying on it directly.
+const EXTRACTION_CACHE_TTL_MS = 15 * 60 * 1000;
+const extractionCache = new Map<string, { result: ExtractedAppstream; expiresAt: number }>();
+
 export async function extractAppstreamMetadata(bundleUrl: string): Promise<ExtractedAppstream> {
+	const cached = extractionCache.get(bundleUrl);
+	if (cached && cached.expiresAt > Date.now()) return cached.result;
+
+	const result = await extractAppstreamMetadataUncached(bundleUrl);
+	if (result.ok) {
+		// Sweep expired entries while we're here rather than on a timer - upload
+		// volume is low enough that the map never gets large between sweeps.
+		const now = Date.now();
+		for (const [key, entry] of extractionCache) {
+			if (entry.expiresAt <= now) extractionCache.delete(key);
+		}
+		extractionCache.set(bundleUrl, { result, expiresAt: now + EXTRACTION_CACHE_TTL_MS });
+	}
+	return result;
+}
+
+async function extractAppstreamMetadataUncached(bundleUrl: string): Promise<ExtractedAppstream> {
 	const { ok, exitCode, log } = await runOnBuilder(() => buildExtractScript(bundleUrl), 'extract');
 	if (!ok || !log.includes('FORGE_EXTRACT_OK')) {
 		// The last line isn't necessarily the actual failure, a step can print a

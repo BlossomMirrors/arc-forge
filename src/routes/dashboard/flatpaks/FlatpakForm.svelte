@@ -194,7 +194,13 @@
 		}
 	}
 
-	let canSubmit = $derived(sourceKind === 'bundle' ? !!bundleUrl : !!gitUrl && !!gitManifestPath);
+	// Waiting on !previewing (not just bundleUrl) means the preview's own metadata
+	// extraction has already finished by the time submission can fire, so the
+	// server-side extraction cache is warm and submitting doesn't redundantly
+	// re-fetch and re-parse the same bundle a second time right behind it.
+	let canSubmit = $derived(
+		sourceKind === 'bundle' ? !!bundleUrl && !previewing : !!gitUrl && !!gitManifestPath
+	);
 
 	$effect(() => {
 		if (sourceKind === 'git' && hasGithubAccount) loadGithubRepos();
