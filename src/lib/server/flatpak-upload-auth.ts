@@ -4,7 +4,7 @@ import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
 
 type SessionUser = typeof auth.$Infer.Session.user;
 
-const DEFAULT_MAX_BYTES = 2 * 1024 * 1024 * 1024; // 2 GiB
+const DEFAULT_MAX_BYTES = 8 * 1024 * 1024 * 1024; // 8 GiB
 
 export function maxBundleBytes(env: { FLATPAK_MAX_BUNDLE_BYTES?: string }): number {
 	const configured = Number(env.FLATPAK_MAX_BUNDLE_BYTES);
