@@ -86,6 +86,7 @@
 	"form_bundle_browse_hint": "oder klicken zum Durchsuchen",
 	"form_bundle_replace_hint": "Klicken oder ablegen zum Ersetzen",
 	"form_bundle_finishing": "Upload wird abgeschlossen, das kann bei großen Bundles einen Moment dauern…",
+	"form_bundle_eta": "noch ~{time}",
 	"form_bundle_preview_loading": "App-Metadaten werden aus deinem Bundle gelesen…",
 	"form_bundle_preview_failed": "Metadaten konnten nicht aus diesem Bundle gelesen werden",
 	"form_appstream_hint": "App-Name, Beschreibung, Symbol und Screenshots werden automatisch aus den AppStream-Metadaten deines Flatpaks gelesen.",

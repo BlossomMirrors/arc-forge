@@ -20,6 +20,7 @@
 	let progress = $state(0);
 	let loadedBytes = $state(0);
 	let totalBytes = $state(0);
+	let etaSeconds: number | null = $state(null);
 	let error = $state('');
 
 	// Large bundles are sent as separate chunks rather than one request, so a slow
@@ -33,8 +34,39 @@
 	// at "100% - 200.0 MB / 200.0 MB" indefinitely and reads as hung.
 	let finishing = $derived(progress >= 100);
 
-	function formatMb(bytes: number): string {
-		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+	function formatBytes(bytes: number): string {
+		const mb = bytes / (1024 * 1024);
+		if (mb >= 1024) return `${(mb / 1024).toFixed(1)} GB`;
+		return `${mb.toFixed(1)} MB`;
+	}
+
+	function formatDuration(seconds: number): string {
+		const total = Math.max(0, Math.round(seconds));
+		const h = Math.floor(total / 3600);
+		const m = Math.floor((total % 3600) / 60);
+		const s = total % 60;
+		if (h > 0) return `${h}h ${m}m`;
+		if (m > 0) return `${m}m ${s}s`;
+		return `${s}s`;
+	}
+
+	// Recomputed from the bytes sent since the last sample rather than an
+	// average since the start, so the estimate tracks current network speed
+	// instead of getting dragged down by a slow first chunk.
+	function startEtaTimer(): ReturnType<typeof setInterval> {
+		let sampleBytes = loadedBytes;
+		let sampleTime = performance.now();
+		return setInterval(() => {
+			const now = performance.now();
+			const elapsedSeconds = (now - sampleTime) / 1000;
+			const bytesSinceSample = loadedBytes - sampleBytes;
+			if (elapsedSeconds > 0 && bytesSinceSample > 0) {
+				const bytesPerSecond = bytesSinceSample / elapsedSeconds;
+				etaSeconds = (totalBytes - loadedBytes) / bytesPerSecond;
+			}
+			sampleBytes = loadedBytes;
+			sampleTime = now;
+		}, 3000);
 	}
 
 	// fetch() has no upload progress event, so each chunk needs XMLHttpRequest
@@ -135,13 +167,17 @@
 		progress = 0;
 		loadedBytes = 0;
 		totalBytes = file.size;
+		etaSeconds = null;
 		error = '';
+		const etaTimer = startEtaTimer();
 		try {
 			const bundle = await uploadWithProgress(file);
 			onbundle(bundle);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Upload failed';
 		} finally {
+			clearInterval(etaTimer);
+			etaSeconds = null;
 			uploading = false;
 			input.value = '';
 		}
@@ -211,14 +247,17 @@
 			{#if finishing}
 				{m.form_bundle_finishing()}
 			{:else}
-				{progress}% · {formatMb(loadedBytes)} / {formatMb(totalBytes)}
+				{progress}% · {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
+				{#if etaSeconds !== null}
+					· {m.form_bundle_eta({ time: formatDuration(etaSeconds) })}
+				{/if}
 			{/if}
 		</p>
 	{:else if bundleFileName}
 		<FileArchive class="size-8 text-muted-foreground" />
 		<p class="text-sm font-medium">{bundleFileName}</p>
 		<p class="text-xs text-muted-foreground">
-			{formatMb(bundleSize)} · {m.form_bundle_replace_hint()}
+			{formatBytes(bundleSize)} · {m.form_bundle_replace_hint()}
 		</p>
 	{:else}
 		<Upload class="size-8 text-muted-foreground" />
