@@ -21,42 +21,105 @@
 	let totalBytes = $state(0);
 	let error = $state('');
 
-	// Reaching 100% only means the browser finished sending bytes - the server
-	// still has to write the file out to R2, which for a large bundle can take
-	// a while with no further progress events. Without this, the bar sits
-	// frozen at "100% - 200.0 MB / 200.0 MB" indefinitely and reads as hung.
+	// Large bundles are sent as separate chunks rather than one request, so a slow
+	// or dropped connection only has to retry a few MB instead of the whole file,
+	// and no single request has to carry gigabytes of body.
+	const CHUNK_BYTES = 10 * 1024 * 1024;
+	const CONCURRENCY = 4;
+
+	// Reaching 100% only means every chunk finished sending - the server still
+	// has to tell R2 to assemble the parts, which for a large bundle can take a
+	// moment with no further progress events. Without this, the bar sits frozen
+	// at "100% - 200.0 MB / 200.0 MB" indefinitely and reads as hung.
 	let finishing = $derived(progress >= 100);
 
 	function formatMb(bytes: number): string {
 		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 	}
 
-	// fetch() has no upload progress event, so a large bundle upload needs
-	// XMLHttpRequest instead to drive the progress bar.
-	function uploadWithProgress(
-		file: File
-	): Promise<{ url: string; filename: string; size: number }> {
+	// fetch() has no upload progress event, so each chunk needs XMLHttpRequest
+	// instead to contribute to the overall progress bar.
+	function uploadPart(
+		key: string,
+		uploadId: string,
+		partNumber: number,
+		blob: Blob,
+		onProgress: (loaded: number) => void
+	): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const xhr = new XMLHttpRequest();
-			xhr.open('POST', '/api/upload-flatpak');
+			const params = new URLSearchParams({ key, uploadId, partNumber: String(partNumber) });
+			xhr.open('PUT', `/api/upload-flatpak/multipart/part?${params}`);
 			xhr.upload.onprogress = (e) => {
-				if (!e.lengthComputable) return;
-				loadedBytes = e.loaded;
-				totalBytes = e.total;
-				progress = Math.round((e.loaded / e.total) * 100);
+				if (e.lengthComputable) onProgress(e.loaded);
 			};
 			xhr.onload = () => {
 				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve(JSON.parse(xhr.responseText));
+					onProgress(blob.size);
+					resolve(JSON.parse(xhr.responseText).etag as string);
 				} else {
 					reject(new Error(xhr.responseText || 'Upload failed'));
 				}
 			};
 			xhr.onerror = () => reject(new Error('Upload failed'));
-			const body = new FormData();
-			body.append('file', file);
-			xhr.send(body);
+			xhr.send(blob);
 		});
+	}
+
+	async function uploadWithProgress(
+		file: File
+	): Promise<{ url: string; filename: string; size: number }> {
+		const startRes = await fetch('/api/upload-flatpak/multipart/start', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ filename: file.name, size: file.size })
+		});
+		if (!startRes.ok) throw new Error((await startRes.text()) || 'Upload failed');
+		const { uploadId, key } = await startRes.json();
+
+		const partCount = Math.max(1, Math.ceil(file.size / CHUNK_BYTES));
+		const partLoaded = new Array<number>(partCount).fill(0);
+		const reportProgress = () => {
+			loadedBytes = partLoaded.reduce((sum, n) => sum + n, 0);
+			progress = Math.round((loadedBytes / totalBytes) * 100);
+		};
+
+		const etags = new Array<string>(partCount);
+		try {
+			let nextPart = 0;
+			async function worker() {
+				while (nextPart < partCount) {
+					const i = nextPart++;
+					const start = i * CHUNK_BYTES;
+					const blob = file.slice(start, Math.min(start + CHUNK_BYTES, file.size));
+					etags[i] = await uploadPart(key, uploadId, i + 1, blob, (loaded) => {
+						partLoaded[i] = loaded;
+						reportProgress();
+					});
+				}
+			}
+			await Promise.all(Array.from({ length: Math.min(CONCURRENCY, partCount) }, worker));
+		} catch (e) {
+			fetch('/api/upload-flatpak/multipart/abort', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ key, uploadId })
+			}).catch(() => {});
+			throw e;
+		}
+
+		const completeRes = await fetch('/api/upload-flatpak/multipart/complete', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				key,
+				uploadId,
+				parts: etags.map((etag, i) => ({ etag, partNumber: i + 1 }))
+			})
+		});
+		if (!completeRes.ok) throw new Error((await completeRes.text()) || 'Upload failed');
+		const { url } = await completeRes.json();
+		return { url, filename: file.name, size: file.size };
 	}
 
 	async function startUpload(file: File) {
