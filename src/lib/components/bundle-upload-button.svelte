@@ -2,6 +2,7 @@
 	import { Upload, FileArchive } from '@lucide/svelte';
 	import ConveyorLoader from './conveyor-loader.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { CHUNK_BYTES } from '$lib/shared/flatpak-upload';
 
 	let {
 		bundleFileName = '',
@@ -24,7 +25,6 @@
 	// Large bundles are sent as separate chunks rather than one request, so a slow
 	// or dropped connection only has to retry a few MB instead of the whole file,
 	// and no single request has to carry gigabytes of body.
-	const CHUNK_BYTES = 10 * 1024 * 1024;
 	const CONCURRENCY = 4;
 
 	// Reaching 100% only means every chunk finished sending - the server still

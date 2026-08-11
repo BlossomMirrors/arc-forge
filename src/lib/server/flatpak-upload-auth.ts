@@ -1,6 +1,7 @@
 import type { auth } from '$lib/auth';
 import { isStaff } from '$lib/server/authz';
 import { hasAnyDeveloperProfile } from '$lib/server/developer-profile';
+import { CHUNK_BYTES } from '$lib/shared/flatpak-upload';
 
 type SessionUser = typeof auth.$Infer.Session.user;
 
@@ -16,10 +17,11 @@ export function maxBundleBytes(env: { FLATPAK_MAX_BUNDLE_BYTES?: string }): numb
 // turn a handful of oversized parts into an unbounded upload.
 export const MAX_PART_BYTES = 32 * 1024 * 1024;
 
-// Bounds total storage from a single upload to roughly maxBytes even if every part is
-// sent at the MAX_PART_BYTES ceiling, since part byte size itself isn't otherwise capped.
+// Bounded by the client's actual chunk size, not MAX_PART_BYTES - that's a ceiling on
+// a single part's size, not the size a well-behaved upload actually uses, and bounding
+// part count by it would reject legitimate large uploads long before they reach maxBytes.
 export function maxPartCount(maxBytes: number): number {
-	return Math.ceil(maxBytes / MAX_PART_BYTES) + 2;
+	return Math.ceil(maxBytes / CHUNK_BYTES) + 4;
 }
 
 // A submission can't be completed without a developer profile anyway (see
