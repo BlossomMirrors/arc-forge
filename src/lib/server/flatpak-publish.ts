@@ -496,8 +496,11 @@ APPID=$(echo "$REF" | cut -d/ -f2)
 echo "FORGE_APPID=$APPID"
 echo "FORGE_REF=$REF"
 
-echo "FORGE_STEP: checking out ref"
-ostree checkout -U --repo="$STAGING_REPO" "$REF" checkout
+# Reads individual files straight out of the imported commit via "ostree cat"
+# instead of checking out the whole tree - a checkout writes every file in the
+# bundle to disk (for a multi-GB game bundle, gigabytes of assets this only
+# ever needed two small files out of), which made preview/submission extraction
+# take as long as a full install for large bundles.
 
 # metainfo.xml is optional, a runtime typically doesn't ship one, missing metainfo
 # just means the name/summary/description/icon fall back to placeholders below
@@ -506,7 +509,17 @@ echo "FORGE_STEP: looking for metainfo.xml"
 # Named exactly $APPID, not a bare '*.xml' glob, same reasoning as the git
 # build path below: a base app/SDK extension baked into the bundle can ship
 # its own metainfo/icon in the same directories as the submitted app's own.
-METAINFO_PATH=$(find checkout/files/share/metainfo checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
+METAINFO_PATH=""
+for candidate in \\
+  "files/share/metainfo/$APPID.metainfo.xml" \\
+  "files/share/metainfo/$APPID.appdata.xml" \\
+  "export/share/metainfo/$APPID.metainfo.xml" \\
+  "export/share/metainfo/$APPID.appdata.xml"; do
+  if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > metainfo.xml 2>/dev/null; then
+    METAINFO_PATH="metainfo.xml"
+    break
+  fi
+done
 if [ -n "$METAINFO_PATH" ]; then
   echo "${EXTRACT_METAINFO_START}"
   base64 -w0 "$METAINFO_PATH"
@@ -526,14 +539,21 @@ echo "FORGE_STEP: looking for an icon"
 # PNG at any size). Falls back to sized PNGs then scalable/apps (svg-only
 # icon, or a raster png mistakenly installed into scalable/apps instead of a
 # sized dir) if the bundle's own export subtree doesn't have it.
-ICON_PATH=$(ls checkout/export/share/app-info/icons/flatpak/128x128/"$APPID".png \\
-  checkout/export/share/app-info/icons/flatpak/64x64/"$APPID".png \\
-  checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
-  checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
-  checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
-  checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
-  checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
-  checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
+ICON_PATH=""
+for candidate in \\
+  "export/share/app-info/icons/flatpak/128x128/$APPID.png" \\
+  "export/share/app-info/icons/flatpak/64x64/$APPID.png" \\
+  "files/share/icons/hicolor/256x256/apps/$APPID.png" \\
+  "files/share/icons/hicolor/128x128/apps/$APPID.png" \\
+  "files/share/icons/hicolor/64x64/apps/$APPID.png" \\
+  "files/share/icons/hicolor/48x48/apps/$APPID.png" \\
+  "files/share/icons/hicolor/scalable/apps/$APPID.svg" \\
+  "files/share/icons/hicolor/scalable/apps/$APPID.png"; do
+  if ostree cat --repo="$STAGING_REPO" "$REF" "$candidate" > icon.bin 2>/dev/null; then
+    ICON_PATH="icon.bin"
+    break
+  fi
+done
 if [ -n "$ICON_PATH" ]; then
   echo "${EXTRACT_ICON_START}"
   base64 -w0 "$ICON_PATH"
@@ -720,7 +740,8 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 		// returned below) has the real detail.
 		const lastStepMatch = [...log.matchAll(/^FORGE_STEP: (.+)$/gm)].pop();
 		const lastStep = lastStepMatch?.[1];
-		const codeDesc = exitCode === null ? 'the extraction process failed to start' : `exit code ${exitCode}`;
+		const codeDesc =
+			exitCode === null ? 'the extraction process failed to start' : `exit code ${exitCode}`;
 		return {
 			ok: false,
 			error: lastStep
