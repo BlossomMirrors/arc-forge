@@ -17,7 +17,7 @@ RUN deno task build
 
 FROM denoland/deno:latest AS runner
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates flatpak flatpak-builder ostree gnupg2 elfutils xz-utils patch librsvg2-common unzip && update-ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl git ca-certificates flatpak flatpak-builder ostree gnupg2 elfutils xz-utils patch librsvg2-common unzip bzip2 && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /root/.gnupg && chmod 700 /root/.gnupg && echo 'allow-preset-passphrase' > /root/.gnupg/gpg-agent.conf
 
