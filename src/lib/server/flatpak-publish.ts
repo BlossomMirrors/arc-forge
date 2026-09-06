@@ -475,6 +475,96 @@ gpg --batch --export "$GPG_ID" | base64 -w0`
 	}
 }
 
+function execErrorMessage(e: unknown): string {
+	const stderr =
+		e && typeof e === 'object' && 'stderr' in e ? String((e as { stderr?: unknown }).stderr) : '';
+	return stderr || (e instanceof Error ? e.message : String(e));
+}
+
+// Static deltas accumulate forever otherwise: `flatpak build-update-repo
+// --generate-static-deltas` runs on every publish and generates a fresh
+// delta from each of a ref's still-reachable old commits to whatever the
+// NEW head is - but the moment another commit lands on that same ref, every
+// delta from the previous run (built against the now-superseded old head)
+// becomes permanently unreachable to any real client, since a client only
+// ever requests a delta *to* a ref's current head (learned from the repo's
+// own summary), never to a stale one. Nothing ever deleted those. Confirmed
+// directly against a real throwaway ostree repo that `ostree prune` does
+// NOT clean up static delta files on this libostree version, regardless of
+// flags (`--static-deltas-only`, `--delete-commit`, `--keep-younger-than`
+// all tried, in every combination the CLI accepts) - only `ostree
+// static-delta delete NAME` actually removes files on disk. The rule below
+// needs no age/depth heuristic and can never delete a delta a client could
+// still use: a delta's TO commit that isn't any ref's CURRENT head can
+// never be served to anyone, full stop.
+export async function pruneStaticDeltas(): Promise<{
+	ok: boolean;
+	log: string;
+	deleted: number;
+	kept: number;
+}> {
+	const repo = CONTAINER_REPO_PATH;
+	try {
+		const { stdout: refsOut } = await execFileAsync('ostree', ['refs', `--repo=${repo}`]);
+		const refs = refsOut
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
+
+		const currentHeads = new Set<string>();
+		for (const ref of refs) {
+			try {
+				const { stdout } = await execFileAsync('ostree', ['rev-parse', `--repo=${repo}`, ref]);
+				currentHeads.add(stdout.trim());
+			} catch {
+				// Ref vanished between listing and resolving it - just skip it,
+				// nothing downstream depends on every ref resolving.
+			}
+		}
+
+		const { stdout: deltaOut } = await execFileAsync('ostree', [
+			'static-delta',
+			'list',
+			`--repo=${repo}`
+		]);
+		const deltaNames = deltaOut
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
+
+		const log: string[] = [];
+		let deleted = 0;
+		let kept = 0;
+		for (const name of deltaNames) {
+			// Entries are either "TO" (a from-scratch delta) or "FROM-TO" -
+			// hex checksums never contain "-", so the last segment is always TO.
+			const to = name.includes('-') ? name.slice(name.lastIndexOf('-') + 1) : name;
+			if (currentHeads.has(to)) {
+				kept++;
+				continue;
+			}
+			try {
+				await execFileAsync('ostree', ['static-delta', 'delete', `--repo=${repo}`, name]);
+				deleted++;
+				log.push(`deleted stale delta ${name}`);
+			} catch (e) {
+				log.push(`failed to delete ${name}: ${execErrorMessage(e)}`);
+			}
+		}
+
+		// Cheap and only matters if something was actually deleted - keeps the
+		// repo's advertised delta index from ever pointing at a removed file.
+		if (deleted > 0) {
+			await execFileAsync('ostree', ['summary', '-u', `--repo=${repo}`]);
+		}
+
+		log.push(`\n${deleted} stale delta(s) deleted, ${kept} still-current delta(s) kept.`);
+		return { ok: true, log: log.join('\n'), deleted, kept };
+	} catch (e) {
+		return { ok: false, log: execErrorMessage(e), deleted: 0, kept: 0 };
+	}
+}
+
 const EXTRACT_METAINFO_START = 'FORGE_METAINFO_B64_START';
 const EXTRACT_METAINFO_END = 'FORGE_METAINFO_B64_END';
 const EXTRACT_ICON_START = 'FORGE_ICON_B64_START';

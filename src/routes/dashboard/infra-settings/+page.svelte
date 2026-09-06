@@ -12,9 +12,10 @@
 
 	let repairing = $state(false);
 	let aborting = $state(false);
+	let pruning = $state(false);
 	// The `form` prop is shared across every action on this page - track which
 	// card's submit populated it so each only renders its own result/log.
-	let lastAction = $state<'repair' | 'abort' | null>(null);
+	let lastAction = $state<'repair' | 'abort' | 'prune' | null>(null);
 
 	// svelte-ignore state_referenced_locally
 	let noPassphrase = $state(data.gpgPassphraseIsEmpty);
@@ -289,6 +290,40 @@
 				</Button>
 			</form>
 			{#if lastAction === 'repair' && form?.log}
+				<pre
+					class="max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>
+			{/if}
+		</div>
+
+		<div class="space-y-3 rounded-lg border border-border p-4">
+			<h3 class="text-sm font-semibold">{m.infra_prune_deltas_heading()}</h3>
+			<p class="text-sm text-muted-foreground">{m.infra_prune_deltas_hint()}</p>
+			<form
+				method="POST"
+				action="?/pruneStaticDeltasAction"
+				use:enhance={({ cancel }) => {
+					if (!confirm(m.infra_prune_deltas_confirm())) {
+						cancel();
+						return;
+					}
+					lastAction = 'prune';
+					pruning = true;
+					return async ({ update }) => {
+						pruning = false;
+						await update();
+					};
+				}}
+			>
+				<Button type="submit" variant="ghost" size="sm" disabled={pruning}>
+					{pruning ? m.infra_prune_deltas_running() : m.infra_prune_deltas_run()}
+				</Button>
+			</form>
+			{#if lastAction === 'prune' && form && 'deleted' in form && form.deleted !== undefined}
+				<p class="text-sm text-muted-foreground">
+					{m.infra_prune_deltas_result({ deleted: form.deleted, kept: form.kept })}
+				</p>
+			{/if}
+			{#if lastAction === 'prune' && form?.log}
 				<pre
 					class="max-h-64 overflow-auto rounded bg-muted/50 p-2 text-xs whitespace-pre-wrap">{form.log}</pre>
 			{/if}

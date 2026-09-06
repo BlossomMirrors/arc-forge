@@ -2,7 +2,11 @@ import { error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { requireAdmin } from '$lib/server/authz';
 import { encryptSecret, decryptSecret } from '$lib/server/secrets';
-import { repairAppstream, abortAllProcessingBuilds } from '$lib/server/flatpak-publish';
+import {
+	repairAppstream,
+	abortAllProcessingBuilds,
+	pruneStaticDeltas
+} from '$lib/server/flatpak-publish';
 import {
 	infraAccessExpiresAt,
 	requestInfraAccessCode,
@@ -167,5 +171,21 @@ export const actions: Actions = {
 		const result = await abortAllProcessingBuilds();
 		if (!result.ok) return fail(500, { error: 'Some builds failed to update', log: result.log });
 		return { aborted: true, log: result.log, count: result.count };
+	},
+
+	// Deletes static deltas that target a commit no longer current for any
+	// ref, so the repo's `deltas/` directory doesn't grow forever. Safe to
+	// run routinely (unlike repairAppstreamAction) since it never touches a
+	// commit or ref, only ever-unreachable delta files - still gated behind
+	// verified infra access and a confirm dialog since it's still a bulk
+	// delete against the real repo.
+	pruneStaticDeltasAction: async ({ locals }) => {
+		requireAdmin(locals.user);
+		if (!locals.session) throw error(401);
+		await requireVerifiedInfraAccess(locals.session.id);
+
+		const result = await pruneStaticDeltas();
+		if (!result.ok) return fail(500, { error: 'Prune failed', log: result.log });
+		return { pruned: true, log: result.log, deleted: result.deleted, kept: result.kept };
 	}
 };
