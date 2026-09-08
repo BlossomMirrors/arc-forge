@@ -117,7 +117,7 @@
 					<DropdownMenu.Trigger
 						class="flex size-9 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary/40 focus-visible:ring-primary/40 focus-visible:outline-none"
 					>
-						<img src={data.avatarUrl} alt={user.name} class="size-full object-cover" />
+						<img src={data.avatarUrl} alt={user.name} class="m-0 size-full object-cover" />
 					</DropdownMenu.Trigger>
 
 					<DropdownMenu.Content
