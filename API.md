@@ -81,7 +81,7 @@ GET /api/verified/com.example.App
 **Response:** `application/json`
 
 ```json
-{ "appid": "com.example.App", "verified": true }
+{ "appid": "com.example.App", "verified": true, "developer_name": "Example Dev" }
 ```
 
 Returns `404` if no Flatpak with that `appid` has been submitted to Forge.

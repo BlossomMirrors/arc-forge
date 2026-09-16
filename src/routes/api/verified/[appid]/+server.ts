@@ -15,6 +15,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		where: { appid: params.appid },
 		select: {
 			appid: true,
+			developerName: true,
 			developerProfileId: true,
 			developerProfile: { select: { verified: true } }
 		}
@@ -23,5 +24,5 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	const verified = !app.developerProfileId || (app.developerProfile?.verified ?? false);
 
-	return Response.json({ appid: app.appid, verified });
+	return Response.json({ appid: app.appid, verified, developer_name: app.developerName });
 };
