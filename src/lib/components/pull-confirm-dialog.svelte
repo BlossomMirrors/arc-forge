@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { ArrowDownCircle, Loader2 } from '@lucide/svelte';
+	import { IconCircleArrowDown, IconLoader2 } from '@tabler/icons-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import ConfirmAppidInput from '$lib/components/confirm-appid-input.svelte';
@@ -32,7 +32,7 @@
 
 <Dialog.Root bind:open onOpenChange={(next) => !next && reset()}>
 	<Dialog.Trigger class={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-		<ArrowDownCircle class="size-4" />
+		<IconCircleArrowDown class="size-4" />
 		{m.review_pull()}
 	</Dialog.Trigger>
 	<Dialog.Content>
@@ -75,9 +75,9 @@
 				>
 				<Button type="submit" variant="destructive" disabled={!confirmed || submitting}>
 					{#if submitting}
-						<Loader2 class="size-4 animate-spin" />
+						<IconLoader2 class="size-4 animate-spin" />
 					{:else}
-						<ArrowDownCircle class="size-4" />
+						<IconCircleArrowDown class="size-4" />
 					{/if}
 					{m.review_pull()}
 				</Button>

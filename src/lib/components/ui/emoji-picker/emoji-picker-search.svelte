@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SearchIcon from '@lucide/svelte/icons/search';
+	import { IconSearch } from '@tabler/icons-svelte';
 	import { Command as CommandPrimitive } from 'bits-ui';
 	import type { EmojiPickerSearchProps } from '$lib/components/ui/emoji-picker/types';
 	import { useEmojiPickerInput } from '$lib/components/ui/emoji-picker/emoji-picker.svelte.js';
@@ -19,7 +19,7 @@
 	<div
 		class="flex h-9 items-center gap-2 rounded-md border border-input bg-input px-3 dark:bg-input/30"
 	>
-		<SearchIcon class="size-4 shrink-0 opacity-50" />
+		<IconSearch class="size-4 shrink-0 opacity-50" />
 		<CommandPrimitive.Input
 			{...rest}
 			{placeholder}

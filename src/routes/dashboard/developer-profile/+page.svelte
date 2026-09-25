@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import {
-		Check,
-		X,
-		LogOut,
-		Plus,
-		Trash2,
-		BadgeCheck,
-		FileText,
-		Clock,
-		Pencil,
-		UserMinus,
-		ShieldOff,
-		ShieldCheck
-	} from '@lucide/svelte';
+		IconCheck,
+		IconClock,
+		IconFileText,
+		IconLogout,
+		IconPencil,
+		IconPlus,
+		IconRosetteDiscountCheck,
+		IconShieldCheck,
+		IconShieldOff,
+		IconTrash,
+		IconUserMinus,
+		IconX
+	} from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -83,14 +83,14 @@
 							<form method="POST" action="?/acceptInvitation" use:enhance>
 								<input type="hidden" name="invitationId" value={invite.id} />
 								<Button type="submit" size="sm">
-									<Check class="size-4" />
+									<IconCheck class="size-4" />
 									{m.devprofile_accept()}
 								</Button>
 							</form>
 							<form method="POST" action="?/rejectInvitation" use:enhance>
 								<input type="hidden" name="invitationId" value={invite.id} />
 								<Button type="submit" variant="ghost" size="sm">
-									<X class="size-4" />
+									<IconX class="size-4" />
 									{m.devprofile_decline()}
 								</Button>
 							</form>
@@ -159,14 +159,14 @@
 												title={m.devprofile_rename()}
 												onclick={() => startRename(profile.id, profile.name)}
 											>
-												<Pencil class="size-3.5" />
+												<IconPencil class="size-3.5" />
 											</button>
 										{/if}
 										{#if profile.verified}
 											<span
 												class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600"
 											>
-												<BadgeCheck class="size-3" />
+												<IconRosetteDiscountCheck class="size-3" />
 												{m.devprofiles_verified()}
 											</span>
 										{/if}
@@ -174,7 +174,7 @@
 											<span
 												class="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
 											>
-												<ShieldOff class="size-3" />
+												<IconShieldOff class="size-3" />
 												{m.devprofile_suspended()}
 											</span>
 										{/if}
@@ -196,7 +196,7 @@
 										class="text-muted-foreground hover:text-destructive"
 										title={m.devprofile_leave()}
 									>
-										<LogOut class="size-4" />
+										<IconLogout class="size-4" />
 									</Button>
 								</form>
 								{#if data.isStaff}
@@ -231,9 +231,9 @@
 											}}
 										>
 											{#if profile.suspended}
-												<ShieldCheck class="size-4" />
+												<IconShieldCheck class="size-4" />
 											{:else}
-												<ShieldOff class="size-4" />
+												<IconShieldOff class="size-4" />
 											{/if}
 										</Button>
 									</form>
@@ -263,7 +263,7 @@
 												}
 											}}
 										>
-											<Trash2 class="size-4" />
+											<IconTrash class="size-4" />
 										</Button>
 									</form>
 								{/if}
@@ -326,7 +326,7 @@
 														class="text-muted-foreground hover:text-destructive"
 														title={m.devprofile_remove_member()}
 													>
-														<UserMinus class="size-3.5" />
+														<IconUserMinus class="size-3.5" />
 													</button>
 												</form>
 											{:else}
@@ -371,7 +371,7 @@
 									</Select.Content>
 								</Select.Root>
 								<Button type="submit" size="sm">
-									<Plus class="size-4" />
+									<IconPlus class="size-4" />
 									{m.devprofile_invite()}
 								</Button>
 							</form>
@@ -389,7 +389,7 @@
 											<span
 												class="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600"
 											>
-												<Clock class="size-3" />
+												<IconClock class="size-3" />
 												{m.devprofile_invite_pending()}
 											</span>
 											<form method="POST" action="?/cancelInvitation" use:enhance>
@@ -399,7 +399,7 @@
 													class="text-muted-foreground hover:text-destructive"
 													title={m.devprofile_invite_cancel()}
 												>
-													<X class="size-3.5" />
+													<IconX class="size-3.5" />
 												</button>
 											</form>
 										</span>
@@ -446,7 +446,7 @@
 													class="flex items-center justify-between gap-2 rounded-md border border-input px-2.5 py-1.5 text-sm"
 												>
 													<span class="flex min-w-0 items-center gap-1.5 truncate">
-														<FileText class="size-3.5 shrink-0 text-muted-foreground" />
+														<IconFileText class="size-3.5 shrink-0 text-muted-foreground" />
 														<span class="truncate">{doc.filename}</span>
 													</span>
 													<button
@@ -454,7 +454,7 @@
 														class="shrink-0 text-muted-foreground hover:text-destructive"
 														onclick={() => removeDocument(profile.id, doc.url)}
 													>
-														<X class="size-3.5" />
+														<IconX class="size-3.5" />
 													</button>
 												</div>
 											{/each}

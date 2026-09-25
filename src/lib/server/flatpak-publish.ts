@@ -9,6 +9,9 @@ import { decryptSecret } from './secrets';
 import { notifyUser } from './notifications';
 import { uploadFile } from './r2';
 import type { FlatpakApp } from '$lib/generated/prisma/client';
+import { runnerJobsLog, settleRunnerJobs } from './runners/logs';
+import { queueGitBuild, cancelJobsForBuild } from './runners/queue';
+import { resumeRunnerBuild } from './runners/finalize';
 
 const execFileAsync = promisify(execFile);
 
@@ -25,11 +28,11 @@ const execFileAsync = promisify(execFile);
 // Flatpak clients (see src/routes/flatpak/[...path]/+server.ts) - no R2/CDN
 // involved at all anymore, that bucket holds unrelated content (RPMs) this
 // repo can't share a domain with.
-const CONTAINER_REPO_PATH = '/repo';
+export const CONTAINER_REPO_PATH = '/repo';
 // Per-run scratch space (scripts, GPG passphrase/key files, build logs) - a
 // plain local directory, created on demand. Nothing here needs to be shared
 // with another container anymore.
-const SCRATCH_ROOT = '/tmp/forge-flatpak';
+export const SCRATCH_ROOT = '/tmp/forge-flatpak';
 
 // Fires the given bash command as a fully independent process (`detached:
 // true` + `unref()`, the Node equivalent of the old `screen -dmS`) and
@@ -139,7 +142,7 @@ async function tailFile(path: string, maxBytes: number): Promise<string> {
 // buildPublishScript/buildRepairScript/buildUnpublishScript). Re-importing
 // the same key on every run (this container's own keyring is long-lived, not
 // disposable per run) is idempotent and harmless.
-function buildGpgImportSection(gpgKeyPath: string): string {
+export function buildGpgImportSection(gpgKeyPath: string): string {
 	return `GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${gpgKeyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
 if [ -z "$GPG_ID" ]; then
   echo "Could not read a fingerprint from the configured GPG signing key" >&2
@@ -184,77 +187,7 @@ flatpak build-import-bundle --gpg-sign="$GPG_ID" "$REPO_PATH" bundle.flatpak
 `;
 }
 
-// GIT submissions: builds AND signs directly into $REPO_PATH, same as the
-// user's own pre-Forge command (`flatpak-builder --gpg-sign=...
-// --repo=/srv/repos/flatpak build-dir`), just now writing into a real local
-// disk (a Hetzner Volume) instead of `/srv/repos/flatpak` directly.
-// --state-dir explicitly under $WORKDIR since flatpak-builder refuses to run
-// when its cache dir and target dir are on different filesystems;
-// --disable-rofiles-fuse since FUSE may not be available in the container
-// (same lesson as ostree checkout's -U flag below). Resolves $REF straight
-// out of $REPO_PATH afterward - not a pre-publish validation gate anymore
-// (see the interface comment above), just finding what was actually built so
-// buildGitExtractionSection knows what to check out. That extraction is
-// copied over from the old build-host container script's tail: this
-// appid-scoping (never a bare glob) was a real, reproduced production bug
-// fix (a base app/SDK/module's own metainfo/icon could otherwise be picked
-// instead of the submitted app's, e.g. a bundled QEMU module's qemu.png) -
-// see flatpak_publish_pipeline memory.
-function buildGitBuildSection(): string {
-	return `
-flatpak-builder --repo="$REPO_PATH" --gpg-sign="$GPG_ID" --state-dir="$WORKDIR/.flatpak-builder" \\
-  --force-clean --disable-rofiles-fuse --install-deps-from=flathub \\
-  "$WORKDIR/build-dir" "$WORKDIR/src/$MANIFEST_PATH"
-
-REF=$(ostree refs --repo="$REPO_PATH" | grep "^app/$APPID/" | head -n1)
-if [ -z "$REF" ]; then
-  # Themes/extensions publish as a runtime rather than an app.
-  REF=$(ostree refs --repo="$REPO_PATH" | grep "^runtime/$APPID/" | head -n1)
-fi
-if [ -z "$REF" ]; then
-  echo "Could not find a matching app or runtime ref for $APPID after building (appid/branch mismatch, or the build didn't produce a ref)" >&2
-  exit 1
-fi
-
-${buildGitExtractionSection()}
-`;
-}
-
-// checkout MUST come before creating any subdirectories under the
-// destination and needs -U/--user-mode, same as everywhere else this file
-// does an ostree checkout.
-//
-// export/share/app-info/icons/flatpak/{size}/$APPID.png is checked first:
-// flatpak-builder's own per-app export already runs appstreamcli compose,
-// which resolves a manifest's declared icon (name-vs-appid mismatches,
-// looking up whatever the .desktop file's Icon= key actually says) AND
-// rasterizes an SVG-only icon into a real PNG - both problems the plain
-// files/share/icons/hicolor/*/apps/ lookup below can't handle on its own. A
-// real, reproduced case: io.github.shyvortex.BraveOrigin only ships an SVG
-// there at all, no raster PNG at any size - compose already solved exactly
-// this, reusing its output beats re-deriving the same resolution by hand.
-function buildGitExtractionSection(): string {
-	return `
-ostree checkout -U --repo="$REPO_PATH" "$REF" post-build-checkout
-METAINFO_SRC=$(find post-build-checkout/files/share/metainfo post-build-checkout/export/share/metainfo -maxdepth 1 \\( -name "$APPID.metainfo.xml" -o -name "$APPID.appdata.xml" \\) 2>/dev/null | head -n1 || true)
-if [ -n "$METAINFO_SRC" ]; then
-  base64 -w0 "$METAINFO_SRC" > "$METAINFO_PATH"
-fi
-ICON_SRC=$(ls post-build-checkout/export/share/app-info/icons/flatpak/128x128/"$APPID".png \\
-  post-build-checkout/export/share/app-info/icons/flatpak/64x64/"$APPID".png \\
-  post-build-checkout/files/share/icons/hicolor/256x256/apps/"$APPID".png \\
-  post-build-checkout/files/share/icons/hicolor/128x128/apps/"$APPID".png \\
-  post-build-checkout/files/share/icons/hicolor/64x64/apps/"$APPID".png \\
-  post-build-checkout/files/share/icons/hicolor/48x48/apps/"$APPID".png \\
-  post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".svg \\
-  post-build-checkout/files/share/icons/hicolor/scalable/apps/"$APPID".png 2>/dev/null | head -n1 || true)
-if [ -n "$ICON_SRC" ]; then
-  base64 -w0 "$ICON_SRC" > "$ICON_PATH"
-fi
-`;
-}
-
-interface RunPaths extends BuildSidecarPaths {
+export interface RunPaths extends BuildSidecarPaths {
 	runDir: string;
 	scriptPath: string;
 	logPath: string;
@@ -263,7 +196,7 @@ interface RunPaths extends BuildSidecarPaths {
 	gpgKeyPath: string;
 }
 
-function sidecarPathsFromRunDir(runDir: string): BuildSidecarPaths {
+export function sidecarPathsFromRunDir(runDir: string): BuildSidecarPaths {
 	return {
 		commitPath: `${runDir}/commit`,
 		metainfoPath: `${runDir}/metainfo.b64`,
@@ -273,7 +206,7 @@ function sidecarPathsFromRunDir(runDir: string): BuildSidecarPaths {
 
 // Minted once per publish run - a fresh, uniquely-named subdirectory under
 // the shared scratch volume.
-function buildRunPaths(appId: string): RunPaths {
+export function buildRunPaths(appId: string): RunPaths {
 	const runDir = `${SCRATCH_ROOT}/run-${appId}-${Date.now()}`;
 	return {
 		runDir,
@@ -286,28 +219,7 @@ function buildRunPaths(appId: string): RunPaths {
 	};
 }
 
-// The full per-run script: GPG import -> (GIT clone+build | BUNDLE curl+import)
-// -> build-update-repo, all in one file that gets launched detached (see
-// launchDetachedRun). $WORKDIR is a plain mktemp'd directory - it doesn't
-// need to be under SCRATCH_ROOT, nothing outside this script ever needs to
-// read it, only $REPO_PATH's result and the sidecar files under
-// paths.runDir do.
 function buildPublishScript(app: FlatpakApp, paths: RunPaths): string {
-	const isGit = app.sourceType === 'GIT';
-	const gitCloneSection = isGit
-		? `
-git clone --recurse-submodules --branch "${app.gitBranch}" --depth 1 "${app.gitUrl}" "$WORKDIR/src"
-git -C "$WORKDIR/src" rev-parse HEAD > "${paths.commitPath}"
-`
-		: '';
-	const gitVars = isGit
-		? `
-MANIFEST_PATH="${app.gitManifestPath}"
-METAINFO_PATH="${paths.metainfoPath}"
-ICON_PATH="${paths.iconPath}"`
-		: '';
-	const body = isGit ? buildGitBuildSection() : buildBundleImportSection(app);
-
 	return `#!/usr/bin/env bash
 set -euo pipefail
 trap 'rm -f "$0" "${paths.passphrasePath}" "${paths.gpgKeyPath}"; [ -n "\${WORKDIR:-}" ] && rm -rf "$WORKDIR"' EXIT
@@ -317,11 +229,10 @@ cd "$WORKDIR"
 
 GPG_PASSPHRASE=$(cat "${paths.passphrasePath}")
 APPID="${app.appid}"
-REPO_PATH="${CONTAINER_REPO_PATH}"${gitVars}
+REPO_PATH="${CONTAINER_REPO_PATH}"
 
 ${buildGpgImportSection(paths.gpgKeyPath)}
-${gitCloneSection}
-${body}
+${buildBundleImportSection(app)}
 
 flatpak build-update-repo \\
   --gpg-sign="$GPG_ID" \\
@@ -336,7 +247,7 @@ flatpak build-update-repo \\
 // passphrase/key) to the scratch directory and fires it detached - see
 // pollBuildOnce for how its outcome is picked back up. Runs independent of
 // this Node process or Forge restarting (see runDetached).
-async function launchDetachedRun(
+export async function launchDetachedRun(
 	paths: RunPaths,
 	script: string,
 	extraFiles: { path: string; contents: string; mode?: number }[] = []
@@ -1120,7 +1031,8 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 		const exitRaw = (await readScratchFileOrEmpty(build.remoteExitPath)).trim();
 		if (exitRaw === '') {
 			// Still running - keep the live-view log fresh, best effort only.
-			const log = await tailFile(build.remoteLogPath, LOG_READ_BYTES);
+			const log =
+				(await runnerJobsLog(build.id)) + (await tailFile(build.remoteLogPath, LOG_READ_BYTES));
 			await db.flatpakBuild
 				.update({ where: { id: build.id }, data: { log } })
 				.catch((e) => console.error(`Failed to refresh live log for build ${build.id}:`, e));
@@ -1129,7 +1041,8 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 
 		const ok = exitRaw === '0';
 		const app = build.flatpakApp;
-		const log = await tailFile(build.remoteLogPath, LOG_READ_BYTES);
+		const log =
+			(await runnerJobsLog(build.id)) + (await tailFile(build.remoteLogPath, LOG_READ_BYTES));
 		const runDir = dirname(build.remoteLogPath);
 		const sidecar = sidecarPathsFromRunDir(runDir);
 		// The commit actually built can be later than app.gitLastCommit if more
@@ -1159,6 +1072,7 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 				where: { id: build.id },
 				data: { status: ok ? 'SUCCESS' : 'FAILED', log, finishedAt: new Date() }
 			});
+			await settleRunnerJobs(build.id, ok);
 		} catch (e) {
 			console.error(`Failed to finalize build ${build.id}, will retry next tick:`, e);
 			return;
@@ -1215,11 +1129,19 @@ async function reconcileStuckBuilds(): Promise<void> {
 			where: { flatpakAppId: app.id, finishedAt: null },
 			orderBy: { startedAt: 'desc' }
 		});
-		if (build) activeBuildIds.add(build.id);
+		if (build) await resumeRunnerBuild(build);
 	}
 }
 
-async function finalizeLaunchFailure(buildId: string, app: FlatpakApp, log: string): Promise<void> {
+export function trackBuild(buildId: string): void {
+	activeBuildIds.add(buildId);
+}
+
+export async function finalizeLaunchFailure(
+	buildId: string,
+	app: FlatpakApp,
+	log: string
+): Promise<void> {
 	await db.flatpakApp.update({
 		where: { id: app.id },
 		data: { status: 'FAILED', buildFinishedAt: new Date() }
@@ -1263,6 +1185,9 @@ export async function abortAllProcessingBuilds(): Promise<{
 	for (const app of apps) {
 		const build = app.builds[0];
 		if (!build) continue;
+		await cancelJobsForBuild(build.id).catch((e) =>
+			console.error(`Failed to cancel runner jobs for build ${build.id}:`, e)
+		);
 		try {
 			// screenSessionName no longer names a real `screen` session - it holds
 			// the run's script path (see launchPublish), matched here to kill the
@@ -1369,6 +1294,10 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 			app,
 			'Infra settings are not fully configured (missing GPG key or GPG passphrase).'
 		);
+		return;
+	}
+	if (app.sourceType === 'GIT') {
+		await queueGitBuild(build.id);
 		return;
 	}
 	const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);

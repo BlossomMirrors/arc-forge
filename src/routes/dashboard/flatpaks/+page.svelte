@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Trash2, Pencil, Plus } from '@lucide/svelte';
+	import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import SearchInput from '$lib/components/search-input.svelte';
 	import MoveToProfileDialog from '$lib/components/move-to-profile-dialog.svelte';
@@ -53,7 +53,7 @@
 		</div>
 		<!-- eslint-disable svelte/no-navigation-without-resolve -->
 		<a href="/dashboard/flatpaks/new" class={buttonVariants()}>
-			<Plus class="size-4" />
+			<IconPlus class="size-4" />
 			{m.flatpaks_new()}
 		</a>
 	</div>
@@ -110,7 +110,7 @@
 							href="/dashboard/flatpaks/{app.id}"
 							class={buttonVariants({ variant: 'ghost', size: 'icon' })}
 						>
-							<Pencil class="size-4" />
+							<IconPencil class="size-4" />
 						</a>
 						<form method="POST" action="?/delete" id="delete-form-{app.id}" use:enhance>
 							<input type="hidden" name="id" value={app.id} />
@@ -131,7 +131,7 @@
 									}
 								}}
 							>
-								<Trash2 class="size-4" />
+								<IconTrash class="size-4" />
 							</Button>
 						</form>
 					</div>

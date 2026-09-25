@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import {
-		Search,
-		ChevronsUp,
-		ChevronsDown,
-		Maximize2,
-		Minimize2,
-		Download,
-		Radio
-	} from '@lucide/svelte';
+		IconArrowsMaximize,
+		IconArrowsMinimize,
+		IconChevronsDown,
+		IconChevronsUp,
+		IconDownload,
+		IconRadio,
+		IconSearch
+	} from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
@@ -109,7 +109,7 @@
 >
 	<div class="mb-2 flex flex-wrap items-center gap-2">
 		<div class="relative min-w-40 flex-1">
-			<Search
+			<IconSearch
 				class="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
@@ -121,7 +121,7 @@
 		</div>
 		{#if status === 'PROCESSING'}
 			<span class="flex items-center gap-1 text-xs text-blue-600">
-				<Radio class="size-3.5 animate-pulse" />
+				<IconRadio class="size-3.5 animate-pulse" />
 				{m.flatpak_build_live()}
 			</span>
 		{/if}
@@ -132,7 +132,7 @@
 			onclick={scrollToTop}
 			title={m.flatpak_build_scroll_top()}
 		>
-			<ChevronsUp class="size-4" />
+			<IconChevronsUp class="size-4" />
 		</Button>
 		<Button
 			type="button"
@@ -141,7 +141,7 @@
 			onclick={scrollToBottom}
 			title={m.flatpak_build_scroll_bottom()}
 		>
-			<ChevronsDown class="size-4" />
+			<IconChevronsDown class="size-4" />
 		</Button>
 		<Button
 			type="button"
@@ -150,7 +150,7 @@
 			onclick={downloadLog}
 			title={m.flatpak_build_download_log()}
 		>
-			<Download class="size-4" />
+			<IconDownload class="size-4" />
 		</Button>
 		<Button
 			type="button"
@@ -160,9 +160,9 @@
 			title={expanded ? m.flatpak_build_collapse() : m.flatpak_build_expand()}
 		>
 			{#if expanded}
-				<Minimize2 class="size-4" />
+				<IconArrowsMinimize class="size-4" />
 			{:else}
-				<Maximize2 class="size-4" />
+				<IconArrowsMaximize class="size-4" />
 			{/if}
 		</Button>
 	</div>

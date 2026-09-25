@@ -9,7 +9,7 @@
 
 <script lang="ts">
 	import { NavigationMenu as NavigationMenuPrimitive } from 'bits-ui';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import { IconChevronDown } from '@tabler/icons-svelte';
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -25,7 +25,7 @@
 	{...restProps}
 >
 	{@render children?.()}
-	<ChevronDownIcon
+	<IconChevronDown
 		class="relative top-px ml-1 size-3 transition duration-300 group-data-popup-open/navigation-menu-trigger:rotate-180 group-data-open/navigation-menu-trigger:rotate-180"
 		aria-hidden="true"
 	/>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import { IconChevronDown } from '@tabler/icons-svelte';
 	import { cn, type WithoutChildrenOrChild } from '$lib/utils.js';
 
 	let {
@@ -19,5 +19,5 @@
 	)}
 	{...restProps}
 >
-	<ChevronDownIcon />
+	<IconChevronDown />
 </SelectPrimitive.ScrollDownButton>

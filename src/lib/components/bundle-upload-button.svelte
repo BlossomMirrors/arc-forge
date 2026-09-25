@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Upload, FileArchive } from '@lucide/svelte';
+	import { IconFileZip, IconUpload } from '@tabler/icons-svelte';
 	import ConveyorLoader from './conveyor-loader.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { CHUNK_BYTES } from '$lib/shared/flatpak-upload';
@@ -254,13 +254,13 @@
 			{/if}
 		</p>
 	{:else if bundleFileName}
-		<FileArchive class="size-8 text-muted-foreground" />
+		<IconFileZip class="size-8 text-muted-foreground" />
 		<p class="text-sm font-medium">{bundleFileName}</p>
 		<p class="text-xs text-muted-foreground">
 			{formatBytes(bundleSize)} · {m.form_bundle_replace_hint()}
 		</p>
 	{:else}
-		<Upload class="size-8 text-muted-foreground" />
+		<IconUpload class="size-8 text-muted-foreground" />
 		<p class="text-sm font-medium">{m.form_bundle_dropzone()}</p>
 		<p class="text-xs text-muted-foreground">{m.form_bundle_browse_hint()}</p>
 	{/if}

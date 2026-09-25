@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Copy, Check } from '@lucide/svelte';
+	import { IconCheck, IconCopy } from '@tabler/icons-svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as m from '$lib/paraglide/messages';
@@ -35,7 +35,7 @@
 			onclick={copyAppid}
 			aria-label={m.review_copy_appid()}
 		>
-			{#if copied}<Check class="size-4" />{:else}<Copy class="size-4" />{/if}
+			{#if copied}<IconCheck class="size-4" />{:else}<IconCopy class="size-4" />{/if}
 		</Button>
 	</div>
 	<Input bind:value placeholder={appid} autocomplete="off" autocorrect="off" spellcheck="false" />

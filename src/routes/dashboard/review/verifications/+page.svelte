@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X, FileText, ExternalLink } from '@lucide/svelte';
+	import { IconCheck, IconExternalLink, IconFileText, IconX } from '@tabler/icons-svelte';
 	import SearchInput from '$lib/components/search-input.svelte';
 	import Pagination from '$lib/components/pagination.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -64,7 +64,7 @@
 								rel="noreferrer"
 								class="inline-flex items-center gap-1 rounded-md border border-input px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
 							>
-								<ExternalLink class="size-3" />
+								<IconExternalLink class="size-3" />
 								{m.review_verifications_lookup_duns()}
 							</a>
 							{#each req.documentUrls as url (url)}
@@ -74,7 +74,7 @@
 									rel="noreferrer"
 									class="inline-flex items-center gap-1 rounded-md border border-input px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
 								>
-									<FileText class="size-3" />
+									<IconFileText class="size-3" />
 									{m.review_verifications_document()}
 								</a>
 							{/each}
@@ -86,7 +86,7 @@
 						<form method="POST" action="?/approveVerification" use:enhance>
 							<input type="hidden" name="id" value={req.id} />
 							<Button type="submit" size="sm">
-								<Check class="size-4" />
+								<IconCheck class="size-4" />
 								{m.review_approve()}
 							</Button>
 						</form>
@@ -100,7 +100,7 @@
 							<input type="hidden" name="id" value={req.id} />
 							<input type="hidden" name="note" value={verificationNotes[req.id] ?? ''} />
 							<Button type="submit" variant="destructive" size="sm">
-								<X class="size-4" />
+								<IconX class="size-4" />
 								{m.review_reject()}
 							</Button>
 						</form>

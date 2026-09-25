@@ -26,4 +26,5 @@ vite.config.ts.timestamp-*
 src/lib/paraglide
 project.inlang/cache/
 
-/../generated/prisma
+src/lib/generated
+runner/target

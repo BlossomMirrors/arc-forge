@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { BadgeCheck, Trash2 } from '@lucide/svelte';
+	import { IconRosetteDiscountCheck, IconTrash } from '@tabler/icons-svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import SearchInput from '$lib/components/search-input.svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -56,7 +56,7 @@
 								<span
 									class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600"
 								>
-									<BadgeCheck class="size-3" />
+									<IconRosetteDiscountCheck class="size-3" />
 									{m.devprofiles_verified()}
 								</span>
 							{/if}
@@ -104,7 +104,7 @@
 										}
 									}}
 								>
-									<Trash2 class="size-4" />
+									<IconTrash class="size-4" />
 								</Button>
 							</form>
 						{/if}
