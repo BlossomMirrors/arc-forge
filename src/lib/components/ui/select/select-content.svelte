@@ -1,34 +1,45 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+	import { cn, type WithoutChild } from "$lib/utils.js";
+	import type { WithoutChildrenOrChild } from "$lib/utils.js";
+	import SelectPortal from "./select-portal.svelte";
+	import SelectScrollDownButton from "./select-scroll-down-button.svelte";
+	import SelectScrollUpButton from "./select-scroll-up-button.svelte";
+	import type { ComponentProps } from "svelte";
 
 	let {
 		ref = $bindable(null),
 		class: className,
-		sideOffset = 6,
+		sideOffset = 4,
+		portalProps,
 		children,
+		preventScroll = true,
 		...restProps
-	}: SelectPrimitive.ContentProps = $props();
+	}: WithoutChild<SelectPrimitive.ContentProps> & {
+		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SelectPortal>>;
+	} = $props();
 </script>
 
-<!--
-	Blossom dropdown popup — mirrors the BlossomUI kstyle menu/combobox popup:
-	a translucent, blurred backdrop (60% opacity + 12px blur), a hairline frame,
-	and inset padding so highlighted items float clear of the popup edges.
--->
-<SelectPrimitive.Portal>
+<SelectPortal {...portalProps}>
 	<SelectPrimitive.Content
 		bind:ref
 		{sideOffset}
+		{preventScroll}
 		data-slot="select-content"
 		class={cn(
-			"relative z-50 max-h-[--bits-select-content-available-height] min-w-[--bits-select-anchor-width] origin-[--bits-select-content-transform-origin] overflow-y-auto rounded-[var(--radius-menu)] border border-black/10 bg-popover/60 p-1.5 text-popover-foreground shadow-lg ring-1 ring-black/5 backdrop-blur-md backdrop-saturate-150 dark:border-white/10 dark:ring-white/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+			"bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/10 min-w-36 rounded-md shadow-md ring-1 duration-100 relative z-50 max-h-(--bits-select-content-available-height) origin-(--bits-select-content-transform-origin) overflow-x-hidden overflow-y-auto",
 			className
 		)}
 		{...restProps}
 	>
-		<SelectPrimitive.Viewport class="flex flex-col gap-0.5">
+		<SelectScrollUpButton />
+		<SelectPrimitive.Viewport
+			class={cn(
+				"h-(--bits-select-anchor-height) w-full min-w-(--bits-select-anchor-width) scroll-my-1"
+			)}
+		>
 			{@render children?.()}
 		</SelectPrimitive.Viewport>
+		<SelectScrollDownButton />
 	</SelectPrimitive.Content>
-</SelectPrimitive.Portal>
+</SelectPortal>
