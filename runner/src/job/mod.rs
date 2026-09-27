@@ -97,6 +97,7 @@ pub async fn run(client: &Arc<Client>, handle: &JobHandle, work_dir: &Path, job:
             }
         }
     };
+    drop(log);
     stream.finish().await;
 
     let _ = fs::remove_dir_all(work_dir.join("jobs").join(&job.id));
