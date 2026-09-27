@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, X } from '@lucide/svelte';
+	import { IconSearch, IconX } from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import ListIcon from '$lib/components/list-icon.svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -67,12 +67,12 @@
 		<ListIcon icon={selected.icon} name={selected.name} size="size-5" />
 		<span class="flex-1 truncate">{selected.name} ({selected._count.items})</span>
 		<button type="button" onclick={clear} class="text-muted-foreground hover:text-destructive">
-			<X class="size-3.5" />
+			<IconX class="size-3.5" />
 		</button>
 	</div>
 {:else}
 	<div class="relative">
-		<Search
+		<IconSearch
 			class="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
 		/>
 		<Input

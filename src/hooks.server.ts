@@ -7,6 +7,7 @@ import type { Handle } from '@sveltejs/kit';
 import { getTextDirection } from '$lib/paraglide/runtime';
 import { startGitWatcher } from '$lib/server/git-watch';
 import { startBuildPoller } from '$lib/server/flatpak-publish';
+import { startRunnerSweeper } from '$lib/server/runners/sweeper';
 
 // Runs once when this module is first loaded (server process startup), not on
 // every request. Both start functions guard against being called more than
@@ -15,6 +16,7 @@ import { startBuildPoller } from '$lib/server/flatpak-publish';
 if (!building) {
 	startGitWatcher();
 	startBuildPoller();
+	startRunnerSweeper();
 }
 
 const handleAuth: Handle = async ({ event, resolve }) => {

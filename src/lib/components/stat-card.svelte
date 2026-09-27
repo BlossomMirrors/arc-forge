@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
-	import type { Component } from 'svelte';
+	import type { Icon as TablerIcon } from '@tabler/icons-svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { cn } from '$lib/utils.js';
 
@@ -14,7 +14,7 @@
 	}: {
 		label: string;
 		value: number;
-		icon?: Component<{ class?: string }>;
+		icon?: TablerIcon;
 		href?: string;
 		accent?: string;
 	} = $props();

@@ -35,6 +35,7 @@ model User {
   reviewedScreenshots        ScreenshotSubmission[]         @relation("ScreenshotReviewedBy")
   appLists                   AppList[]
   reviewedReports            Report[]
+  createdRunners             Runner[]
 }
 
 model Session {
@@ -418,6 +419,7 @@ model FlatpakBuild {
   triggeredBy       User?              @relation("FlatpakBuildTriggeredBy", fields: [triggeredById], references: [id], onDelete: SetNull)
   startedAt         DateTime           @default(now())
   finishedAt        DateTime?
+  jobs              RunnerJob[]
 
   @@index([flatpakAppId, startedAt])
 }
@@ -528,9 +530,6 @@ model AppList {
   // Setting one trades away some of the id's unguessability for a memorable
   // reference, e.g. for use in the frontpage designer's custom block.
   slug               String?           @unique
-  // A plain URL, or an encoded value from src/lib/icon-value.ts: emoji:<char>
-  // or lucide:<PascalName>:<hexColor>. Consumers other than the Forge
-  // dashboard must parse this format themselves.
   icon               String?
   description        String?           @db.Text
   createdById        String?
@@ -566,4 +565,61 @@ model AppListItem {
 
   @@unique([listId, appRef])
   @@index([listId])
+}
+
+enum RunnerJobStatus {
+  QUEUED
+  RUNNING
+  UPLOADED
+  IMPORTED
+  FAILED
+  CANCELLED
+  SKIPPED
+}
+
+model Runner {
+  id          String      @id @default(cuid())
+  name        String
+  tokenHash   String?     @unique
+  tokenHint   String?
+  arch        String?
+  hostname    String?
+  os          String?
+  version     String?
+  concurrency Int?
+  lastSeenAt  DateTime?
+  lastIp      String?
+  createdById String?
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  jobs        RunnerJob[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model RunnerJob {
+  id              String          @id @default(cuid())
+  flatpakBuildId  String
+  flatpakBuild    FlatpakBuild    @relation(fields: [flatpakBuildId], references: [id], onDelete: Cascade)
+  arch            String
+  status          RunnerJobStatus @default(QUEUED)
+  runnerId        String?
+  runner          Runner?         @relation(fields: [runnerId], references: [id], onDelete: SetNull)
+  attempts        Int             @default(0)
+  log             String          @default("") @db.Text
+  logBytes        Int             @default(0)
+  artifactPath    String?
+  artifactSize    BigInt          @default(0)
+  gitCommit       String?
+  metainfoB64     String?         @db.Text
+  iconB64         String?         @db.Text
+  refs            String[]        @default([])
+  error           String?         @db.Text
+  cancelRequested Boolean         @default(false)
+  claimedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime        @default(now())
+
+  @@index([status, arch])
+  @@index([runnerId])
+  @@index([flatpakBuildId])
 }

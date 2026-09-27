@@ -1,29 +1,29 @@
 <script lang="ts">
-	import { X } from '@lucide/svelte';
+	import { IconX } from '@tabler/icons-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as EmojiPicker from '$lib/components/ui/emoji-picker/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import UploadButton from '$lib/components/upload-button.svelte';
 	import ListIcon from '$lib/components/list-icon.svelte';
 	import { curatedIcons } from '$lib/curated-icons';
-	import { encodeEmojiIcon, encodeLucideIcon, parseIconValue } from '$lib/icon-value';
+	import { encodeEmojiIcon, encodeTablerIcon, parseIconValue } from '$lib/icon-value';
 	import * as m from '$lib/paraglide/messages';
 
 	let { value = $bindable(''), name = '' }: { value?: string; name?: string } = $props();
 
 	let open = $state(false);
-	let tab = $state<'emoji' | 'lucide' | 'image'>('emoji');
+	let tab = $state<'emoji' | 'tabler' | 'image'>('emoji');
 
 	const initialParsed = parseIconValue(value);
-	let lucideColor = $state(initialParsed?.type === 'lucide' ? initialParsed.color : '#71717a');
+	let iconColor = $state(initialParsed?.type === 'tabler' ? initialParsed.color : '#71717a');
 
 	function selectEmoji(emoji: string) {
 		value = encodeEmojiIcon(emoji);
 		open = false;
 	}
 
-	function selectLucide(name: string) {
-		value = encodeLucideIcon(name, lucideColor);
+	function selectTabler(name: string) {
+		value = encodeTablerIcon(name, iconColor);
 		open = false;
 	}
 
@@ -39,7 +39,7 @@
 
 	const tabs = [
 		{ id: 'emoji', label: m.lists_icon_tab_emoji } as const,
-		{ id: 'lucide', label: m.lists_icon_tab_lucide } as const,
+		{ id: 'tabler', label: m.lists_icon_tab_tabler } as const,
 		{ id: 'image', label: m.lists_icon_tab_image } as const
 	];
 </script>
@@ -83,13 +83,13 @@
 						<EmojiPicker.List class="h-80" />
 					</EmojiPicker.Viewport>
 				</EmojiPicker.Root>
-			{:else if tab === 'lucide'}
+			{:else if tab === 'tabler'}
 				<div class="space-y-3">
 					<label class="flex items-center gap-2 text-sm">
 						<span class="font-medium">{m.lists_icon_color_label()}</span>
 						<input
 							type="color"
-							bind:value={lucideColor}
+							bind:value={iconColor}
 							class="h-8 w-12 rounded border border-input"
 						/>
 					</label>
@@ -100,9 +100,9 @@
 								type="button"
 								class="flex aspect-square items-center justify-center rounded hover:bg-muted"
 								title={entry.name}
-								onclick={() => selectLucide(entry.name)}
+								onclick={() => selectTabler(entry.name)}
 							>
-								<Icon class="size-4" style="color: {lucideColor}" />
+								<Icon class="size-4" style="color: {iconColor}" />
 							</button>
 						{/each}
 					</div>
@@ -122,7 +122,7 @@
 			title={m.lists_icon_remove()}
 			class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-destructive"
 		>
-			<X class="size-2.5" />
+			<IconX class="size-2.5" />
 		</button>
 	{/if}
 </div>

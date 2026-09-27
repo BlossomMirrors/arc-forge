@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
-	import { Bell, X } from '@lucide/svelte';
+	import { IconBell, IconX } from '@tabler/icons-svelte';
 	import { goto } from '$app/navigation';
 	import * as m from '$lib/paraglide/messages';
 
@@ -109,7 +109,7 @@
 		class="relative flex size-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted focus-visible:outline-none"
 		aria-label={m.notifications_heading()}
 	>
-		<Bell class="size-4" />
+		<IconBell class="size-4" />
 		{#if count > 0}
 			<span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive"></span>
 		{/if}
@@ -173,7 +173,7 @@
 						aria-label={m.notifications_delete()}
 						onclick={() => deleteOne(n.id)}
 					>
-						<X class="size-3.5" />
+						<IconX class="size-3.5" />
 					</button>
 				</div>
 			{/each}

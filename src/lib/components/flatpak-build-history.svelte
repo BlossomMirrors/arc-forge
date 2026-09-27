@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { ChevronRight, ChevronDown } from '@lucide/svelte';
+	import { IconChevronDown, IconChevronRight } from '@tabler/icons-svelte';
 	import FlatpakBuildLogViewer from './flatpak-build-log-viewer.svelte';
 	import * as m from '$lib/paraglide/messages';
 
@@ -94,9 +94,9 @@
 						onclick={() => toggle(build)}
 					>
 						{#if expandedId === build.id}
-							<ChevronDown class="size-3.5 shrink-0 text-muted-foreground" />
+							<IconChevronDown class="size-3.5 shrink-0 text-muted-foreground" />
 						{:else}
-							<ChevronRight class="size-3.5 shrink-0 text-muted-foreground" />
+							<IconChevronRight class="size-3.5 shrink-0 text-muted-foreground" />
 						{/if}
 						<span class="shrink-0 rounded-full px-2 py-0.5 font-medium {badge.class}">
 							{badge.label}

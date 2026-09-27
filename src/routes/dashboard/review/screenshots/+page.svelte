@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X } from '@lucide/svelte';
+	import { IconCheck, IconX } from '@tabler/icons-svelte';
 	import Pagination from '$lib/components/pagination.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
@@ -48,7 +48,7 @@
 						<form method="POST" action="?/approveScreenshot" use:enhance>
 							<input type="hidden" name="id" value={submission.id} />
 							<Button type="submit" size="sm">
-								<Check class="size-4" />
+								<IconCheck class="size-4" />
 								{m.review_approve()}
 							</Button>
 						</form>
@@ -62,7 +62,7 @@
 							<input type="hidden" name="id" value={submission.id} />
 							<input type="hidden" name="note" value={screenshotNotes[submission.id] ?? ''} />
 							<Button type="submit" variant="destructive" size="sm">
-								<X class="size-4" />
+								<IconX class="size-4" />
 								{m.review_reject()}
 							</Button>
 						</form>

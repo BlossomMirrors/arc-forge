@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { FolderInput, Loader2 } from '@lucide/svelte';
+	import { IconFolderShare, IconLoader2 } from '@tabler/icons-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -32,7 +32,7 @@
 {#if destinations.length > 0}
 	<Dialog.Root bind:open onOpenChange={(next) => next && (selected = destinations[0].id)}>
 		<Dialog.Trigger class={buttonVariants({ variant: 'ghost', size: 'icon' })}>
-			<FolderInput class="size-4" />
+			<IconFolderShare class="size-4" />
 		</Dialog.Trigger>
 		<Dialog.Content>
 			<Dialog.Header>
@@ -72,9 +72,9 @@
 					>
 					<Button type="submit" disabled={!selected || submitting}>
 						{#if submitting}
-							<Loader2 class="size-4 animate-spin" />
+							<IconLoader2 class="size-4 animate-spin" />
 						{:else}
-							<FolderInput class="size-4" />
+							<IconFolderShare class="size-4" />
 						{/if}
 						{m.move_dialog_submit()}
 					</Button>

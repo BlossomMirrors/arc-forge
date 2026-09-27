@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { LogOut } from '@lucide/svelte';
+	import { IconLogout } from '@tabler/icons-svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -136,7 +136,7 @@
 				</span>
 				<form method="POST" action="?/signOutAccess" use:enhance={signOutEnhance}>
 					<Button type="submit" variant="ghost" size="sm" disabled={signingOut}>
-						<LogOut class="size-4" />
+						<IconLogout class="size-4" />
 						{m.infra_access_sign_out()}
 					</Button>
 				</form>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ListMusic } from '@lucide/svelte';
+	import { IconPlaylist } from '@tabler/icons-svelte';
 	import { parseIconValue, avatarColors } from '$lib/icon-value';
 	import { getCuratedIcon } from '$lib/curated-icons';
 
@@ -14,7 +14,7 @@
 	} = $props();
 
 	const parsed = $derived(parseIconValue(icon));
-	const lucideIcon = $derived(parsed?.type === 'lucide' ? getCuratedIcon(parsed.name) : undefined);
+	const tablerIcon = $derived(parsed?.type === 'tabler' ? getCuratedIcon(parsed.name) : undefined);
 	const colors = $derived(avatarColors(name));
 	const letter = $derived(name.trim().charAt(0).toUpperCase());
 </script>
@@ -27,8 +27,8 @@
 	>
 		{parsed.emoji}
 	</div>
-{:else if parsed?.type === 'lucide' && lucideIcon}
-	{@const Icon = lucideIcon}
+{:else if parsed?.type === 'tabler' && tablerIcon}
+	{@const Icon = tablerIcon}
 	<div
 		class="flex {size} shrink-0 items-center justify-center rounded"
 		style="background-color: color-mix(in srgb, {parsed.color} 20%, white)"
@@ -43,6 +43,6 @@
 	</div>
 {:else}
 	<div class="flex {size} shrink-0 items-center justify-center rounded bg-muted">
-		<ListMusic class="size-4 text-muted-foreground" />
+		<IconPlaylist class="size-4 text-muted-foreground" />
 	</div>
 {/if}
