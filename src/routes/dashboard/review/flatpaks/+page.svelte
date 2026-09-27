@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Check, RotateCw, AlertTriangle } from '@lucide/svelte';
+	import { IconAlertTriangle, IconCheck, IconRotateClockwise } from '@tabler/icons-svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import SearchInput from '$lib/components/search-input.svelte';
 	import Pagination from '$lib/components/pagination.svelte';
@@ -150,7 +150,7 @@
 		<div
 			class="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400"
 		>
-			<AlertTriangle class="mt-0.5 size-4 shrink-0" />
+			<IconAlertTriangle class="mt-0.5 size-4 shrink-0" />
 			<p>{m.review_flatpaks_vm_warning()}</p>
 		</div>
 
@@ -299,7 +299,7 @@
 								<form method="POST" action="?/retryFlatpak" use:enhance>
 									<input type="hidden" name="id" value={app.id} />
 									<Button type="submit" variant="ghost" size="sm">
-										<RotateCw class="size-4" />
+										<IconRotateClockwise class="size-4" />
 										{m.review_rebuild()}
 									</Button>
 								</form>
@@ -313,7 +313,7 @@
 								<form method="POST" action="?/approveFlatpak" use:enhance>
 									<input type="hidden" name="id" value={app.id} />
 									<Button type="submit" variant="ghost" size="sm">
-										<Check class="size-4" />
+										<IconCheck class="size-4" />
 										{m.review_republish()}
 									</Button>
 								</form>
@@ -383,7 +383,7 @@
 							<form method="POST" action="?/retryFlatpak" use:enhance>
 								<input type="hidden" name="id" value={app.id} />
 								<Button type="submit" size="sm" variant="ghost">
-									<RotateCw class="size-4" />
+									<IconRotateClockwise class="size-4" />
 									{m.review_retry()}
 								</Button>
 							</form>

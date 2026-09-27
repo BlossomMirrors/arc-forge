@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Upload } from '@lucide/svelte';
+	import { IconUpload } from '@tabler/icons-svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let {
@@ -49,6 +49,6 @@
 	class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-50"
 	title={error || undefined}
 >
-	<Upload class="size-3.5" />
+	<IconUpload class="size-3.5" />
 	{uploading ? m.screenshots_uploading() : m.screenshots_upload()}
 </button>

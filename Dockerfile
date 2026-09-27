@@ -1,3 +1,21 @@
+FROM ghcr.io/rust-cross/cargo-zigbuild:latest AS runner-builder
+
+WORKDIR /runner
+
+RUN rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+
+COPY runner/Cargo.toml runner/Cargo.lock ./
+COPY runner/src ./src
+
+RUN cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
+
+RUN set -e; mkdir -p /dist; \
+    VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1); \
+    for arch in x86_64 aarch64; do cp "target/$arch-unknown-linux-musl/release/forge-runner" "/dist/forge-runner-$arch"; done; \
+    entry() { printf '"%s":{"sha256":"%s","size":%s}' "$1" "$(sha256sum "/dist/forge-runner-$1" | cut -d ' ' -f 1)" "$(stat -c %s "/dist/forge-runner-$1")"; }; \
+    printf '{"version":"%s","arches":{%s,%s}}\n' "$VERSION" "$(entry x86_64)" "$(entry aarch64)" > /dist/manifest.json; \
+    cat /dist/manifest.json
+
 FROM denoland/deno:latest AS builder
 
 WORKDIR /app
@@ -36,6 +54,7 @@ COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/deno.lock* ./
 COPY --from=builder /app/deno.json* ./
+COPY --from=runner-builder /dist ./runner-dist
 
 RUN deno install
 

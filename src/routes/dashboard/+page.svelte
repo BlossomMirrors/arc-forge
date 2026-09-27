@@ -1,13 +1,13 @@
 <script lang="ts">
 	import {
-		AppWindow,
-		Package,
-		Download,
-		AlertTriangle,
-		BadgeCheck,
-		Building2,
-		Plus
-	} from '@lucide/svelte';
+		IconAlertTriangle,
+		IconAppWindow,
+		IconBuilding,
+		IconDownload,
+		IconPackage,
+		IconPlus,
+		IconRosetteDiscountCheck
+	} from '@tabler/icons-svelte';
 	import StatCard from '$lib/components/stat-card.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Chart from '$lib/components/ui/chart/index.js';
@@ -66,14 +66,14 @@
 						href="/dashboard/pwas/new"
 						class="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-muted"
 					>
-						<Plus class="size-4" />
+						<IconPlus class="size-4" />
 						{m.pwas_new()}
 					</a>
 					<a
 						href="/dashboard/flatpaks/new"
 						class="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-muted"
 					>
-						<Plus class="size-4" />
+						<IconPlus class="size-4" />
 						{m.flatpaks_new()}
 					</a>
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
@@ -84,13 +84,13 @@
 				<StatCard
 					label={m.dashboard_my_pwas()}
 					value={data.mySubmissions.pwaTotal}
-					icon={AppWindow}
+					icon={IconAppWindow}
 					href="/dashboard/pwas"
 				/>
 				<StatCard
 					label={m.dashboard_my_flatpaks()}
 					value={data.mySubmissions.flatpakTotal}
-					icon={Package}
+					icon={IconPackage}
 					href="/dashboard/flatpaks"
 					accent="text-chart-3"
 				/>
@@ -135,27 +135,27 @@
 				<StatCard
 					label={m.dashboard_pending_pwas()}
 					value={data.reviewQueue.pendingPwas}
-					icon={AppWindow}
+					icon={IconAppWindow}
 					href="/dashboard/review/pwas"
 				/>
 				<StatCard
 					label={m.dashboard_pending_flatpaks()}
 					value={data.reviewQueue.pendingFlatpaks}
-					icon={Package}
+					icon={IconPackage}
 					href="/dashboard/review/flatpaks"
 					accent="text-chart-3"
 				/>
 				<StatCard
 					label={m.dashboard_failed_flatpaks()}
 					value={data.reviewQueue.failedFlatpaks}
-					icon={AlertTriangle}
+					icon={IconAlertTriangle}
 					href="/dashboard/review/flatpaks"
 					accent="text-destructive"
 				/>
 				<StatCard
 					label={m.dashboard_pending_verifications()}
 					value={data.reviewQueue.pendingVerifications}
-					icon={BadgeCheck}
+					icon={IconRosetteDiscountCheck}
 					href="/dashboard/review/verifications"
 					accent="text-chart-4"
 				/>
@@ -204,25 +204,25 @@
 				<StatCard
 					label={m.dashboard_total_pwas()}
 					value={data.siteStats.pwaCount}
-					icon={AppWindow}
+					icon={IconAppWindow}
 				/>
 				<StatCard
 					label={m.dashboard_total_flatpaks()}
 					value={data.siteStats.flatpakCount}
-					icon={Package}
+					icon={IconPackage}
 					accent="text-chart-3"
 				/>
 				<StatCard
 					label={m.dashboard_developer_profiles()}
 					value={data.siteStats.developerProfileCount}
-					icon={Building2}
+					icon={IconBuilding}
 					accent="text-chart-4"
 					href="/dashboard/verified-developers"
 				/>
 				<StatCard
 					label={m.dashboard_total_installs()}
 					value={data.siteStats.totalInstalls}
-					icon={Download}
+					icon={IconDownload}
 					accent="text-chart-5"
 				/>
 			</div>

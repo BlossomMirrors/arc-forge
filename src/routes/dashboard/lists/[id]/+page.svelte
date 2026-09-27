@@ -3,16 +3,16 @@
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import {
-		Search,
-		Plus,
-		Trash2,
-		Copy,
-		Check,
-		Wand2,
-		ChevronUp,
-		ChevronDown,
-		GripVertical
-	} from '@lucide/svelte';
+		IconCheck,
+		IconChevronDown,
+		IconChevronUp,
+		IconCopy,
+		IconGripVertical,
+		IconPlus,
+		IconSearch,
+		IconTrash,
+		IconWand
+	} from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import IconPicker from '$lib/components/icon-picker.svelte';
@@ -142,9 +142,9 @@
 			onclick={copyUrl}
 		>
 			{#if copied}
-				<Check class="size-4 text-green-600" />
+				<IconCheck class="size-4 text-green-600" />
 			{:else}
-				<Copy class="size-4" />
+				<IconCopy class="size-4" />
 			{/if}
 		</button>
 	</div>
@@ -185,7 +185,7 @@
 					onclick={generateSlug}
 					title={m.lists_slug_generate()}
 				>
-					<Wand2 class="size-4" />
+					<IconWand class="size-4" />
 				</Button>
 			</div>
 			<p class="text-xs text-muted-foreground">{m.lists_slug_hint()}</p>
@@ -209,7 +209,7 @@
 	<div class="space-y-3">
 		<h3 class="text-sm font-semibold text-muted-foreground">{m.lists_add_apps_heading()}</h3>
 		<div class="relative">
-			<Search
+			<IconSearch
 				class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
@@ -246,7 +246,7 @@
 								<input type="hidden" name="name" value={result.name} />
 								<input type="hidden" name="iconUrl" value={result.iconUrl ?? ''} />
 								<Button type="submit" variant="ghost" size="icon" title={m.lists_add()}>
-									<Plus class="size-4" />
+									<IconPlus class="size-4" />
 								</Button>
 							</form>
 						{/if}
@@ -285,7 +285,7 @@
 							class="shrink-0 cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
 							title={m.lists_drag_to_reorder()}
 						>
-							<GripVertical class="size-4" />
+							<IconGripVertical class="size-4" />
 						</button>
 						<img
 							src={item.iconUrl || '/default.svg'}
@@ -305,7 +305,7 @@
 								class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
 								title={m.lists_move_up()}
 							>
-								<ChevronUp class="size-4" />
+								<IconChevronUp class="size-4" />
 							</button>
 							<button
 								type="button"
@@ -314,7 +314,7 @@
 								class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
 								title={m.lists_move_down()}
 							>
-								<ChevronDown class="size-4" />
+								<IconChevronDown class="size-4" />
 							</button>
 						</div>
 						<form method="POST" action="?/removeItem" use:enhance>
@@ -326,7 +326,7 @@
 								class="text-muted-foreground hover:text-destructive"
 								title={m.lists_remove()}
 							>
-								<Trash2 class="size-4" />
+								<IconTrash class="size-4" />
 							</Button>
 						</form>
 					</li>

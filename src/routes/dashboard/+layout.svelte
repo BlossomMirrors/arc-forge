@@ -1,21 +1,22 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import {
-		LogOut,
-		LayoutDashboard,
-		List,
-		AppWindow,
-		Layers,
-		ShieldCheck,
-		Building2,
-		Check,
-		Package,
-		KeyRound,
-		BadgeCheck,
-		Mail,
-		Image,
-		ListMusic
-	} from '@lucide/svelte';
+		IconAppWindow,
+		IconBuilding,
+		IconCheck,
+		IconKey,
+		IconLayoutDashboard,
+		IconList,
+		IconLogout,
+		IconMail,
+		IconPackage,
+		IconPhoto,
+		IconPlaylist,
+		IconRosetteDiscountCheck,
+		IconServer,
+		IconShieldCheck,
+		IconStack2
+	} from '@tabler/icons-svelte';
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
@@ -61,40 +62,51 @@
 
 	const navItems = $derived(
 		[
-			{ href: '/dashboard', label: m.nav_overview(), icon: LayoutDashboard, show: true },
-			{ href: '/dashboard/whitelist', label: m.nav_whitelist(), icon: List, show: data.isStaff },
-			{ href: '/dashboard/pwas', label: m.nav_pwas(), icon: AppWindow, show: true },
-			{ href: '/dashboard/flatpaks', label: m.nav_flatpaks(), icon: Package, show: true },
-			{ href: '/dashboard/screenshots', label: m.nav_screenshots(), icon: Image, show: true },
-			{ href: '/dashboard/lists', label: m.nav_lists(), icon: ListMusic, show: true },
+			{ href: '/dashboard', label: m.nav_overview(), icon: IconLayoutDashboard, show: true },
+			{
+				href: '/dashboard/whitelist',
+				label: m.nav_whitelist(),
+				icon: IconList,
+				show: data.isStaff
+			},
+			{ href: '/dashboard/pwas', label: m.nav_pwas(), icon: IconAppWindow, show: true },
+			{ href: '/dashboard/flatpaks', label: m.nav_flatpaks(), icon: IconPackage, show: true },
+			{ href: '/dashboard/screenshots', label: m.nav_screenshots(), icon: IconPhoto, show: true },
+			{ href: '/dashboard/lists', label: m.nav_lists(), icon: IconPlaylist, show: true },
 			{
 				href: '/dashboard/developer-profile',
 				label: m.nav_developer_profile(),
-				icon: Building2,
+				icon: IconBuilding,
 				show: true
 			},
 			{
 				href: '/dashboard/review',
 				label: m.nav_review(),
-				icon: ShieldCheck,
+				icon: IconShieldCheck,
 				show: data.isReviewer
 			},
 			{
 				href: '/dashboard/verified-developers',
 				label: m.nav_developer_profiles(),
-				icon: BadgeCheck,
+				icon: IconRosetteDiscountCheck,
 				show: data.isReviewer
 			},
 			{
 				href: '/dashboard/frontpage',
 				label: m.nav_frontpage(),
-				icon: Layers,
+				icon: IconStack2,
 				show: data.isStaff
 			},
 			{
 				href: '/dashboard/infra-settings',
 				label: m.nav_infra_settings(),
-				icon: KeyRound,
+				icon: IconKey,
+				show: data.isAdmin
+			},
+			{
+				href: '/dashboard/runners',
+				label: m.nav_runners(),
+				icon: IconServer,
 				show: data.isAdmin
 			}
 		].filter((item) => item.show)
@@ -152,12 +164,12 @@
 										<span
 											class="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
 										>
-											<Building2 class="size-3" />
+											<IconBuilding class="size-3" />
 										</span>
 									{/if}
 									<span class="flex-1 truncate">{profile.name}</span>
 									{#if active}
-										<Check class="size-4 shrink-0 text-primary" />
+										<IconCheck class="size-4 shrink-0 text-primary" />
 									{/if}
 								</DropdownMenu.Item>
 							{/each}
@@ -166,7 +178,7 @@
 						<DropdownMenu.Separator class="my-1 h-px bg-border" />
 						<div class="flex items-center justify-between gap-3 px-3 py-2">
 							<span class="flex items-center gap-2 text-sm">
-								<Mail class="size-4 text-muted-foreground" />
+								<IconMail class="size-4 text-muted-foreground" />
 								{m.nav_email_notifications()}
 							</span>
 							<Switch
@@ -180,7 +192,7 @@
 							class="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none"
 							onSelect={signOut}
 						>
-							<LogOut class="size-4" />
+							<IconLogout class="size-4" />
 							{m.sign_out()}
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>

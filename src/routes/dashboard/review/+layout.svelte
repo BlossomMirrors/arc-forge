@@ -1,20 +1,30 @@
 <script lang="ts">
-	import { AppWindow, Package, BadgeCheck, Image, Flag } from '@lucide/svelte';
+	import {
+		IconAppWindow,
+		IconFlag,
+		IconPackage,
+		IconPhoto,
+		IconRosetteDiscountCheck
+	} from '@tabler/icons-svelte';
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 
 	let { children } = $props();
 
 	const tabs = [
-		{ href: '/dashboard/review/pwas', label: m.review_heading(), icon: AppWindow },
-		{ href: '/dashboard/review/flatpaks', label: m.review_flatpaks_heading(), icon: Package },
+		{ href: '/dashboard/review/pwas', label: m.review_heading(), icon: IconAppWindow },
+		{ href: '/dashboard/review/flatpaks', label: m.review_flatpaks_heading(), icon: IconPackage },
 		{
 			href: '/dashboard/review/verifications',
 			label: m.review_verifications_heading(),
-			icon: BadgeCheck
+			icon: IconRosetteDiscountCheck
 		},
-		{ href: '/dashboard/review/screenshots', label: m.review_screenshots_heading(), icon: Image },
-		{ href: '/dashboard/review/reports', label: m.review_reports_heading(), icon: Flag }
+		{
+			href: '/dashboard/review/screenshots',
+			label: m.review_screenshots_heading(),
+			icon: IconPhoto
+		},
+		{ href: '/dashboard/review/reports', label: m.review_reports_heading(), icon: IconFlag }
 	];
 </script>
 

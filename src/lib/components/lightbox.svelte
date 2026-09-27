@@ -1,7 +1,13 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X } from '@lucide/svelte';
+	import {
+		IconChevronLeft,
+		IconChevronRight,
+		IconX,
+		IconZoomIn,
+		IconZoomOut
+	} from '@tabler/icons-svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	const MIN_ZOOM = 1;
@@ -212,7 +218,7 @@
 					class="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-background text-foreground shadow-lg"
 					aria-label={m.lightbox_close()}
 				>
-					<X class="size-4" />
+					<IconX class="size-4" />
 				</Dialog.Close>
 
 				<div class="absolute top-3 left-3 flex items-center gap-1.5">
@@ -223,7 +229,7 @@
 						disabled={zoom <= MIN_ZOOM}
 						aria-label={m.lightbox_zoom_out()}
 					>
-						<ZoomOut class="size-4" />
+						<IconZoomOut class="size-4" />
 					</button>
 					<button
 						type="button"
@@ -232,7 +238,7 @@
 						disabled={zoom >= MAX_ZOOM}
 						aria-label={m.lightbox_zoom_in()}
 					>
-						<ZoomIn class="size-4" />
+						<IconZoomIn class="size-4" />
 					</button>
 				</div>
 
@@ -243,7 +249,7 @@
 						onclick={prev}
 						aria-label={m.lightbox_prev()}
 					>
-						<ChevronLeft class="size-5" />
+						<IconChevronLeft class="size-5" />
 					</button>
 					<button
 						type="button"
@@ -251,7 +257,7 @@
 						onclick={next}
 						aria-label={m.lightbox_next()}
 					>
-						<ChevronRight class="size-5" />
+						<IconChevronRight class="size-5" />
 					</button>
 				{/if}
 			</div>

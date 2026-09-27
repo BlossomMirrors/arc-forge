@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { Trash2, Copy, Check } from '@lucide/svelte';
+	import { IconCheck, IconCopy, IconTrash } from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import ListIcon from '$lib/components/list-icon.svelte';
@@ -82,9 +82,9 @@
 						onclick={() => copyUrl(list.id, list.slug || list.id)}
 					>
 						{#if copiedId === list.id}
-							<Check class="size-4 text-green-600" />
+							<IconCheck class="size-4 text-green-600" />
 						{:else}
-							<Copy class="size-4" />
+							<IconCopy class="size-4" />
 						{/if}
 					</button>
 					<!-- eslint-disable svelte/no-navigation-without-resolve -->
@@ -104,7 +104,7 @@
 							class="text-muted-foreground hover:text-destructive"
 							title={m.lists_delete()}
 						>
-							<Trash2 class="size-4" />
+							<IconTrash class="size-4" />
 						</Button>
 					</form>
 				</li>

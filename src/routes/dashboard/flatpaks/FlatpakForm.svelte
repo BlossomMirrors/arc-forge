@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
-	import { Wand2, Loader2 } from '@lucide/svelte';
+	import { IconLoader2, IconWand } from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -297,7 +297,7 @@
 				<div
 					class="flex items-center gap-2 rounded-lg border border-border p-3 text-sm text-muted-foreground"
 				>
-					<Loader2 class="size-4 animate-spin" />
+					<IconLoader2 class="size-4 animate-spin" />
 					{m.form_bundle_preview_loading()}
 				</div>
 			{:else if preview && previewText}
@@ -470,7 +470,7 @@
 						onclick={detectManifest}
 						class="mt-1.5"
 					>
-						<Wand2 class="size-3.5" />
+						<IconWand class="size-3.5" />
 						{detecting ? m.form_git_detecting() : m.form_git_detect()}
 					</Button>
 				</div>

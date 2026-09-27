@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Building2 } from '@lucide/svelte';
+	import { IconBuilding } from '@tabler/icons-svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	let { data, form } = $props();
@@ -40,7 +40,7 @@
 								<span
 									class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
 								>
-									<Building2 class="size-4" />
+									<IconBuilding class="size-4" />
 								</span>
 							{/if}
 							<span class="font-medium">{profile.name}</span>

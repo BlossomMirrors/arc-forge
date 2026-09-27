@@ -3,14 +3,14 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import {
-		ShieldCheck,
-		ExternalLink,
-		Download,
-		Copy,
-		Check,
-		CircleCheckBig,
-		Loader2
-	} from '@lucide/svelte';
+		IconCheck,
+		IconCircleCheck,
+		IconCopy,
+		IconDownload,
+		IconExternalLink,
+		IconLoader2,
+		IconShieldCheck
+	} from '@tabler/icons-svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import ConfirmAppidInput from '$lib/components/confirm-appid-input.svelte';
@@ -137,7 +137,7 @@
 
 <Dialog.Root bind:open onOpenChange={(isOpen) => !isOpen && reset()}>
 	<Dialog.Trigger class={buttonVariants({ size: 'sm' })}>
-		<ShieldCheck class="size-4" />
+		<IconShieldCheck class="size-4" />
 		{m.review_wizard_open()}
 	</Dialog.Trigger>
 	<Dialog.Content
@@ -236,7 +236,7 @@
 				rel="noreferrer"
 				class={buttonVariants({ variant: 'ghost' })}
 			>
-				<ExternalLink class="size-4" />
+				<IconExternalLink class="size-4" />
 				{m.review_wizard_security_guide_link()}
 			</a>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
@@ -256,7 +256,7 @@
 					<pre
 						class="overflow-x-auto rounded bg-muted/50 p-2.5 font-mono text-xs whitespace-pre">{gitCommands}</pre>
 					<Button variant="ghost" size="sm" onclick={() => copyCommands(gitCommands)}>
-						{#if commandsCopied}<Check class="size-4" />{:else}<Copy class="size-4" />{/if}
+						{#if commandsCopied}<IconCheck class="size-4" />{:else}<IconCopy class="size-4" />{/if}
 						{m.review_wizard_copy_commands()}
 					</Button>
 				</div>
@@ -275,7 +275,7 @@
 						rel="noreferrer"
 						class={buttonVariants({ variant: 'ghost' })}
 					>
-						<Download class="size-4" />
+						<IconDownload class="size-4" />
 						{m.review_download_bundle()}
 					</a>
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
@@ -361,7 +361,7 @@
 						disabled={!confirmed || submitting}
 					>
 						{#if submitting}
-							<Loader2 class="size-4 animate-spin" />
+							<IconLoader2 class="size-4 animate-spin" />
 						{/if}
 						{decision === 'deny'
 							? m.review_wizard_confirm_deny_button()
@@ -371,7 +371,7 @@
 			</form>
 		{:else}
 			<div class="flex flex-col items-center gap-3 py-6 text-center">
-				<CircleCheckBig class="size-16 text-green-500" />
+				<IconCircleCheck class="size-16 text-green-500" />
 				<div>
 					<p class="text-lg font-semibold">
 						{decision === 'deny'

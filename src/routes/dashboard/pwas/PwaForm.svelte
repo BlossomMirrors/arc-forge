@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { Plus, Trash2 } from '@lucide/svelte';
+	import { IconPlus, IconTrash } from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -257,7 +257,7 @@
 						type="button"
 						onclick={() => removeTranslation(i)}
 						class="mt-6 text-muted-foreground hover:text-destructive"
-						><Trash2 class="size-3.5" /></button
+						><IconTrash class="size-3.5" /></button
 					>
 				</div>
 				<label class="space-y-1.5">
@@ -287,7 +287,7 @@
 		<button
 			type="button"
 			class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-			onclick={addTranslation}><Plus class="size-3" /> {m.form_add_translation()}</button
+			onclick={addTranslation}><IconPlus class="size-3" /> {m.form_add_translation()}</button
 		>
 	</div>
 

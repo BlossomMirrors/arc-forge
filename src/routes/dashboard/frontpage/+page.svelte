@@ -2,27 +2,27 @@
 	import { enhance } from '$app/forms';
 	import { tick, untrack } from 'svelte';
 	import {
-		Heading1,
-		Heading2,
-		Heading3,
-		AlignLeft,
-		List,
-		Minus,
-		Layers,
-		Star,
-		Sparkles,
-		TrendingUp,
-		LayoutGrid,
-		Tag,
-		LayoutList,
-		BarChart2,
-		Trash2,
-		ChevronUp,
-		ChevronDown,
-		Plus,
-		GripVertical,
-		Link
-	} from '@lucide/svelte';
+		IconAlignLeft,
+		IconChartBar,
+		IconChevronDown,
+		IconChevronUp,
+		IconGripVertical,
+		IconH1,
+		IconH2,
+		IconH3,
+		IconLayoutGrid,
+		IconLayoutList,
+		IconLink,
+		IconList,
+		IconMinus,
+		IconPlus,
+		IconSparkles,
+		IconStack2,
+		IconStar,
+		IconTag,
+		IconTrash,
+		IconTrendingUp
+	} from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import {
@@ -43,8 +43,6 @@
 	let expandedIndex = $state<number | null>(null);
 	let blockRefs: (HTMLTextAreaElement | HTMLInputElement | null)[] = [];
 
-	// List blocks reference an AppList by id or slug, keyed both ways here
-	// so a listRef of either form resolves to the same list for display.
 	const listsByRef = $derived.by(() => {
 		const map = new Map<string, (typeof data.lists)[number]>();
 		for (const list of data.lists) {
@@ -78,45 +76,63 @@
 	}
 
 	const COMMANDS = $derived([
-		{ type: 'h1' as const, label: m.cmd_heading1(), badge: 'H₁', icon: Heading1, shorthand: '#' },
-		{ type: 'h2' as const, label: m.cmd_heading2(), badge: 'H₂', icon: Heading2, shorthand: '##' },
-		{ type: 'h3' as const, label: m.cmd_heading3(), badge: 'H₃', icon: Heading3, shorthand: '###' },
-		{ type: 'p' as const, label: m.cmd_paragraph(), badge: 'P', icon: AlignLeft, shorthand: '' },
-		{ type: 'ul' as const, label: m.cmd_bullet(), badge: null, icon: List, shorthand: '-' },
-		{ type: 'br' as const, label: m.cmd_divider(), badge: null, icon: Minus, shorthand: '---' },
+		{ type: 'h1' as const, label: m.cmd_heading1(), badge: 'H₁', icon: IconH1, shorthand: '#' },
+		{ type: 'h2' as const, label: m.cmd_heading2(), badge: 'H₂', icon: IconH2, shorthand: '##' },
+		{ type: 'h3' as const, label: m.cmd_heading3(), badge: 'H₃', icon: IconH3, shorthand: '###' },
+		{
+			type: 'p' as const,
+			label: m.cmd_paragraph(),
+			badge: 'P',
+			icon: IconAlignLeft,
+			shorthand: ''
+		},
+		{ type: 'ul' as const, label: m.cmd_bullet(), badge: null, icon: IconList, shorthand: '-' },
+		{ type: 'br' as const, label: m.cmd_divider(), badge: null, icon: IconMinus, shorthand: '---' },
 		{
 			type: 'carousel' as const,
 			label: m.cmd_carousel(),
 			badge: null,
-			icon: Layers,
+			icon: IconStack2,
 			shorthand: ''
 		},
-		{ type: 'top' as const, label: m.cmd_top(), badge: null, icon: Star, shorthand: '' },
-		{ type: 'new' as const, label: m.cmd_new(), badge: null, icon: Sparkles, shorthand: '' },
+		{ type: 'top' as const, label: m.cmd_top(), badge: null, icon: IconStar, shorthand: '' },
+		{ type: 'new' as const, label: m.cmd_new(), badge: null, icon: IconSparkles, shorthand: '' },
 		{
 			type: 'trending' as const,
 			label: m.cmd_trending(),
 			badge: null,
-			icon: TrendingUp,
+			icon: IconTrendingUp,
 			shorthand: ''
 		},
 		{
 			type: 'categories' as const,
 			label: m.cmd_categories(),
 			badge: null,
-			icon: LayoutGrid,
+			icon: IconLayoutGrid,
 			shorthand: ''
 		},
-		{ type: 'category' as const, label: m.cmd_category(), badge: null, icon: Tag, shorthand: '' },
+		{
+			type: 'category' as const,
+			label: m.cmd_category(),
+			badge: null,
+			icon: IconTag,
+			shorthand: ''
+		},
 		{
 			type: 'list' as const,
 			label: m.cmd_list(),
 			badge: null,
-			icon: LayoutList,
+			icon: IconLayoutList,
 			shorthand: ''
 		},
-		{ type: 'charts' as const, label: m.cmd_charts(), badge: null, icon: BarChart2, shorthand: '' },
-		{ type: 'links' as const, label: m.cmd_links(), badge: null, icon: Link, shorthand: '' }
+		{
+			type: 'charts' as const,
+			label: m.cmd_charts(),
+			badge: null,
+			icon: IconChartBar,
+			shorthand: ''
+		},
+		{ type: 'links' as const, label: m.cmd_links(), badge: null, icon: IconLink, shorthand: '' }
 	]);
 
 	const filtered = $derived(
@@ -524,7 +540,7 @@
 							class="rounded p-1 text-muted-foreground/30 hover:bg-muted hover:text-muted-foreground"
 							title="Add block"
 						>
-							<Plus class="size-3.5" />
+							<IconPlus class="size-3.5" />
 						</button>
 						<button
 							type="button"
@@ -534,7 +550,7 @@
 							class="cursor-grab rounded p-1 text-muted-foreground/30 hover:bg-muted hover:text-muted-foreground active:cursor-grabbing"
 							title="Drag to reorder"
 						>
-							<GripVertical class="size-3.5" />
+							<IconGripVertical class="size-3.5" />
 						</button>
 					</div>
 
@@ -550,7 +566,7 @@
 							}}
 							disabled={i === 0}
 							class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
-							title="Move up"><ChevronUp class="size-3.5" /></button
+							title="Move up"><IconChevronUp class="size-3.5" /></button
 						>
 						<button
 							type="button"
@@ -560,7 +576,7 @@
 							}}
 							disabled={i === sections.length - 1}
 							class="rounded p-1 text-muted-foreground/50 hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-30"
-							title="Move down"><ChevronDown class="size-3.5" /></button
+							title="Move down"><IconChevronDown class="size-3.5" /></button
 						>
 						<button
 							type="button"
@@ -569,7 +585,7 @@
 								remove(i);
 							}}
 							class="rounded p-1 text-muted-foreground/50 hover:text-destructive"
-							title="Delete"><Trash2 class="size-3.5" /></button
+							title="Delete"><IconTrash class="size-3.5" /></button
 						>
 					</div>
 
@@ -695,7 +711,7 @@
 															type="button"
 															onclick={() => removeCarouselItem(section, j)}
 															class="text-muted-foreground hover:text-destructive"
-															><Trash2 class="size-3.5" /></button
+															><IconTrash class="size-3.5" /></button
 														>
 													</div>
 													{#if item.type === 'app'}
@@ -738,7 +754,7 @@
 																	type="button"
 																	onclick={() => removeTitle(item.titles, k)}
 																	class="text-muted-foreground hover:text-destructive"
-																	><Trash2 class="size-3.5" /></button
+																	><IconTrash class="size-3.5" /></button
 																>
 															</div>
 														{/each}
@@ -746,7 +762,7 @@
 															type="button"
 															class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 															onclick={() => addTitle(item.titles)}
-															><Plus class="size-3" /> title</button
+															><IconPlus class="size-3" /> title</button
 														>
 														<textarea
 															class="mt-1 w-full rounded border border-input bg-muted/30 px-3 py-2 font-mono text-xs outline-none"
@@ -763,13 +779,13 @@
 													type="button"
 													class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 													onclick={() => addCarouselApp(section)}
-													><Plus class="size-3" /> app</button
+													><IconPlus class="size-3" /> app</button
 												>
 												<button
 													type="button"
 													class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 													onclick={() => addCarouselStory(section)}
-													><Plus class="size-3" /> story</button
+													><IconPlus class="size-3" /> story</button
 												>
 											</div>
 										{:else if section.type === 'category'}
@@ -806,7 +822,7 @@
 																type="button"
 																onclick={() => removeTitle(section.titles, k)}
 																class="text-muted-foreground hover:text-destructive"
-																><Trash2 class="size-3.5" /></button
+																><IconTrash class="size-3.5" /></button
 															>
 														</div>
 													{/each}
@@ -814,7 +830,7 @@
 														type="button"
 														class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 														onclick={() => addTitle(section.titles)}
-														><Plus class="size-3" /> title</button
+														><IconPlus class="size-3" /> title</button
 													>
 												</div>
 												<div class="max-w-xs space-y-2">
@@ -848,7 +864,7 @@
 																type="button"
 																onclick={() => removeTitle(section.titles, k)}
 																class="text-muted-foreground hover:text-destructive"
-																><Trash2 class="size-3.5" /></button
+																><IconTrash class="size-3.5" /></button
 															>
 														</div>
 													{/each}
@@ -856,7 +872,7 @@
 														type="button"
 														class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 														onclick={() => addTitle(section.titles)}
-														><Plus class="size-3" /> title</button
+														><IconPlus class="size-3" /> title</button
 													>
 												</div>
 												<div class="space-y-2">
@@ -871,7 +887,7 @@
 																	type="button"
 																	onclick={() => removeLinksItem(section, k)}
 																	class="text-muted-foreground hover:text-destructive"
-																	><Trash2 class="size-3.5" /></button
+																	><IconTrash class="size-3.5" /></button
 																>
 															</div>
 															{#if item.kind === 'url'}
@@ -927,7 +943,7 @@
 																			type="button"
 																			onclick={() => removeTitle(item.titles, j)}
 																			class="text-muted-foreground hover:text-destructive"
-																			><Trash2 class="size-3.5" /></button
+																			><IconTrash class="size-3.5" /></button
 																		>
 																	</div>
 																{/each}
@@ -935,7 +951,7 @@
 																	type="button"
 																	class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 																	onclick={() => addTitle(item.titles)}
-																	><Plus class="size-3" /> title</button
+																	><IconPlus class="size-3" /> title</button
 																>
 																<textarea
 																	class="mt-1 w-full rounded border border-input bg-muted/30 px-3 py-2 font-mono text-xs outline-none"
@@ -952,19 +968,19 @@
 															type="button"
 															class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 															onclick={() => addLinksUrl(section)}
-															><Plus class="size-3" /> URL</button
+															><IconPlus class="size-3" /> URL</button
 														>
 														<button
 															type="button"
 															class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 															onclick={() => addLinksApp(section)}
-															><Plus class="size-3" /> app</button
+															><IconPlus class="size-3" /> app</button
 														>
 														<button
 															type="button"
 															class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
 															onclick={() => addLinksStory(section)}
-															><Plus class="size-3" /> story</button
+															><IconPlus class="size-3" /> story</button
 														>
 													</div>
 												</div>

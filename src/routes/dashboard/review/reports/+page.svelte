@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Check, X } from '@lucide/svelte';
+	import { IconCheck, IconX } from '@tabler/icons-svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import Pagination from '$lib/components/pagination.svelte';
@@ -89,7 +89,7 @@
 								<input type="hidden" name="id" value={report.id} />
 								<input type="hidden" name="note" value={notes[report.id] ?? ''} />
 								<Button type="submit" variant="destructive" size="sm">
-									<Check class="size-4" />
+									<IconCheck class="size-4" />
 									{report.targetType === 'DEVELOPER_PROFILE'
 										? m.review_reports_suspend()
 										: m.review_reports_take_action()}
@@ -111,7 +111,7 @@
 							<input type="hidden" name="id" value={report.id} />
 							<input type="hidden" name="note" value={notes[report.id] ?? ''} />
 							<Button type="submit" variant="ghost" size="sm">
-								<X class="size-4" />
+								<IconX class="size-4" />
 								{m.review_reports_dismiss()}
 							</Button>
 						</form>

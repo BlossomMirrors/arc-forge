@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Trash2, Copy, Check } from '@lucide/svelte';
+	import { IconCheck, IconCopy, IconTrash } from '@tabler/icons-svelte';
 	import ScreenshotUploadButton from '$lib/components/screenshot-upload-button.svelte';
 	import MoveToProfileDialog from '$lib/components/move-to-profile-dialog.svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -135,9 +135,9 @@
 									onclick={() => copyUrl(submission.id, submission.url)}
 								>
 									{#if copiedId === submission.id}
-										<Check class="size-3.5 text-green-600" />
+										<IconCheck class="size-3.5 text-green-600" />
 									{:else}
-										<Copy class="size-3.5" />
+										<IconCopy class="size-3.5" />
 									{/if}
 								</button>
 							</div>
@@ -159,7 +159,7 @@
 							class="shrink-0 text-muted-foreground hover:text-destructive"
 							title={m.screenshots_delete()}
 						>
-							<Trash2 class="size-4" />
+							<IconTrash class="size-4" />
 						</button>
 					</form>
 				</li>

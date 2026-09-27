@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Trash2 } from '@lucide/svelte';
+	import { IconTrash } from '@tabler/icons-svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
@@ -58,7 +58,7 @@
 							size="icon"
 							class="text-muted-foreground hover:text-destructive"
 						>
-							<Trash2 class="size-4" />
+							<IconTrash class="size-4" />
 						</Button>
 					</form>
 				</li>

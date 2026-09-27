@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page as currentPage } from '$app/state';
-	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
+	import { IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as m from '$lib/paraglide/messages';
 
@@ -27,7 +27,7 @@
 				? 'pointer-events-none opacity-50'
 				: ''}"
 		>
-			<ChevronLeft class="size-4" />
+			<IconChevronLeft class="size-4" />
 			{m.pagination_previous()}
 		</a>
 		<span class="text-xs text-muted-foreground">
@@ -41,7 +41,7 @@
 				: ''}"
 		>
 			{m.pagination_next()}
-			<ChevronRight class="size-4" />
+			<IconChevronRight class="size-4" />
 		</a>
 	</div>
 	<!-- eslint-enable svelte/no-navigation-without-resolve -->
