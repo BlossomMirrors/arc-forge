@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, open, rm, stat } from 'node:fs/promises';
-import { SCRATCH_ROOT } from '../flatpak-publish';
+import { BUILD_CACHE_ROOT } from '../build-cache';
 
-export const ARTIFACT_ROOT = `${SCRATCH_ROOT}/runner-artifacts`;
+export const ARTIFACT_ROOT = `${BUILD_CACHE_ROOT}/runner-artifacts`;
 export const MAX_ARTIFACT_BYTES = 32 * 1024 * 1024 * 1024;
 export const MAX_CHUNK_BYTES = 64 * 1024 * 1024;
 

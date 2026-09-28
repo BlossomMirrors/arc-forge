@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-sloppy-imports
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, writeFile, readFile, rm, open } from 'node:fs/promises';
@@ -12,36 +11,13 @@ import type { FlatpakApp } from '$lib/generated/prisma/client';
 import { runnerJobsLog, settleRunnerJobs } from './runners/logs';
 import { queueGitBuild, cancelJobsForBuild } from './runners/queue';
 import { resumeRunnerBuild } from './runners/finalize';
+import { BUILD_CACHE_ROOT } from './build-cache';
 
 const execFileAsync = promisify(execFile);
 
-// Build+sign+publish all happen as plain subprocesses of Forge's own server
-// process, in Forge's own container - no separate builder container, no
-// docker.sock, no `docker exec`. This container already IS the isolation
-// boundary; see docker-compose.yml's `privileged: true` and the Dockerfile
-// for what that now costs (flatpak-builder's bwrap sandbox needs it, and
-// it's the same container serving public HTTP traffic - a real trade-off,
-// see README.md). `/repo` is a real local filesystem (a Hetzner Volume, not
-// R2/rclone-FUSE-mounted - OSTree's commit writes rely on hardlinks, which
-// rclone's FUSE mount can't provide, a real reproduced `renameat`/`linkat`
-// EPERM confirmed this). Forge itself serves this same mount directly to
-// Flatpak clients (see src/routes/flatpak/[...path]/+server.ts) - no R2/CDN
-// involved at all anymore, that bucket holds unrelated content (RPMs) this
-// repo can't share a domain with.
 export const CONTAINER_REPO_PATH = '/repo';
-// Per-run scratch space (scripts, GPG passphrase/key files, build logs) - a
-// plain local directory, created on demand. Nothing here needs to be shared
-// with another container anymore.
-export const SCRATCH_ROOT = '/tmp/forge-flatpak';
+export { BUILD_CACHE_ROOT };
 
-// Fires the given bash command as a fully independent process (`detached:
-// true` + `unref()`, the Node equivalent of the old `screen -dmS`) and
-// returns immediately - the command keeps running independent of this
-// specific call, this Node process restarting, or this function's own
-// return. Survives a Forge code-level restart; does not survive the whole
-// container being recreated (see the module doc comment above for that
-// trade-off). Used for the actual (potentially long) build+sign+publish run
-// - see launchDetachedRun.
 function runDetached(command: string): { ok: boolean; log: string } {
 	try {
 		const child = spawn('bash', ['-c', command], { detached: true, stdio: 'ignore' });
@@ -53,11 +29,6 @@ function runDetached(command: string): { ok: boolean; log: string } {
 	}
 }
 
-// Runs a script and waits for it to finish, piping `stdin` in (the GPG
-// passphrase - see runOnBuilder). Only for short/synchronous scripts
-// (repair, unpublish, appstream extraction) - never for the detached publish
-// run, which would otherwise tie up this Node process for as long as the
-// build takes.
 function runPiped(scriptPath: string, stdin: string): Promise<{ exitCode: number; log: string }> {
 	return new Promise((resolve, reject) => {
 		const child = spawn('bash', [scriptPath]);
@@ -74,15 +45,12 @@ function runPiped(scriptPath: string, stdin: string): Promise<{ exitCode: number
 	});
 }
 
-// Writes to the scratch directory - creates the run's directory on first
-// write. mode matters here same as it did over SFTP (0600 for secrets like
-// the GPG passphrase/key, 0700 for the executable script itself).
-async function writeScratchFile(path: string, contents: string, mode = 0o600): Promise<void> {
+async function writeBuildCacheFile(path: string, contents: string, mode = 0o600): Promise<void> {
 	await mkdir(dirname(path), { recursive: true });
 	await writeFile(path, contents, { mode });
 }
 
-async function readScratchFileOrEmpty(path: string): Promise<string> {
+async function readBuildCacheFileOrEmpty(path: string): Promise<string> {
 	try {
 		return await readFile(path, 'utf8');
 	} catch {
@@ -90,8 +58,6 @@ async function readScratchFileOrEmpty(path: string): Promise<string> {
 	}
 }
 
-// Replicates `tail -c maxBytes` without reading a potentially large,
-// still-growing log file in full on every poll tick - see LOG_READ_BYTES.
 async function tailFile(path: string, maxBytes: number): Promise<string> {
 	let handle;
 	try {
@@ -109,39 +75,6 @@ async function tailFile(path: string, maxBytes: number): Promise<string> {
 	}
 }
 
-// Builds the full publish pipeline as a single self-deleting script. The GPG key ID is
-// derived dynamically at run time (matching the user's existing tooling)
-// rather than stored anywhere. Deliberately does NOT force-delete the appstream2/x86_64 ref
-// before regenerating: that's a manual repair step for when the branch is already
-// broken, not something to run on every routine publish, doing it unconditionally
-// disconnects the ref's history from what existing clients have cached, which can
-// surface as a static-delta checksum mismatch on their next pull.
-//
-// Deliberately does NOT check out the tree and inject/overwrite any metainfo.xml or
-// app-info/xmls fragment of its own anymore. That used to be necessary because Forge's
-// web form collected name/summary/icon/etc as free text with no relation to what was
-// actually inside the bundle, so something had to write real AppStream data into the
-// tree. Now that submission (see extractAppstreamMetadata below) reads the bundle's
-// OWN real AppStream data instead of asking the developer to retype it, that data is
-// already correct and already in the tree from build-import-bundle, overwriting it
-// only risked leaving stale, inconsistent leftovers (e.g. a real bundle's own
-// `files/share/app-info/icons/flatpak/*` icon cache, generated by the developer's own
-// `appstreamcli compose` step, sitting orphaned next to a hand-written xml.gz that no
-// longer referenced it) without actually fixing anything. Publishing is now just:
-// validate in staging, copy the untouched commit into the shared repo, and let
-// build-update-repo compose the aggregate catalog from what's really there.
-
-// Imports the admin-uploaded signing key fresh on every run and resolves its
-// fingerprint straight from the key file itself (via --import-options
-// show-only, which doesn't touch the keyring), rather than by listing
-// whatever secret keys the local keyring happens to already have. That "just
-// list secret keys and take the first one" approach is what silently signed
-// everything with the wrong key once the keyring ever held more than one -
-// see the incident this replaced. Requires $GPG_PASSPHRASE to already be set
-// (each caller reads its own passphrase differently, see
-// buildPublishScript/buildRepairScript/buildUnpublishScript). Re-importing
-// the same key on every run (this container's own keyring is long-lived, not
-// disposable per run) is idempotent and harmless.
 export function buildGpgImportSection(gpgKeyPath: string): string {
 	return `GPG_ID=$(gpg --batch --with-colons --import-options show-only --import "${gpgKeyPath}" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')
 if [ -z "$GPG_ID" ]; then
@@ -155,28 +88,12 @@ if [ -n "$GPG_PASSPHRASE" ]; then
 fi`;
 }
 
-// Neither source type stages anymore (explicit user decision) - both
-// build/import straight into $REPO_PATH (now a real local filesystem, see
-// CONTAINER_REPO_PATH above). Bundles are self-describing (build-import-bundle
-// always imports under the bundle's OWN embedded appid/branch, regardless of
-// what the submission declared) and a manifest could equally drift from its
-// submission's declared appid - a mismatch on either path now leaves a real,
-// signed commit sitting in the shared repo with nothing to clean it up,
-// swept into every later aggregate appstream2 rebuild. Mandatory human
-// review before approval is the only guard against that now, same posture as
-// the GIT-manifest security note in README.md. See flatpak_publish_pipeline
-// memory for the real, reproduced corruption incident (a submission
-// declaring `com.koyu.test` whose bundle was actually Hytale Launcher) that
-// originally motivated staging.
 interface BuildSidecarPaths {
 	commitPath: string;
 	metainfoPath: string;
 	iconPath: string;
 }
 
-// Curls the developer's uploaded bundle straight into $WORKDIR (the script's
-// own mktemp'd cwd - see buildPublishScript) and imports it directly into
-// $REPO_PATH.
 function buildBundleImportSection(app: FlatpakApp): string {
 	return `
 BUNDLE_URL="${app.bundleUrl}"
@@ -204,10 +121,8 @@ export function sidecarPathsFromRunDir(runDir: string): BuildSidecarPaths {
 	};
 }
 
-// Minted once per publish run - a fresh, uniquely-named subdirectory under
-// the shared scratch volume.
 export function buildRunPaths(appId: string): RunPaths {
-	const runDir = `${SCRATCH_ROOT}/run-${appId}-${Date.now()}`;
+	const runDir = `${BUILD_CACHE_ROOT}/run-${appId}-${Date.now()}`;
 	return {
 		runDir,
 		scriptPath: `${runDir}/script.sh`,
@@ -243,19 +158,15 @@ flatpak build-update-repo \\
 `;
 }
 
-// Writes the script (plus any extra small files it needs, e.g. a GPG
-// passphrase/key) to the scratch directory and fires it detached - see
-// pollBuildOnce for how its outcome is picked back up. Runs independent of
-// this Node process or Forge restarting (see runDetached).
 export async function launchDetachedRun(
 	paths: RunPaths,
 	script: string,
 	extraFiles: { path: string; contents: string; mode?: number }[] = []
 ): Promise<{ ok: boolean; log: string }> {
 	try {
-		await writeScratchFile(paths.scriptPath, script, 0o700);
+		await writeBuildCacheFile(paths.scriptPath, script, 0o700);
 		for (const f of extraFiles) {
-			await writeScratchFile(f.path, f.contents, f.mode ?? 0o600);
+			await writeBuildCacheFile(f.path, f.contents, f.mode ?? 0o600);
 		}
 		const { ok, log } = runDetached(
 			`bash "${paths.scriptPath}" > "${paths.logPath}" 2>&1; echo $? > "${paths.exitPath}"`
@@ -280,9 +191,6 @@ async function launchSigningPublish(
 	]);
 }
 
-// Manual, explicitly-triggered repair for when the appstream2/x86_64 branch is
-// already broken/stale, not run automatically as part of routine publishing
-// (see buildPublishScript's comment for why that caused real corruption once).
 function buildRepairScript(gpgKeyPath: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
@@ -307,13 +215,6 @@ echo "FORGE_REPAIR_OK"
 `;
 }
 
-// Shared by repairAppstream/unpublishFlatpak/extractAppstreamMetadata: loads
-// infra settings (just to check GPG is configured - R2 isn't involved here
-// at all anymore, see the module doc comment above), writes the given script
-// (plus a GPG key file, even when the script itself doesn't use one - see
-// buildExtractScript) to the scratch directory, runs it with the passphrase
-// piped over stdin, and always cleans the run's scratch files up afterward.
-// Never throws, callers get {ok, log} either way.
 async function runOnBuilder(
 	scriptBuilder: (gpgKeyPath: string) => string,
 	runIdPrefix: string
@@ -327,7 +228,7 @@ async function runOnBuilder(
 		};
 	}
 
-	const runDir = `${SCRATCH_ROOT}/${runIdPrefix}-${Date.now()}`;
+	const runDir = `${BUILD_CACHE_ROOT}/${runIdPrefix}-${Date.now()}`;
 	try {
 		const gpgKey = decryptSecret(settings.gpgPrivateKeyEncrypted);
 		const gpgPassphrase = decryptSecret(settings.gpgPassphraseEncrypted);
@@ -335,8 +236,8 @@ async function runOnBuilder(
 		const gpgKeyPath = `${runDir}/gpgkey`;
 		const script = scriptBuilder(gpgKeyPath);
 
-		await writeScratchFile(gpgKeyPath, gpgKey, 0o600);
-		await writeScratchFile(scriptPath, script, 0o700);
+		await writeBuildCacheFile(gpgKeyPath, gpgKey, 0o600);
+		await writeBuildCacheFile(scriptPath, script, 0o700);
 		const { exitCode, log } = await runPiped(scriptPath, gpgPassphrase);
 		return { ok: exitCode === 0, exitCode, log };
 	} catch (e) {
@@ -350,11 +251,6 @@ export async function repairAppstream(): Promise<{ ok: boolean; log: string }> {
 	return runOnBuilder(buildRepairScript, 'repair');
 }
 
-// Public key export needs no passphrase (unlocking the secret part isn't
-// required to read the public part back out), so this doesn't go through
-// runOnBuilder. Used by flatpak-repo-file.ts to fill in the .flatpakrepo
-// file's GPGKey field, base64 of the raw exported key, not armored, same
-// shape flatpak itself expects there.
 export async function getGpgPublicKeyBase64(): Promise<{
 	ok: boolean;
 	base64?: string;
@@ -365,10 +261,10 @@ export async function getGpgPublicKeyBase64(): Promise<{
 		return { ok: false, log: 'No GPG signing key is configured yet.' };
 	}
 
-	const runDir = `${SCRATCH_ROOT}/pubkey-${Date.now()}`;
+	const runDir = `${BUILD_CACHE_ROOT}/pubkey-${Date.now()}`;
 	const keyPath = `${runDir}/gpgkey`;
 	try {
-		await writeScratchFile(keyPath, decryptSecret(settings.gpgPrivateKeyEncrypted), 0o600);
+		await writeBuildCacheFile(keyPath, decryptSecret(settings.gpgPrivateKeyEncrypted), 0o600);
 		const { stdout } = await execFileAsync('bash', [
 			'-c',
 			`gpg --batch --import "${keyPath}" >/dev/null 2>&1
@@ -392,22 +288,6 @@ function execErrorMessage(e: unknown): string {
 	return stderr || (e instanceof Error ? e.message : String(e));
 }
 
-// Static deltas accumulate forever otherwise: `flatpak build-update-repo
-// --generate-static-deltas` runs on every publish and generates a fresh
-// delta from each of a ref's still-reachable old commits to whatever the
-// NEW head is - but the moment another commit lands on that same ref, every
-// delta from the previous run (built against the now-superseded old head)
-// becomes permanently unreachable to any real client, since a client only
-// ever requests a delta *to* a ref's current head (learned from the repo's
-// own summary), never to a stale one. Nothing ever deleted those. Confirmed
-// directly against a real throwaway ostree repo that `ostree prune` does
-// NOT clean up static delta files on this libostree version, regardless of
-// flags (`--static-deltas-only`, `--delete-commit`, `--keep-younger-than`
-// all tried, in every combination the CLI accepts) - only `ostree
-// static-delta delete NAME` actually removes files on disk. The rule below
-// needs no age/depth heuristic and can never delete a delta a client could
-// still use: a delta's TO commit that isn't any ref's CURRENT head can
-// never be served to anyone, full stop.
 export async function pruneStaticDeltas(): Promise<{
 	ok: boolean;
 	log: string;
@@ -428,8 +308,6 @@ export async function pruneStaticDeltas(): Promise<{
 				const { stdout } = await execFileAsync('ostree', ['rev-parse', `--repo=${repo}`, ref]);
 				currentHeads.add(stdout.trim());
 			} catch {
-				// Ref vanished between listing and resolving it - just skip it,
-				// nothing downstream depends on every ref resolving.
 			}
 		}
 
@@ -447,8 +325,6 @@ export async function pruneStaticDeltas(): Promise<{
 		let deleted = 0;
 		let kept = 0;
 		for (const name of deltaNames) {
-			// Entries are either "TO" (a from-scratch delta) or "FROM-TO" -
-			// hex checksums never contain "-", so the last segment is always TO.
 			const to = name.includes('-') ? name.slice(name.lastIndexOf('-') + 1) : name;
 			if (currentHeads.has(to)) {
 				kept++;
@@ -463,8 +339,6 @@ export async function pruneStaticDeltas(): Promise<{
 			}
 		}
 
-		// Cheap and only matters if something was actually deleted - keeps the
-		// repo's advertised delta index from ever pointing at a removed file.
 		if (deleted > 0) {
 			await execFileAsync('ostree', ['summary', '-u', `--repo=${repo}`]);
 		}
@@ -483,18 +357,10 @@ const EXTRACT_ICON_END = 'FORGE_ICON_B64_END';
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
-// The extraction scripts now fall back to hicolor/scalable/apps/$APPID.svg
-// when no sized raster icon exists, so an extracted icon is no longer
-// guaranteed to be a PNG, callers must not assume the extension/mime type.
 export function iconFileExtension(buffer: Buffer): 'png' | 'svg' {
 	return buffer.subarray(0, 4).equals(PNG_MAGIC) ? 'png' : 'svg';
 }
 
-// Read-only: imports the bundle into a throwaway staging repo (never touches the
-// shared repo, never imports/uses the GPG key) purely to read back its own, real
-// AppStream metainfo.xml and icon, so Forge's web UI can be populated from what's
-// actually inside the bundle instead of free-text form fields a developer could
-// type anything into.
 function buildExtractScript(bundleUrl: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
@@ -679,18 +545,9 @@ function extractBetweenMarkers(
 	return log.slice(contentStart, end).trim();
 }
 
-// AppStream allows both the older <developer_name> and the newer <developer><name>
-// form, and either can appear as a plain string or as an object with a #text node
-// depending on whether the parser sees attributes alongside it. A translated
-// component (multiple <name>/<summary> elements with different xml:lang) parses
-// to an ARRAY of those, which is also `typeof === 'object'` but has no '#text' of
-// its own - without this branch every one of these fields silently came back
-// empty for any bundle with translated AppStream metadata.
 function textOf(value: unknown): string {
 	if (typeof value === 'string') return value;
 	if (Array.isArray(value)) {
-		// Prefer the untranslated/default entry (no xml:lang) for single-value
-		// fields, these aren't meant to be localized themselves.
 		const untranslated = value.find(
 			(v) => typeof v === 'string' || !('@_xml:lang' in (v as Record<string, unknown>))
 		);
@@ -722,10 +579,6 @@ function collectLangVariants(value: unknown): Record<string, string> {
 	return result;
 }
 
-// <description> blocks carry their own inner markup verbatim (see the comment
-// on the single-value extraction below), so translated variants are pulled the
-// same way, by matching each <description>/<description xml:lang="..."> block
-// directly out of the source XML rather than the parsed object tree.
 function collectDescriptionVariants(xml: string): Record<string, string> {
 	const result: Record<string, string> = {};
 	const regex = /<description(?:\s+xml:lang="([^"]+)")?\s*>([\s\S]*?)<\/description>/g;
@@ -738,11 +591,6 @@ function collectDescriptionVariants(xml: string): Record<string, string> {
 	return result;
 }
 
-// Preview-only: the real submission fields (parseAppstreamComponent, used for
-// what's actually saved) are intentionally single-language, Flatpak has no
-// translation model the way PwaTranslation exists for PWAs. This just surfaces
-// every language actually present in the bundle's own metainfo.xml so a
-// submitter can double check translated listings before submitting.
 export function parseAppstreamTranslations(xml: string): Record<string, LocalizedMetadata> {
 	const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
 	const doc = parser.parse(xml) as Record<string, unknown>;
@@ -785,10 +633,6 @@ function parseAppstreamComponent(xml: string): {
 	const name = textOf(component.name).trim();
 	const summary = textOf(component.summary).trim();
 
-	// Description is a mix of <p>/<ul>/<ol>/<li> elements meant to be shown as HTML
-	// (matches Forge's existing "Description (HTML)" field), pulling the raw inner
-	// XML straight out of the source string preserves that markup exactly, rather
-	// than trying to reconstruct it from the parsed object tree.
 	const descMatch = xml.match(/<description>([\s\S]*?)<\/description>/);
 	const description = descMatch ? descMatch[1].trim() : '';
 
@@ -831,16 +675,6 @@ export type ExtractedAppstream = {
 	log?: string;
 };
 
-// Preview and actual submission both call this for the same bundleUrl, moments apart -
-// caching the result means clicking Create right after a preview finishes reuses that
-// preview's own extraction instead of re-downloading and re-parsing the same bundle
-// (see FlatpakForm.svelte's canSubmit, which blocks submitting a bundle until its own
-// preview fetch has resolved, precisely so this cache is warm by then). Only successful
-// extractions are cached - a failure might be transient (network hiccup hitting the
-// builder), and submission should get its own fresh attempt rather than replaying a
-// stale one. Not scoped per-user: bundleUrl already embeds an unguessable
-// crypto.randomUUID() filename tied to one specific upload, so nothing meaningful leaks
-// by keying on it directly.
 const EXTRACTION_CACHE_TTL_MS = 15 * 60 * 1000;
 const extractionCache = new Map<string, { result: ExtractedAppstream; expiresAt: number }>();
 
@@ -850,8 +684,6 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 
 	const result = await extractAppstreamMetadataUncached(bundleUrl);
 	if (result.ok) {
-		// Sweep expired entries while we're here rather than on a timer - upload
-		// volume is low enough that the map never gets large between sweeps.
 		const now = Date.now();
 		for (const [key, entry] of extractionCache) {
 			if (entry.expiresAt <= now) extractionCache.delete(key);
@@ -864,11 +696,6 @@ export async function extractAppstreamMetadata(bundleUrl: string): Promise<Extra
 async function extractAppstreamMetadataUncached(bundleUrl: string): Promise<ExtractedAppstream> {
 	const { ok, exitCode, log } = await runOnBuilder(() => buildExtractScript(bundleUrl), 'extract');
 	if (!ok || !log.includes('FORGE_EXTRACT_OK')) {
-		// The last line isn't necessarily the actual failure, a step can print a
-		// perfectly normal progress message and then die with no further output at
-		// all (process killed, out of disk, etc.), so the headline names the last
-		// step reached instead of guessing at an error line, the full log (always
-		// returned below) has the real detail.
 		const lastStepMatch = [...log.matchAll(/^FORGE_STEP: (.+)$/gm)].pop();
 		const lastStep = lastStepMatch?.[1];
 		const codeDesc =
@@ -917,9 +744,6 @@ async function extractAppstreamMetadataUncached(bundleUrl: string): Promise<Extr
 	return { ok: true, appid, branch, iconBuffer, translations, log, ...parsed };
 }
 
-// Removes a specific app's ref from the repo (if present) and republishes, so the
-// repo's summary/deltas/appstream catalog no longer advertise it. Used both by a
-// reviewer's explicit "pull" and by deleting a Flatpak that's currently live.
 function buildUnpublishScript(app: FlatpakApp, gpgKeyPath: string): string {
 	return `#!/usr/bin/env bash
 set -euo pipefail
@@ -952,20 +776,12 @@ export async function unpublishFlatpak(app: FlatpakApp): Promise<{ ok: boolean; 
 	return runOnBuilder((gpgKeyPath) => buildUnpublishScript(app, gpgKeyPath), `unpublish-${app.id}`);
 }
 
-// Only relevant for GIT-sourced apps: a bundle submission already extracted its
-// display data once at upload time (see extractAppstreamMetadata), but a git
-// submission has nothing to show until a build actually produces AppStream data,
-// so it's re-read from the sidecar files a successful run wrote (see
-// buildGitExtractionSection and BuildSidecarPaths) at finalize time in
-// pollBuildOnce.
 async function updateDisplayDataFromSidecars(
 	metainfoB64: string,
 	iconB64: string
 ): Promise<Record<string, unknown>> {
 	const data: Record<string, unknown> = {};
 
-	// Independent of the icon below: a build can produce one without the other
-	// (or vice versa), neither should block the other from updating.
 	if (metainfoB64) {
 		const metainfoXml = Buffer.from(metainfoB64, 'base64').toString('utf8');
 		const parsed = parseAppstreamComponent(metainfoXml);
@@ -991,32 +807,11 @@ async function updateDisplayDataFromSidecars(
 	return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
 }
 
-// Bounded tail read for both the live-view refresh and the final stored log -
-// generous enough for any real build, matches the "read a bounded amount"
-// posture already used elsewhere in this file (e.g. notification bodies).
 const LOG_READ_BYTES = 5_000_000;
 const POLL_INTERVAL_MS = 7_000;
 
-// Builds currently being tracked by the poller below - populated by triggerPublish
-// right after a successful launch, and by reconcileStuckBuilds on server startup.
 const activeBuildIds = new Set<string>();
 
-// One poll tick for one build: reads the exit-marker file straight off the
-// shared scratch volume (no network round trip at all now, just local fs)
-// and either refreshes the live log (still running) or finalizes (done).
-//
-// Finalizing is deliberately idempotent and safe to retry: the tracked build id
-// is only removed from activeBuildIds, and the scratch run directory is only
-// deleted, *after* the DB writes below actually succeed. If they throw (e.g.
-// the exact transient Postgres error that originally left a row stuck on
-// PROCESSING forever), this function just logs it and returns - the exit file
-// is still sitting there, so the very next tick (~POLL_INTERVAL_MS later)
-// re-reads it and retries the same finalize from scratch. No bespoke
-// backoff/retry helper needed: a blip under one interval self-heals silently,
-// a longer outage self-heals whenever Postgres comes back, and a Forge
-// process-level restart mid-outage is covered by reconcileStuckBuilds
-// re-discovering the same build (the detached run keeps going regardless,
-// see runDetached - as long as the container itself isn't recreated).
 async function pollBuildOnce(buildId: string): Promise<void> {
 	const build = await db.flatpakBuild.findUnique({
 		where: { id: buildId },
@@ -1028,9 +823,8 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 	}
 
 	try {
-		const exitRaw = (await readScratchFileOrEmpty(build.remoteExitPath)).trim();
+		const exitRaw = (await readBuildCacheFileOrEmpty(build.remoteExitPath)).trim();
 		if (exitRaw === '') {
-			// Still running - keep the live-view log fresh, best effort only.
 			const log =
 				(await runnerJobsLog(build.id)) + (await tailFile(build.remoteLogPath, LOG_READ_BYTES));
 			await db.flatpakBuild
@@ -1045,18 +839,14 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 			(await runnerJobsLog(build.id)) + (await tailFile(build.remoteLogPath, LOG_READ_BYTES));
 		const runDir = dirname(build.remoteLogPath);
 		const sidecar = sidecarPathsFromRunDir(runDir);
-		// The commit actually built can be later than app.gitLastCommit if more
-		// pushes landed between the watcher flagging this for review and the
-		// reviewer approving it - record what was really built, not just what
-		// was detected.
-		const gitCommit = (await readScratchFileOrEmpty(sidecar.commitPath)).trim();
+		const gitCommit = (await readBuildCacheFileOrEmpty(sidecar.commitPath)).trim();
 
 		try {
 			const displayData =
 				ok && app.sourceType === 'GIT'
 					? await updateDisplayDataFromSidecars(
-							await readScratchFileOrEmpty(sidecar.metainfoPath),
-							await readScratchFileOrEmpty(sidecar.iconPath)
+							await readBuildCacheFileOrEmpty(sidecar.metainfoPath),
+							await readBuildCacheFileOrEmpty(sidecar.iconPath)
 						)
 					: {};
 			await db.flatpakApp.update({
@@ -1105,10 +895,6 @@ async function pollBuildOnce(buildId: string): Promise<void> {
 
 let pollerStarted = false;
 
-// Wired from hooks.server.ts next to startGitWatcher, same guard-against-double-
-// start shape. Reconciliation runs once at startup so a row left on PROCESSING
-// by a crash/restart (or the exact DB-write race this file's poller exists to
-// survive) gets picked back up automatically instead of needing a manual retry.
 export function startBuildPoller(): void {
 	if (pollerStarted) return;
 	pollerStarted = true;
@@ -1160,14 +946,6 @@ export async function finalizeLaunchFailure(
 	}
 }
 
-// Emergency stop, wired from the Infra Settings admin action: kills whatever's
-// actually still running locally (best effort - a process that already
-// finished/never existed just no-ops) and marks every
-// PROCESSING app/build FAILED. Unlike pollBuildOnce's finalize, this is a
-// deliberate synchronous one-off admin action (matches repairAppstream's
-// shape), not something retried automatically, so a per-app failure is
-// recorded in the returned log and skipped rather than the whole call
-// throwing.
 export async function abortAllProcessingBuilds(): Promise<{
 	ok: boolean;
 	log: string;
@@ -1189,10 +967,6 @@ export async function abortAllProcessingBuilds(): Promise<{
 			console.error(`Failed to cancel runner jobs for build ${build.id}:`, e)
 		);
 		try {
-			// screenSessionName no longer names a real `screen` session - it holds
-			// the run's script path (see launchPublish), matched here to kill the
-			// right local process. pkill exits non-zero when nothing matches
-			// (already finished), not a real failure.
 			await execFileAsync('pkill', ['-f', build.screenSessionName]).catch(() => {});
 			await rm(dirname(build.remoteLogPath), { recursive: true, force: true }).catch(() => {});
 			lines.push(`${app.appid}: kill attempted`);
@@ -1242,12 +1016,6 @@ export async function abortAllProcessingBuilds(): Promise<{
 
 const triggeringApps = new Set<string>();
 
-// Creates the FlatpakBuild history row, prunes anything past the 10 most recent
-// for this app, then launches the build detached (see launchSigningPublish)
-// and hands it off to the shared poller. Doesn't await the build itself
-// completing - the caller (the review approve/retry action) returns
-// immediately, same as before, but the build's outcome is now tracked
-// durably instead of living only in this async call's own stack.
 export function triggerPublish(flatpakAppId: string, triggeredById?: string): void {
 	if (triggeringApps.has(flatpakAppId)) return;
 	triggeringApps.add(flatpakAppId);
@@ -1264,8 +1032,6 @@ async function launchPublish(flatpakAppId: string, triggeredById?: string): Prom
 			flatpakAppId: app.id,
 			status: 'PROCESSING',
 			log: '',
-			// No more real `screen` session (see abortAllProcessingBuilds) - this
-			// field now just holds the run's script path.
 			screenSessionName: paths.scriptPath,
 			remoteLogPath: paths.logPath,
 			remoteExitPath: paths.exitPath,

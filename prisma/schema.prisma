@@ -92,11 +92,9 @@ enum PwaStatus {
   PENDING
   APPROVED
   REJECTED
-  PULLED // was approved/live, a reviewer withdrew it; re-approvable
+  PULLED
 }
 
-// Better-auth's "organization" plugin, renamed throughout to "developer profile"
-// since that's what an org represents in Forge: the publisher identity behind PWA submissions.
 model DeveloperProfile {
   id                    String                         @id
   name                  String                         @unique
@@ -104,19 +102,10 @@ model DeveloperProfile {
   logo                  String?
   metadata              String?
   createdAt             DateTime
-  // Set/revoked by a reviewer (or higher) via /dashboard/verified-developers.
-  // Checked by the public /api/verified/[appid] endpoint - a staff-submitted
-  // Flatpak (no developerProfileId at all) is always treated as verified there
-  // regardless of this flag, see that route.
   verified              Boolean                        @default(false)
   verifiedById          String?
   verifiedBy            User?                          @relation("DeveloperProfileVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   verifiedAt            DateTime?
-  // Set by a reviewer (or higher) acting on an abuse report or their own judgement,
-  // see suspendDeveloperProfile/unsuspendDeveloperProfile in developer-profile.ts.
-  // Suspending pulls every APPROVED PWA/Flatpak under the profile to PULLED (and
-  // unpublishes any live Flatpak from the signed repo) and blocks new submissions
-  // while set, but never deletes anything - PULLED stays re-approvable once lifted.
   suspended             Boolean                        @default(false)
   suspendedById         String?
   suspendedBy           User?                          @relation("DeveloperProfileSuspendedBy", fields: [suspendedById], references: [id], onDelete: SetNull)
@@ -137,15 +126,10 @@ enum VerificationRequestStatus {
   REJECTED
 }
 
-// A developer's request to have their profile marked DeveloperProfile.verified.
-// Lands in the review queue like a PWA/Flatpak submission - approving it also
-// flips DeveloperProfile.verified (the same flag a reviewer can otherwise set
-// directly from /dashboard/verified-developers with no request at all).
 model DeveloperVerificationRequest {
   id                 String                    @id @default(cuid())
   developerProfileId String
   developerProfile   DeveloperProfile          @relation(fields: [developerProfileId], references: [id], onDelete: Cascade)
-  // Proof of legitimacy submitted by the developer, shown to the reviewer.
   dunsNumber         String
   documentUrls       String[]
   status             VerificationRequestStatus @default(PENDING)
@@ -168,10 +152,6 @@ enum ScreenshotStatus {
   REJECTED
 }
 
-// A developer-hosted image submitted so Forge can host it at a stable URL, for
-// use as a PWA/Flatpak screenshot without needing external image hosting. Goes
-// through the same review queue as PWA/Flatpak submissions rather than being
-// usable immediately, so Forge's storage isn't an open, unmoderated image host.
 model ScreenshotSubmission {
   id                 String            @id @default(cuid())
   url                String
@@ -216,12 +196,6 @@ enum ReportStatus {
   ACTIONED
 }
 
-// A public, unauthenticated abuse report against a PWA, Flatpak, List, or
-// developer profile - see src/routes/report/[targetType]/[targetRef] (the public
-// submission page) and src/lib/server/reports.ts (target resolution). targetId is
-// deliberately not a real foreign key: the target lives in one of four different
-// tables depending on targetType, and Prisma has no native polymorphic relation.
-// Same pattern AppListItem.appRef already uses elsewhere in this schema.
 model Report {
   id            String           @id @default(cuid())
   targetType    ReportTargetType
@@ -306,17 +280,17 @@ model PwaApp {
 }
 
 enum FlatpakStatus {
-  PENDING // awaiting review
-  PROCESSING // approved, SSH build/publish running
-  APPROVED // build succeeded, live
-  REJECTED // reviewer rejected, no build attempted
-  FAILED // build/publish failed, retryable
-  PULLED // was approved/live, a reviewer withdrew it from the repo; re-approvable
+  PENDING
+  PROCESSING
+  APPROVED
+  REJECTED
+  FAILED
+  PULLED
 }
 
 enum FlatpakSourceType {
-  BUNDLE // a prebuilt .flatpak file was uploaded
-  GIT // built from a flatpak-builder manifest in a watched git repo
+  BUNDLE
+  GIT
 }
 
 enum FlatpakBuildResult {
@@ -325,11 +299,6 @@ enum FlatpakBuildResult {
   FAILED
 }
 
-// Vestigial: both source types have run in a single PUBLISH-stage script
-// since the two-phase BUILD/PUBLISH split (a separate Docker build host,
-// then later a separate signing host) was collapsed away. Left in place
-// (never BUILD on new rows) purely so old history rows still deserialize -
-// not read for any branching logic anymore, see flatpak-publish.ts.
 enum FlatpakBuildStage {
   BUILD
   PUBLISH
@@ -337,10 +306,6 @@ enum FlatpakBuildStage {
 
 model FlatpakApp {
   id                 String            @id @default(cuid())
-  // Not unique on its own: the same appid can legitimately be submitted more
-  // than once at different branches, e.g. a Qt style/theme extension built
-  // against org.kde.Platform 5.15-24.08, 6.9, and 6.10 all as
-  // org.kde.KStyle.BlossomUI, just with a different branch each time.
   appid              String
   branch             String            @default("stable")
   name               String
@@ -356,13 +321,7 @@ model FlatpakApp {
   sourceType         FlatpakSourceType @default(BUNDLE)
   bundleUrl          String?
   bundleFileName     String?
-  // BigInt, not Int: Postgres integer tops out around 2.1GB, well under the current
-  // 8 GiB bundle cap (see FLATPAK_MAX_BUNDLE_BYTES) - Int overflowed on insert for
-  // any bundle bigger than that before this was widened.
   bundleSize         BigInt?
-  // Git source fields - only set when sourceType is GIT. gitLastCommit is the
-  // commit the current build/review was triggered from; the watcher (see
-  // git-watch.ts) compares this against the remote's HEAD to detect new pushes.
   gitUrl             String?
   gitBranch          String?
   gitManifestPath    String?
@@ -374,8 +333,6 @@ model FlatpakApp {
   reviewedBy         User?             @relation("FlatpakReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt         DateTime?
   reviewNote         String?           @db.Text
-  // Log of the last one-off admin action (unpublish/pull), not a build - per-build
-  // logs live in FlatpakBuild below, kept as history rather than overwritten.
   buildLog           String?           @db.Text
   buildStartedAt     DateTime?
   buildFinishedAt    DateTime?
@@ -389,29 +346,14 @@ model FlatpakApp {
   @@index([developerProfileId])
 }
 
-// One row per build attempt (approve/retry), capped at the 10 most recent per
-// app (see triggerPublish in flatpak-publish.ts) - gives reviewers and
-// submitters real history instead of a single buildLog field overwritten on
-// every retry, and survives a Forge restart via the persisted screen/remote
-// path fields (see flatpak-publish.ts's poller/reconciliation for why).
 model FlatpakBuild {
   id                String             @id @default(cuid())
   flatpakAppId      String
   flatpakApp        FlatpakApp         @relation(fields: [flatpakAppId], references: [id], onDelete: Cascade)
   status            FlatpakBuildResult @default(PROCESSING)
   log               String             @db.Text
-  // Set from the run's own git-clone sidecar file at finalize time (GIT only,
-  // unused for BUNDLE) - see updateDisplayDataFromSidecars in flatpak-publish.ts.
   gitCommit         String?
-  // See the FlatpakBuildStage enum doc above - vestigial, always PUBLISH now.
   stage             FlatpakBuildStage  @default(PUBLISH)
-  // screenSessionName no longer names a real `screen` session (there's no SSH
-  // session at all anymore) - it holds the run's script path inside the
-  // builder container, used by abortAllProcessingBuilds to `pkill -f` it.
-  // remoteLogPath/remoteExitPath are paths on the shared scratch Docker
-  // volume (see SCRATCH_ROOT in flatpak-publish.ts), not a remote host -
-  // names kept as-is to avoid widening this migration, see that file's
-  // pollBuildOnce for how they're read directly via local fs now.
   screenSessionName String
   remoteLogPath     String
   remoteExitPath    String
@@ -424,32 +366,10 @@ model FlatpakBuild {
   @@index([flatpakAppId, startedAt])
 }
 
-// Singleton row (see FrontPage for the same pattern) holding infra secrets for the
-// Flatpak publish pipeline. Only readable/writable by the "admin" group.
-//
-// No more SSH/remote-host/R2 fields (sshPublicKey/sshPrivateKeyEncrypted/
-// remoteHost/remoteUser/buildHost/buildUser/buildWorkDir/buildDockerImage/
-// r2BucketName/r2RepoPath, all removed here) - build+sign now run in a
-// sibling `builder` container in Forge's own docker-compose stack, reached
-// via `docker exec`, not SSH, and Forge serves the repo directly off the
-// same mounted disk (see src/routes/flatpak/[...path]/+server.ts) - no R2/CDN
-// involved for Flatpaks at all anymore. See flatpak-publish.ts and
-// README.md's Flatpak publishing section.
 model InfraSettings {
   id                     String   @id @default("singleton")
-  // The actual GPG signing key material, uploaded by an admin rather than ever
-  // generated on (or assumed to already exist on) the builder container - see
-  // buildGpgImportSection in flatpak-publish.ts. Every publish/repair/unpublish
-  // run imports this fresh and unlocks it with gpgPassphraseEncrypted below, so
-  // the builder container's own keyring is disposable: losing it no longer
-  // means losing the signing key itself.
   gpgPrivateKeyEncrypted String?  @db.Text
   gpgPassphraseEncrypted String?  @db.Text
-  // Editable metadata for the public flatpak.flatpakrepo file (see
-  // src/routes/flatpak.flatpakrepo/+server.ts). Url and GPGKey are never
-  // stored here: Url is derived from the request origin and GPGKey is
-  // derived from gpgPrivateKeyEncrypted at request time, see
-  // flatpak-repo-file.ts and getGpgPublicKeyBase64 in flatpak-publish.ts.
   flatpakRepoTitle       String?
   flatpakRepoHomepage    String?
   flatpakRepoComment     String?
@@ -458,12 +378,6 @@ model InfraSettings {
   updatedAt              DateTime @updatedAt
 }
 
-// Step-up email verification gating InfraSettings. Keyed by better-auth session id
-// (not userId) so verifying in one browser doesn't silently elevate every other
-// session the admin is logged in on. codeHash/codeExpiresAt track the one-time code
-// itself; verifiedAt is only set once the code checks out, and access stays granted
-// for a short window after that (see INFRA_ACCESS_TTL_MS in infra-access.ts) before
-// a fresh code is required again.
 model InfraAccessVerification {
   sessionId     String    @id
   codeHash      String
@@ -518,25 +432,14 @@ model FlathubCache {
   cachedAt DateTime @default(now())
 }
 
-// A user-curated collection of apps, e.g. "my favorite dev tools". Deliberately
-// unmoderated: id is a real UUID (not the app's usual cuid) because it doubles as
-// the only access control for reading the list - anyone who has the id can fetch
-// it via GET /api/lists/:id, no login required. Only the creator can edit it
-// though, that's checked against createdById in the dashboard actions.
 model AppList {
   id                 String            @id @default(uuid())
   name               String
-  // Optional human-friendly alternative to the id, chosen by the creator.
-  // Setting one trades away some of the id's unguessability for a memorable
-  // reference, e.g. for use in the frontpage designer's custom block.
   slug               String?           @unique
   icon               String?
   description        String?           @db.Text
   createdById        String?
   createdBy          User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  // Optional - a list is still a personal curation feature anyone can make
-  // without belonging to any developer profile, this just lets one be filed
-  // under a profile (and moved between profiles) once it exists.
   developerProfileId String?
   developerProfile   DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
   items              AppListItem[]
@@ -547,12 +450,6 @@ model AppList {
   @@index([developerProfileId])
 }
 
-// name/iconUrl are a snapshot taken when the app was added, not re-fetched live,
-// so viewing a list doesn't depend on Flathub/arpi.blossomos.org/Forge's own PWA
-// table all being up just to render it. appRef is either a bare Flatpak app id
-// (e.g. "org.gnome.Gedit") or a Forge PWA id prefixed "pwa:" (e.g.
-// "pwa:com.example.MyApp") - the same pwa: convention arc-daemon's own PWA
-// provider already uses to tell the two apart.
 model AppListItem {
   id        String   @id @default(cuid())
   listId    String
